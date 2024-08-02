@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "194841362814",
+    "project_id": "smart-pgto",
+    "storage_bucket": "smart-pgto.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:194841362814:android:f1073be7fe0c827dcc732f",
+        "android_client_info": {
+          "package_name": "com.example.smartPagamento"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKvgWfeCMdd53EV8cMIbmM7hYAWCjo-ho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:194841362814:android:1e1ef2f91e43a05bcc732f",
+        "android_client_info": {
+          "package_name": "com.example.smart_pagamento"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKvgWfeCMdd53EV8cMIbmM7hYAWCjo-ho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:194841362814:android:b857b6aec046bfbccc732f",
+        "android_client_info": {
+          "package_name": "com.smart_pgto.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKvgWfeCMdd53EV8cMIbmM7hYAWCjo-ho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
