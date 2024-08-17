@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:smart_pagamento/screens/cadastros/telaCadastroCliente.dart';
 
 class ClienteListScreen extends StatefulWidget {
-  const ClienteListScreen({Key? key}) : super(key: key);
+  final String? email;
+
+  const ClienteListScreen({Key? key, this.email}) : super(key: key);
 
   @override
   _ClienteListScreenState createState() => _ClienteListScreenState();
@@ -74,6 +76,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
               child: StreamBuilder(
                 stream: FirebaseFirestore.instance
                     .collection('clientes')
+                    .where('email_user', isEqualTo: widget.email)
                     .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
@@ -169,10 +172,10 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.list, color: Colors.white),
+                                icon:
+                                    const Icon(Icons.list, color: Colors.white),
                                 tooltip: 'Itens Vendas',
-                                onPressed: () async{
-                                  
+                                onPressed: () async {
                                   await _getDataItensVendas(cliente.id);
                                   _showProducts(context);
                                 },
@@ -198,16 +201,16 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
 
   Future<void> _getDataItensVendas(String clienteid) async {
     _listProdutosEscolhidos.clear();
-    
-    var iven = await FirebaseFirestore.instance.collection('itens_vendas').get();
-    var vendas = await FirebaseFirestore.instance.collection('vendas').get();
 
-    for (var docven in vendas.docs){
-      if (clienteid == docven['idcliente']){
+    var iven =
+        await FirebaseFirestore.instance.collection('itens_vendas').where('email_user', isEqualTo: widget.email).get();
+    var vendas = await FirebaseFirestore.instance.collection('vendas').where('email_user', isEqualTo: widget.email).get();
+
+    for (var docven in vendas.docs) {
+      if (clienteid == docven['idcliente']) {
         for (var doc in iven.docs) {
           if (docven.id == doc['idvenda']) {
             _listProdutosEscolhidos.add(doc['produto']);
-          
           }
         }
       }

@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:smart_pagamento/screens/cadastros/telaCadastroFiliado.dart';
 
 class FiliadoListScreen extends StatefulWidget {
-  const FiliadoListScreen({Key? key}) : super(key: key);
+  final String? email;
+
+  const FiliadoListScreen({Key? key, this.email}) : super(key: key);
 
   @override
   _FiliadoListScreenState createState() => _FiliadoListScreenState();
@@ -21,12 +23,16 @@ class _FiliadoListScreenState extends State<FiliadoListScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Meus Filiados',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 38,),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 38,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        systemOverlayStyle:  SystemUiOverlayStyle.light,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
       body: Container(
         padding: const EdgeInsets.only(top: 40, left: 50, right: 50),
@@ -67,7 +73,10 @@ class _FiliadoListScreenState extends State<FiliadoListScreen> {
             const SizedBox(height: 20),
             Expanded(
               child: StreamBuilder(
-                stream: FirebaseFirestore.instance.collection('filiados').snapshots(),
+                stream: FirebaseFirestore.instance
+                    .collection('filiados')
+                    .where('email_user', isEqualTo: widget.email)
+                    .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
@@ -78,11 +87,16 @@ class _FiliadoListScreenState extends State<FiliadoListScreen> {
                   }
 
                   final filiados = snapshot.data!.docs.where((filiado) {
-                    return filiado['name'].toString().toLowerCase().contains(searchQuery);
+                    return filiado['name']
+                        .toString()
+                        .toLowerCase()
+                        .contains(searchQuery);
                   }).toList();
 
                   if (filiados.isEmpty) {
-                    return const Center(child: Text('Nenhum filiado encontrado', style: TextStyle(color: Colors.white)));
+                    return const Center(
+                        child: Text('Nenhum filiado encontrado',
+                            style: TextStyle(color: Colors.white)));
                   }
 
                   return ListView.builder(
@@ -99,7 +113,9 @@ class _FiliadoListScreenState extends State<FiliadoListScreen> {
                         child: ListTile(
                           title: Text(
                             filiado['name'],
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
                             'Email: ${filiado['email']} - WhatsApp: ${filiado['whatsapp']}',
@@ -109,34 +125,45 @@ class _FiliadoListScreenState extends State<FiliadoListScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.white),
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.white),
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => RegistraFiliado(filiadoId: filiado.id),
+                                      builder: (context) => RegistraFiliado(
+                                          filiadoId: filiado.id),
                                     ),
                                   );
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                icon: const Icon(Icons.delete,
+                                    color: Colors.redAccent),
                                 onPressed: () {
                                   showDialog(
                                     context: context,
                                     builder: (context) => AlertDialog(
                                       backgroundColor: Colors.black87,
-                                      title: const Text('Deseja excluir o filiado?', style: TextStyle(color: Colors.white)),
+                                      title: const Text(
+                                          'Deseja excluir o filiado?',
+                                          style:
+                                              TextStyle(color: Colors.white)),
                                       actions: [
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          child: const Text('Cancelar', style: TextStyle(color: Colors.white)),
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Cancelar',
+                                              style: TextStyle(
+                                                  color: Colors.white)),
                                         ),
                                         TextButton(
                                           onPressed: () {
                                             _deleteFiliado(filiado.id);
                                             Navigator.pop(context);
                                           },
-                                          child: const Text('Excluir', style: TextStyle(color: Colors.redAccent)),
+                                          child: const Text('Excluir',
+                                              style: TextStyle(
+                                                  color: Colors.redAccent)),
                                         ),
                                       ],
                                     ),

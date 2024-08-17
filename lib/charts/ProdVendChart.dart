@@ -6,7 +6,9 @@ import '/presentation/resources/app_resources.dart';
 import '/presentation/widgets/indicator.dart';
 
 class PieChartProd extends StatefulWidget {
-  const PieChartProd({super.key});
+  final String email;
+
+  const PieChartProd(this.email);
 
   @override
   State<StatefulWidget> createState() => PieChartProdState();
@@ -147,15 +149,19 @@ class PieChartProdState extends State<PieChartProd> {
 
     var vendas = await FirebaseFirestore.instance
         .collection('vendas')
-        .where('data', isGreaterThanOrEqualTo: firstDayOfMonth)
-        .where('data', isLessThanOrEqualTo: lastDayOfMonth)
+        .where('data', isGreaterThanOrEqualTo: firstDayOfMonth, isLessThanOrEqualTo: lastDayOfMonth)
+        //.where('email_user', isEqualTo: widget.email)
         .get();
 
     var itensVendas =
-        await FirebaseFirestore.instance.collection('itens_vendas').get();
+        await FirebaseFirestore.instance.collection('itens_vendas')
+        //.where('email_user', isEqualTo: widget.email)
+        .get();
 
     var produtos =
-        await FirebaseFirestore.instance.collection('products').get();
+        await FirebaseFirestore.instance.collection('products')
+        .where('email_user', isEqualTo: widget.email)
+        .get();
 
     Map<String, DadosProduto> produtosEscolhidosMap = {};
     _quantidadeTotal = 0;

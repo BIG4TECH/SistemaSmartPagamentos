@@ -4,7 +4,8 @@ import 'package:flutter/services.dart';
 import '../cadastros/telaCadastroProduto.dart';
 
 class ProductListScreen extends StatefulWidget {
-  const ProductListScreen({super.key});
+  final String? email;
+  const ProductListScreen({super.key, this.email});
 
   @override
   _ProductListScreenState createState() => _ProductListScreenState();
@@ -19,7 +20,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Meus Produtos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 38,)),
+        title: const Text('Meus Produtos',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 38,
+            )),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -63,7 +69,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
             const SizedBox(height: 20),
             Expanded(
               child: StreamBuilder(
-                stream: FirebaseFirestore.instance.collection('products').snapshots(),
+                stream: FirebaseFirestore.instance
+                    .collection('products')
+                    .where('email_user', isEqualTo: widget.email)
+                    .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
@@ -74,11 +83,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   }
 
                   final products = snapshot.data!.docs.where((product) {
-                    return product['name'].toString().toLowerCase().contains(searchQuery);
+                    return product['name']
+                        .toString()
+                        .toLowerCase()
+                        .contains(searchQuery);
                   }).toList();
 
                   if (products.isEmpty) {
-                    return const Center(child: Text('Nenhum produto encontrado', style: TextStyle(color: Colors.white)));
+                    return const Center(
+                        child: Text('Nenhum produto encontrado',
+                            style: TextStyle(color: Colors.white)));
                   }
 
                   return ListView.builder(
@@ -111,7 +125,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         child: ListTile(
                           title: Text(
                             product['name'],
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
                             'Preço: R\$${product['price']} - Recorrência: $recurrence - Desconto: ${product['desconto']}%',
@@ -121,34 +137,46 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.white),
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.white),
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => ProductRegisterScreen(productId: product.id),
+                                      builder: (context) =>
+                                          ProductRegisterScreen(
+                                              productId: product.id),
                                     ),
                                   );
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                icon: const Icon(Icons.delete,
+                                    color: Colors.redAccent),
                                 onPressed: () {
                                   showDialog(
                                     context: context,
                                     builder: (context) => AlertDialog(
                                       backgroundColor: Colors.black87,
-                                      title: const Text('Deseja excluir o produto?', style: TextStyle(color: Colors.white)),
+                                      title: const Text(
+                                          'Deseja excluir o produto?',
+                                          style:
+                                              TextStyle(color: Colors.white)),
                                       actions: [
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          child: const Text('Cancelar', style: TextStyle(color: Colors.white)),
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Cancelar',
+                                              style: TextStyle(
+                                                  color: Colors.white)),
                                         ),
                                         TextButton(
                                           onPressed: () {
                                             _deleteProduct(product.id);
                                             Navigator.pop(context);
                                           },
-                                          child: const Text('Excluir', style: TextStyle(color: Colors.redAccent)),
+                                          child: const Text('Excluir',
+                                              style: TextStyle(
+                                                  color: Colors.redAccent)),
                                         ),
                                       ],
                                     ),

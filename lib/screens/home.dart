@@ -1,13 +1,15 @@
 // ignore_for_file: prefer_const_constructors, use_build_context_synchronously
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'listas/telaLogin.dart';
+import 'inicial/telaLogin.dart';
 import '/screens/widgets/menuDrawer.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/screens/widgets/charts/allCharts.dart';
+import 'package:smart_pagamento/charts/allCharts.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final String email;
+
+  const Home(this.email);
 
   @override
   State<Home> createState() => _HomeState();
@@ -60,9 +62,8 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-      drawer: menuDrawer(context),
-      body: AllCharts(),
-      
+      drawer: menuDrawer(context, widget.email),
+      body: AllCharts(widget.email),
     );
   }
 }

@@ -6,8 +6,9 @@ import 'package:flutter/services.dart';
 
 class ProductRegisterScreen extends StatefulWidget {
   final String? productId;
+  final String? email;
 
-  ProductRegisterScreen({super.key, this.productId});
+  ProductRegisterScreen({super.key, this.productId, this.email});
 
   @override
   _ProductRegisterScreenState createState() => _ProductRegisterScreenState();
@@ -36,19 +37,36 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
     }
   }
 
+//.where('email_user', isEqualTo: widget.email)
   void _loadProduct() async {
     setState(() {
       _isLoading = true;
     });
-    DocumentSnapshot product = await FirebaseFirestore.instance
+
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection('products')
-        .doc(widget.productId)
+        .where('email_user', isEqualTo: widget.email)
         .get();
-    _nameController.text = product['name'];
-    _priceController.text = product['price'].toString();
-    _descontoController.text = product['desconto'].toString();
-    _recurrencePeriod = product['recurrencePeriod'];
-    _paymentOption = product['paymentOption'];
+
+    // Verificar se há documentos retornados pela consulta
+    if (querySnapshot.docs.isNotEmpty) {
+      // Percorre todos os documentos retornados pela consulta
+      for (var doc in querySnapshot.docs) {
+        if (doc.id == widget.productId) {
+          var productData = doc.data() as Map<String, dynamic>;
+
+          _nameController.text = productData['name'];
+          _priceController.text = productData['price'].toString();
+          _descontoController.text = productData['desconto'].toString();
+          _recurrencePeriod = productData['recurrencePeriod'];
+          _paymentOption = productData['paymentOption'];
+          break;
+        }
+      }
+    } else {
+      // Tratar o caso onde nenhum documento foi encontrado
+      print('Nenhum produto encontrado para este usuário.');
+    }
 
     setState(() {
       _isLoading = false;
@@ -65,6 +83,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
           'desconto': int.parse(_descontoController.text),
           'recurrencePeriod': _recurrencePeriod,
           'paymentOption': _paymentOption,
+          'email_user': widget.email
         });
       } else {
         // Update existing product
@@ -89,29 +108,21 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        title: Text(
+            widget.productId == null ? 'Cadastrar Produtos' : 'Editar Produtos',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 38,
+            )),
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        backgroundColor: Color.fromRGBO(89, 19, 165, 1.0),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color.fromRGBO(89, 19, 165, 1.0),
-                    Color.fromRGBO(93, 21, 178, 1.0),
-                    Color.fromRGBO(123, 22, 161, 1.0),
-                    Color.fromRGBO(153, 27, 147, 1.0),
-                  ],
-                ),
-              ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   return SingleChildScrollView(
@@ -121,10 +132,10 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                       ),
                       child: IntrinsicHeight(
                         child: Container(
-                          margin:
-                              EdgeInsets.symmetric(horizontal: 200, vertical: 100),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 200, vertical: 100),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(25),
                             boxShadow: [
                               BoxShadow(
@@ -142,34 +153,17 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    widget.productId == null
-                                        ? 'Registro de produtos'
-                                        : 'Edição de produtos',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 38,
-                                        color: Colors.white),
-                                  ),
-                                  SizedBox(height: 35),
-
                                   // NOME DO PRODUTO
                                   TextFormField(
-                                    style: TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold),
                                     controller: _nameController,
                                     decoration: InputDecoration(
                                       labelText: 'Nome do produto',
-                                      labelStyle: TextStyle(color: Colors.white70),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide:
-                                            BorderSide(color: Colors.white),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30.0)),
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30.0)),
-                                      ),
+                                      labelStyle: TextStyle(
+                                          color: Colors.black54,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
@@ -182,21 +176,15 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
 
                                   // PREÇO
                                   TextFormField(
-                                    style: TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold),
                                     controller: _priceController,
                                     decoration: InputDecoration(
                                       labelText: 'Preço',
-                                      labelStyle: TextStyle(color: Colors.white70),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide:
-                                            BorderSide(color: Colors.white),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30.0)),
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30.0)),
-                                      ),
+                                      labelStyle: TextStyle(
+                                          color: Colors.black54,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     keyboardType: TextInputType.number,
                                     inputFormatters: <TextInputFormatter>[
@@ -214,21 +202,15 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
 
                                   // VALOR DE DESCONTO
                                   TextFormField(
-                                    style: TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold),
                                     controller: _descontoController,
                                     decoration: InputDecoration(
                                       labelText: 'Valor de Desconto (%)',
-                                      labelStyle: TextStyle(color: Colors.white70),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide:
-                                            BorderSide(color: Colors.white),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30.0)),
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30.0)),
-                                      ),
+                                      labelStyle: TextStyle(
+                                          color: Colors.black54,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     keyboardType: TextInputType.number,
                                     inputFormatters: <TextInputFormatter>[
@@ -245,23 +227,17 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
 
                                   // PERÍODO DE RECORRÊNCIA
                                   DropdownButtonFormField<int>(
-                                    style: TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15),
                                     value: _recurrencePeriod,
-                                    dropdownColor:
-                                        Color.fromRGBO(89, 19, 165, 1.0),
+                                    dropdownColor: Colors.white,
                                     decoration: InputDecoration(
                                       labelText: 'Período de recorrência',
-                                      labelStyle: TextStyle(color: Colors.white70),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide:
-                                            BorderSide(color: Colors.white),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30.0)),
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30.0)),
-                                      ),
+                                      labelStyle: TextStyle(
+                                          color: Colors.black54,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     items: recurrencePeriods
                                         .map((RecurrencePeriod periodo) {
@@ -280,23 +256,16 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
 
                                   // OPÇÃO DE PAGAMENTOS
                                   DropdownButtonFormField<String>(
-                                    style: TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold),
                                     value: _paymentOption,
-                                    dropdownColor:
-                                        Color.fromRGBO(89, 19, 165, 1.0),
+                                    dropdownColor: Colors.white,
                                     decoration: InputDecoration(
                                       labelText: 'Opção de Pagamento',
-                                      labelStyle: TextStyle(color: Colors.white70),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide:
-                                            BorderSide(color: Colors.white),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30.0)),
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30.0)),
-                                      ),
+                                      labelStyle: TextStyle(
+                                          color: Colors.black54,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     items: [
                                       'Cartão de crédito/débito',
@@ -318,15 +287,16 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                                   ElevatedButton(
                                     onPressed: _registerOrEditProduct,
                                     style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.purple,
+                                        backgroundColor:
+                                            Color.fromRGBO(89, 19, 165, 1.0),
                                         minimumSize: Size(2000, 42),
                                         shape: RoundedRectangleBorder(
                                             borderRadius:
                                                 BorderRadius.circular(5))),
                                     child: Text(
                                       widget.productId == null
-                                          ? 'Registrar produto'
-                                          : 'Editar produto',
+                                          ? 'Cadastrar'
+                                          : 'Editar',
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold),

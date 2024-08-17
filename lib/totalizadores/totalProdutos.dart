@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:smart_pagamento/screens/widgets/relatorios/prodRelatorio.dart';
 
 class TotalProdutos extends StatefulWidget {
-  const TotalProdutos({super.key});
+  final String email;
+  const TotalProdutos(this.email);
 
   @override
   State<StatefulWidget> createState() => TotalProdutosState();
@@ -21,6 +22,7 @@ class TotalProdutosState extends State<TotalProdutos> {
   void getDataProdutos() {
     FirebaseFirestore.instance
         .collection('products')
+        .where('email_user', isEqualTo: widget.email)
         .snapshots()
         .listen((produtos) {
       setState(() {
@@ -69,7 +71,7 @@ class TotalProdutosState extends State<TotalProdutos> {
             ],
           ),
           const SizedBox(width: 10),
-          ProdRelatorio()
+          ProdRelatorio(widget.email)
         ],
       ),
     );

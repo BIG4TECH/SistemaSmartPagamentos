@@ -1,15 +1,14 @@
 // ignore_for_file: prefer_const_constructors, library_private_types_in_public_api, use_build_context_synchronously
-
-import 'dart:ui';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/screens/cadastros/telaCadastroPessoa.dart';
+import 'package:smart_pagamento/screens/inicial/telaCadastroPessoa.dart';
 
 import '/screens/home.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  
+
+  const LoginScreen();
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -35,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Navigate to the home screen if login is successful
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Home()),
+          MaterialPageRoute(builder: (context) => Home(_emailController.text)),
         );
       } on FirebaseAuthException catch (e) {
         showDialog(
@@ -99,8 +98,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: const [
-                        Text('Bem-Vindo!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 38, color: Colors.white),),
-                       
+                        Text(
+                          'Bem-Vindo!',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 38,
+                              color: Colors.white),
+                        ),
                       ],
                     ),
                   ),
@@ -136,7 +140,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             TextFormField(
                               controller: _emailController,
-                              decoration: InputDecoration(labelText: 'Email'),
+                              decoration: InputDecoration(
+                                labelText: 'Email',
+                              ),
                               keyboardType: TextInputType.emailAddress,
                               validator: (value) {
                                 if (value?.isEmpty ?? true) {
@@ -147,7 +153,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             TextFormField(
                               controller: _passwordController,
-                              decoration: InputDecoration(labelText: 'Senha'),
+                              decoration: InputDecoration(
+                                labelText: 'Senha',
+                              ),
                               obscureText: true,
                               validator: (value) {
                                 if (value?.isEmpty ?? true) {
@@ -162,25 +170,27 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : ElevatedButton(
                                     onPressed: _login,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.purple,
-                                      minimumSize: Size(300 , 42),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(5)
-                                      )
-                                    ),
-                                    
-                                    child: Text('Login', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                        backgroundColor: Colors.purple,
+                                        minimumSize: Size(300, 42),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(5))),
+                                    child: Text('Login',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold)),
                                   ),
                             TextButton(
                               onPressed: () {
-                                Navigator.pushReplacement(
+                                Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => SignupScreen()),
                                 );
                               },
-                              child:
-                                  Text('Ainda não possui uma conta? Cadastre-se!',),
+                              child: Text(
+                                'Ainda não possui uma conta? Cadastre-se!',
+                              ),
                             ),
                           ],
                         ),
@@ -193,7 +203,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    
     );
   }
 

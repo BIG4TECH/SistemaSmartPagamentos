@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class TotalVendidos extends StatefulWidget {
-  const TotalVendidos({super.key});
+  final String email;
+
+  const TotalVendidos(this.email);
 
   @override
   State<StatefulWidget> createState() => TotalVendidosState();
@@ -25,14 +27,20 @@ class TotalVendidosState extends State<TotalVendidos> {
 
     int cont = 0;
 
-    var vendasSnapshot =
-        await FirebaseFirestore.instance.collection('vendas').get();
+    var vendasSnapshot = await FirebaseFirestore.instance
+        .collection('vendas')
+        .where('email_user', isEqualTo: widget.email)
+        .get();
 
-    var produtosSnapshot =
-        await FirebaseFirestore.instance.collection('products').get();
+    var produtosSnapshot = await FirebaseFirestore.instance
+        .collection('products')
+        .where('email_user', isEqualTo: widget.email)
+        .get();
 
-    var itensVendasSnapshot =
-        await FirebaseFirestore.instance.collection('itens_vendas').get();
+    var itensVendasSnapshot = await FirebaseFirestore.instance
+        .collection('itens_vendas')
+        .where('email_user', isEqualTo: widget.email)
+        .get();
 
     for (var docvenda in vendasSnapshot.docs) {
       for (var docprod in produtosSnapshot.docs) {

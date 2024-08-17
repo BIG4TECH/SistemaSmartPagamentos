@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import 'ProdChart.dart';
 import 'ProdVendChart.dart';
 import 'lineChart.dart';
-import 'totalClientes.dart';
-import 'totalProdutos.dart';
-import 'totalVendas.dart';
-import 'totalVendidos.dart';
-import 'package:smart_pagamento/screens/widgets/relatorios/cliRelatorio.dart';
+import '../totalizadores/totalClientes.dart';
+import '../totalizadores/totalProdutos.dart';
+import '../totalizadores/totalVendas.dart';
+import '../totalizadores/totalVendidos.dart';
+//import 'package:smart_pagamento/screens/widgets/relatorios/cliRelatorio.dart';
 
 class AllCharts extends StatefulWidget {
-  const AllCharts({super.key});
+  final String email;
+
+   AllCharts(this.email);
 
   @override
   State<StatefulWidget> createState() => AllChartsState();
@@ -30,33 +32,33 @@ class AllChartsState extends State<AllCharts> {
       width: double.infinity,
       height: double.infinity,
       padding: const EdgeInsets.all(32),
-      child: const SingleChildScrollView(
+      child:  SingleChildScrollView(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  PieChartProd(),
-                  SizedBox(width: 20),
-                  Prodchart(),
+                  PieChartProd(widget.email),
+                  const SizedBox(width: 20),
+                  Prodchart(widget.email),
                 ],
               ),
-              SizedBox(height: 20), // Espaçamento entre os gráficos
-              LineChartSample1(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20), // Espaçamento entre os gráficos
+              LineChartSample1(widget.email),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TotalClientes(),
-                  SizedBox(width: 15),
-                  TotalProdutos(),
-                  SizedBox(width: 15),
-                  TotalVendas(),
-                  SizedBox(width: 15),
-                  TotalVendidos(),
+                  TotalClientes(widget.email),
+                  const SizedBox(width: 15),
+                  TotalProdutos(widget.email),
+                  const SizedBox(width: 15),
+                  TotalVendas(widget.email),
+                  const SizedBox(width: 15),
+                  TotalVendidos(widget.email),
                 ],
               ),
               SizedBox(height: 20),

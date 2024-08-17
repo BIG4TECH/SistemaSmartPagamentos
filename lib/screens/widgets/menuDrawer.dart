@@ -11,7 +11,7 @@ import 'package:smart_pagamento/screens/cadastros/telaCadastroVenda.dart';
 import 'package:smart_pagamento/screens/listas/telaVendas.dart';
 
 
-Widget menuDrawer(BuildContext context) {
+Widget menuDrawer(BuildContext context, String email) {
   return Drawer(
     child: Column(
       children: [
@@ -66,7 +66,7 @@ Widget menuDrawer(BuildContext context) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => ProductRegisterScreen()));
+                    builder: (context) => ProductRegisterScreen(email:email)));
           },
         ),
         ListTile(
@@ -78,7 +78,7 @@ Widget menuDrawer(BuildContext context) {
           onTap: () {
             Navigator.pop(context);
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => ProductListScreen()));
+                MaterialPageRoute(builder: (context) => ProductListScreen(email: email,)));
           },
         ),
         ListTile(
@@ -90,7 +90,7 @@ Widget menuDrawer(BuildContext context) {
           onTap: () {
             Navigator.pop(context);
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => RegistraCliente()));
+                MaterialPageRoute(builder: (context) => RegistraCliente(email: email)));
           },
           
         ),
@@ -103,7 +103,7 @@ Widget menuDrawer(BuildContext context) {
           onTap: () {
             Navigator.pop(context);
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => ClienteListScreen()));
+                MaterialPageRoute(builder: (context) => ClienteListScreen(email:email)));
           },
         ),
         ListTile(
@@ -115,7 +115,7 @@ Widget menuDrawer(BuildContext context) {
           onTap: () {
             Navigator.pop(context);
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => RegistraFiliado()));
+                MaterialPageRoute(builder: (context) => RegistraFiliado(email:email)));
           },
         ),
         ListTile(
@@ -127,7 +127,7 @@ Widget menuDrawer(BuildContext context) {
           onTap: () {
             Navigator.pop(context);
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => FiliadoListScreen()));
+                MaterialPageRoute(builder: (context) => FiliadoListScreen(email:email)));
           },
         ),
         ListTile(
@@ -139,7 +139,7 @@ Widget menuDrawer(BuildContext context) {
           onTap: () {
             Navigator.pop(context);
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => RegistraVenda()));
+                MaterialPageRoute(builder: (context) => RegistraVenda(email:email)));
           },
         ),
         ListTile(
@@ -151,7 +151,7 @@ Widget menuDrawer(BuildContext context) {
           onTap: () {
             Navigator.pop(context);
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => VendasListScreen()));
+                MaterialPageRoute(builder: (context) => VendasListScreen(email)));
           },
         ),
       ],

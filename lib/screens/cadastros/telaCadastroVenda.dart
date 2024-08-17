@@ -3,12 +3,13 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:smart_pagamento/screens/widgets/charts/totalVendidos.dart';
+import 'package:smart_pagamento/totalizadores/totalVendidos.dart';
 
 class RegistraVenda extends StatefulWidget {
   final String? vendaId;
+  final String? email;
 
-  RegistraVenda({super.key, this.vendaId});
+  RegistraVenda({super.key, this.vendaId, this.email});
 
   @override
   _RegistraVendaState createState() => _RegistraVendaState();
@@ -70,6 +71,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
   void _setListCliente() async {
     FirebaseFirestore.instance
         .collection('clientes')
+        .where('email_user', isEqualTo: widget.email)
         .snapshots()
         .listen((query) {
       setState(() {
@@ -89,6 +91,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
   void _setListProduto() async {
     FirebaseFirestore.instance
         .collection('products')
+        .where('email_user', isEqualTo: widget.email)
         .snapshots()
         .listen((query) {
       setState(() {
@@ -106,7 +109,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
 
   //BUSCAR E INSERIR O ID DO CLIENTE
   Future<String?> fetchAndSetIdCliente(String? cliSelecionado) async {
-    var query = await FirebaseFirestore.instance.collection('clientes').get();
+    var query = await FirebaseFirestore.instance.collection('clientes').where('email_user', isEqualTo: widget.email).get();
     for (var doc in query.docs) {
       if (cliSelecionado ==
           '${doc['name']} | Email: ${doc['email']} | Whatsapp: ${doc['whatsapp']}') {
@@ -118,7 +121,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
 
   //BUSCAR E INSERIR O ID DO PRODUTO
   Future<String?> fetchAndSetIdProduto(String? prodSelecionado) async {
-    var query = await FirebaseFirestore.instance.collection('products').get();
+    var query = await FirebaseFirestore.instance.collection('products').where('email_user', isEqualTo: widget.email).get();
     for (var doc in query.docs) {
       if (prodSelecionado ==
           '${doc['name']} | Preço: ${doc['price']} | Desconto: ${doc['desconto']}%') {
@@ -131,7 +134,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
   //buscar preço do produto
   Future<double?> fetchPriceProduto(String? prodSelecionado) async {
     var querySnapshot =
-        await FirebaseFirestore.instance.collection('products').get();
+        await FirebaseFirestore.instance.collection('products').where('email_user', isEqualTo: widget.email).get();
     for (var doc in querySnapshot.docs) {
       if (prodSelecionado ==
           '${doc['name']} | Preço: ${doc['price']} | Desconto: ${doc['desconto']}%') {
@@ -144,7 +147,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
   //BUSCAR DESCONTO DO PRODUTO
   Future<int?> fetchDescontoProduto(String? prodSelecionado) async {
     var querySnapshot =
-        await FirebaseFirestore.instance.collection('products').get();
+        await FirebaseFirestore.instance.collection('products').where('email_user', isEqualTo: widget.email).get();
     for (var doc in querySnapshot.docs) {
       if (prodSelecionado ==
           '${doc['name']} | Preço: ${doc['price']} | Desconto: ${doc['desconto']}%') {
@@ -402,11 +405,11 @@ class _RegistraVendaState extends State<RegistraVenda> {
     TotalVendidosState totalVendidos = TotalVendidosState();
 
     if (_formKey.currentState!.validate()) {
-      var query = await FirebaseFirestore.instance.collection('clientes').get();
+      var query = await FirebaseFirestore.instance.collection('clientes').where('email_user', isEqualTo: widget.email).get();
       for (var doc in query.docs) {
         if (_dadosCliente ==
             '${doc['name']} | Email: ${doc['email']} | Whatsapp: ${doc['whatsapp']}') {
-           nomeCliente = doc['name'];
+          nomeCliente = doc['name'];
         }
       }
       if (widget.vendaId == null) {
@@ -419,7 +422,8 @@ class _RegistraVendaState extends State<RegistraVenda> {
           'total_bruto': _totalVenda,
           'total_liq': _totalLiq,
           'data_hora': formatoData.format(datahora),
-          'data': datahora
+          'data': datahora,
+          'email_user': widget.email
         });
 
         //registrar itens_vendas
@@ -431,7 +435,8 @@ class _RegistraVendaState extends State<RegistraVenda> {
             'quantidade': _listQuantProd[index],
             'total_bruto_prod': _listValorBrutoProd[index],
             'valor_descontado': _listValorDescontadoProd[index],
-            'total_liq_prod': _listValorLiqProd[index]
+            'total_liq_prod': _listValorLiqProd[index],
+            'email_user': widget.email
           });
         }
       } else {
@@ -445,7 +450,8 @@ class _RegistraVendaState extends State<RegistraVenda> {
           'total_bruto': _totalVenda,
           'total_liq': _totalLiq,
           'data_hora': formatoData.format(datahora),
-          'data': datahora
+          'data': datahora,
+          'email_user': widget.email
         });
       }
       setState(() {

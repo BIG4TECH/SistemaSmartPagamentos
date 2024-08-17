@@ -3,8 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:smart_pagamento/screens/cadastros/telaCadastroVenda.dart';
 
-class VendasListScreen extends StatefulWidget{
-   @override
+class VendasListScreen extends StatefulWidget {
+  final String? email;
+
+
+  const VendasListScreen(this.email);
+
+  @override
   _VendasListScreenState createState() => _VendasListScreenState();
 }
 
@@ -46,7 +51,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
           ),
         ),
         child: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection('vendas').snapshots(),
+          stream: FirebaseFirestore.instance.collection('vendas').where('email_user', isEqualTo: widget.email).snapshots(),
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
@@ -126,8 +131,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
                         IconButton(
                           icon: const Icon(Icons.list, color: Colors.white),
                           tooltip: 'Itens Vendas',
-                          onPressed: () async{
-                            
+                          onPressed: () async {
                             await _getDataItensVendas(venda.id);
                             _showProducts(context);
                           },
@@ -145,11 +149,17 @@ class _VendasListScreenState extends State<VendasListScreen> {
   }
 
   Future<void> _deleteVenda(String vendaId) async {
-    var query = await FirebaseFirestore.instance.collection('itens_vendas').where('idvenda', isEqualTo: vendaId).get();
+    var query = await FirebaseFirestore.instance
+        .collection('itens_vendas')
+        .where('idvenda', isEqualTo: vendaId)
+        .where('email_user', isEqualTo: widget.email)
+        .get();
 
-    
     for (var doc in query.docs) {
-      await FirebaseFirestore.instance.collection('itens_vendas').doc(doc.id).delete();
+      await FirebaseFirestore.instance
+          .collection('itens_vendas')
+          .doc(doc.id)
+          .delete();
     }
 
     await FirebaseFirestore.instance.collection('vendas').doc(vendaId).delete();
@@ -161,8 +171,9 @@ class _VendasListScreenState extends State<VendasListScreen> {
     _listValorDescontadoProd.clear();
     _listValorLiqProd.clear();
 
-    var query = await FirebaseFirestore.instance.collection('itens_vendas').get();
-       
+    var query =
+        await FirebaseFirestore.instance.collection('itens_vendas').where('email_user', isEqualTo: widget.email).get();
+
     for (var doc in query.docs) {
       if (vendaId == doc['idvenda']) {
         _listProdutosEscolhidos.add(doc['produto']);
@@ -175,44 +186,43 @@ class _VendasListScreenState extends State<VendasListScreen> {
 
   void _showProducts(BuildContext context) {
     showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: Colors.black,
-      title: const Text(
-        'Produtos Escolhidos',
-        style: TextStyle(color: Colors.white),
-      ),
-      content: Container(
-        width: double.maxFinite,
-        child: _listProdutosEscolhidos.isNotEmpty
-            ? ListView.builder(
-                shrinkWrap: true,
-                itemCount: _listProdutosEscolhidos.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(
-                      _listProdutosEscolhidos[index],
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  );
-                },
-              )
-            : const Text(
-                'Nenhum produto escolhido.',
-                style: TextStyle(color: Colors.white70),
-              ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'Fechar',
-            style: TextStyle(color: Colors.white),
-          ),
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.black,
+        title: const Text(
+          'Produtos Escolhidos',
+          style: TextStyle(color: Colors.white),
         ),
-      ],
-    ),
-  );   
+        content: Container(
+          width: double.maxFinite,
+          child: _listProdutosEscolhidos.isNotEmpty
+              ? ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _listProdutosEscolhidos.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(
+                        _listProdutosEscolhidos[index],
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    );
+                  },
+                )
+              : const Text(
+                  'Nenhum produto escolhido.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Fechar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
   }
-
 }

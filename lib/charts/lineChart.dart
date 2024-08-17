@@ -6,7 +6,9 @@ import '/presentation/resources/app_resources.dart';
 import '/presentation/widgets/indicator.dart';
 
 class LineChartSample1 extends StatefulWidget {
-  const LineChartSample1({super.key});
+  final String email;
+
+  const LineChartSample1(this.email);
 
   @override
   State<StatefulWidget> createState() => LineChartSample1State();
@@ -18,9 +20,20 @@ class LineChartSample1State extends State<LineChartSample1> {
   @override
   void initState() {
     super.initState();
+
+    try {
+      getDataVendas();
+    } catch (e) {
+      print(e);
+    }
+
+    try {
+      getDataClientes();
+    } catch (e) {
+      print(e);
+    }
+
     getDataProducts();
-    getDataVendas();
-    getDataClientes();
   }
 
   //0 - vendasEfetuadas
@@ -30,28 +43,43 @@ class LineChartSample1State extends State<LineChartSample1> {
     DateTime lastDayOfMonth =
         DateTime(now.year, now.month + 1, 1).subtract(const Duration(days: 1));
 
+    List<FlSpot> vendasEfetuadas = List.generate(
+        lastDayOfMonth.day, (index) => FlSpot((index + 1).toDouble(), 0));
+
+    print('VENDAS EFETUADAS ANTES DO LISTEN: $vendasEfetuadas ');
+
     FirebaseFirestore.instance
         .collection('vendas')
-        .where('data', isGreaterThanOrEqualTo: firstDayOfMonth)
-        .where('data', isLessThanOrEqualTo: lastDayOfMonth)
+        .where('data',
+            isGreaterThanOrEqualTo: firstDayOfMonth,
+            isLessThanOrEqualTo: lastDayOfMonth)
+        .where('email_user', isEqualTo: widget.email)
         .snapshots()
         .listen((vendasSnapshot) async {
-      List<FlSpot> vendasEfetuadas = List.generate(
-          lastDayOfMonth.day, (index) => FlSpot((index + 1).toDouble(), 0));
-
+      print('INICIO DO LISTEN');
       // VENDAS EFETUADAS
       for (var docvenda in vendasSnapshot.docs) {
         if (docvenda.data().containsKey('data')) {
           DateTime dataVenda = (docvenda['data'] as Timestamp).toDate();
           int dia = dataVenda.day;
+          print(dia);
           vendasEfetuadas[dia - 1] =
               FlSpot(dia.toDouble(), vendasEfetuadas[dia - 1].y + 1);
         }
       }
 
-      setState(() {
-        _listAllData[0] = vendasEfetuadas;
-      });
+      print('VENDAS EFETUADAS DEPOIS DO LISTEN: $vendasEfetuadas ');
+      try {
+        await Future.delayed(const Duration(milliseconds: 100));
+        setState(() {
+          _listAllData[0] = vendasEfetuadas;
+          print('VENDAS EFETUADAS NO SET STATE: ${_listAllData[0]}');
+        });
+      } catch (e) {
+        print(e);
+      }
+    }, onError: (error) {
+      print('VENDAS EFETUADAS ERRO: $error');
     });
   }
 
@@ -66,14 +94,18 @@ class LineChartSample1State extends State<LineChartSample1> {
         .collection('itens_vendas')
         .snapshots()
         .listen((itensVendasSnapshot) async {
+      bool dataChanged = false;
       var vendasSnapshot = await FirebaseFirestore.instance
           .collection('vendas')
-          .where('data', isGreaterThanOrEqualTo: firstDayOfMonth)
-          .where('data', isLessThanOrEqualTo: lastDayOfMonth)
+          .where('data',
+              isGreaterThanOrEqualTo: firstDayOfMonth,
+              isLessThanOrEqualTo: lastDayOfMonth)
           .get();
 
-      var produtosSnapshot =
-          await FirebaseFirestore.instance.collection('products').get();
+      var produtosSnapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .where('email_user', isEqualTo: widget.email)
+          .get();
 
       List<FlSpot> produtosVendidos = List.generate(
           lastDayOfMonth.day, (index) => FlSpot((index + 1).toDouble(), 0));
@@ -90,6 +122,7 @@ class LineChartSample1State extends State<LineChartSample1> {
                   dia.toDouble(),
                   produtosVendidos[dia - 1].y +
                       int.parse(dociven['quantidade'].toString()));
+              dataChanged = true;
             }
           }
         }
@@ -105,15 +138,17 @@ class LineChartSample1State extends State<LineChartSample1> {
   void getDataClientes() {
     DateTime now = DateTime.now();
     DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
-    DateTime lastDayOfMonth =
-        DateTime(now.year, now.month + 1, 0);
+    DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
 
     FirebaseFirestore.instance
         .collection('clientes')
-        .where('data_registro', isGreaterThanOrEqualTo: firstDayOfMonth)
-        .where('data_registro', isLessThanOrEqualTo: lastDayOfMonth)
+        .where('data_registro',
+            isGreaterThanOrEqualTo: firstDayOfMonth,
+            isLessThanOrEqualTo: lastDayOfMonth)
+        .where('email_user', isEqualTo: widget.email)
         .snapshots()
-        .listen((clientesSnapshot) async {
+        .listen((clientesSnapshot) {
+      bool dataChanged = false;
       List<FlSpot> clientesRegistrados = List.generate(
           lastDayOfMonth.day, (index) => FlSpot((index + 1).toDouble(), 0));
 
@@ -125,19 +160,23 @@ class LineChartSample1State extends State<LineChartSample1> {
           int dia = dataRegistro.day;
           clientesRegistrados[dia - 1] =
               FlSpot(dia.toDouble(), clientesRegistrados[dia - 1].y + 1);
+          dataChanged = true;
         }
       }
 
       setState(() {
         _listAllData[2] = clientesRegistrados;
+        print('CLIENTES REGISTRADOS SET STATE: ${_listAllData[2]}');
       });
+    }, onError: (error) {
+      print('CLIENTES REGISTRADOS ERRO: $error');
     });
   }
 
   Widget showLineChart() {
     DateTime now = DateTime.now();
     DateTime data = DateTime(now.year, now.month + 1, 0);
-        
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(25),
@@ -162,7 +201,7 @@ class LineChartSample1State extends State<LineChartSample1> {
               const SizedBox(
                 height: 20,
               ),
-               Text(
+              Text(
                 'Quantidade por Dia (${data.month}/${data.year})',
                 style: TextStyle(
                   color: Color.fromARGB(255, 0, 10, 12),

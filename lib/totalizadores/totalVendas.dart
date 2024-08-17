@@ -1,37 +1,39 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/screens/widgets/relatorios/cliRelatorio.dart';
+import 'package:smart_pagamento/screens/widgets/relatorios/venRelatorio.dart';
 
-class TotalClientes extends StatefulWidget {
-  const TotalClientes({super.key});
+class TotalVendas extends StatefulWidget {
+  final String email;
+  const TotalVendas(this.email);
 
   @override
-  State<StatefulWidget> createState() => TotalClientesState();
+  State<StatefulWidget> createState() => TotalVendasState();
 }
 
-class TotalClientesState extends State<TotalClientes> {
-  int _quantClientes = 0;
+class TotalVendasState extends State<TotalVendas> {
+  int _quantVendas = 0;
 
   @override
   void initState() {
     super.initState();
-    getDataClientes(); 
+    getDataVendas();
   }
 
-  void getDataClientes() {
+  void getDataVendas() {
     FirebaseFirestore.instance
-        .collection('clientes')
+        .collection('vendas')
+        .where('email_user', isEqualTo: widget.email)
         .snapshots()
-        .listen((clientesSnapshot) {
+        .listen((vendas) {
       setState(() {
-        _quantClientes = clientesSnapshot.size;
+        _quantVendas = vendas.size;
       });
     });
   }
 
   Widget showLineChart() {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         color: Colors.white,
@@ -40,7 +42,7 @@ class TotalClientesState extends State<TotalClientes> {
             color: Colors.grey.withOpacity(0.5),
             spreadRadius: 2,
             blurRadius: 4,
-            offset: const Offset(0, 0),
+            offset: Offset(0, 0),
           ),
         ],
       ),
@@ -55,22 +57,21 @@ class TotalClientesState extends State<TotalClientes> {
             ),
             child: Center(
               child: Text(
-                '$_quantClientes',
+                '$_quantVendas',
                 style: const TextStyle(color: Colors.white),
               ),
             ),
-
           ),
           const SizedBox(width: 10),
           const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Clientes', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Vendas', style: TextStyle(fontWeight: FontWeight.bold)),
               Text('Quant. Total'),
             ],
           ),
           const SizedBox(width: 10),
-          CliRelatorio()
+          VenRelatorio(email: widget.email)
         ],
       ),
     );
