@@ -331,7 +331,7 @@ class LineChartSample1State extends State<LineChartSample1> {
     );
     String? text;
 
-    text = '$value';
+    text = '${value.toInt()}';
 
     if (getMaxValue() <= 10) {
       //se par
@@ -371,17 +371,17 @@ class LineChartSample1State extends State<LineChartSample1> {
           ? Text(text.toString(), style: style, textAlign: TextAlign.center)
           : const Text('');
 
-    }else if (getMaxValue() >= 500) {
+    }else if (getMaxValue() > 200) {
       
       //se par
       if (getMaxValue() % 2 == 0) {
-        return value % 50 == 0
+        return value % getMaxValue() == 0 || value == getMaxValue()/2
             ? Text(text.toString(), style: style, textAlign: TextAlign.center)
             : const Text('');
       }
 
       //se impar
-      return value % 50 != 0
+      return value % getMaxValue() == 0 || value == (getMaxValue()/2).toInt()
           ? Text(text.toString(), style: style, textAlign: TextAlign.center)
           : const Text('');
     }
