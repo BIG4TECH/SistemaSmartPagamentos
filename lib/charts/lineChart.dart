@@ -94,7 +94,6 @@ class LineChartSample1State extends State<LineChartSample1> {
         .collection('itens_vendas')
         .snapshots()
         .listen((itensVendasSnapshot) async {
-      bool dataChanged = false;
       var vendasSnapshot = await FirebaseFirestore.instance
           .collection('vendas')
           .where('data',
@@ -122,7 +121,6 @@ class LineChartSample1State extends State<LineChartSample1> {
                   dia.toDouble(),
                   produtosVendidos[dia - 1].y +
                       int.parse(dociven['quantidade'].toString()));
-              dataChanged = true;
             }
           }
         }
@@ -148,7 +146,6 @@ class LineChartSample1State extends State<LineChartSample1> {
         .where('email_user', isEqualTo: widget.email)
         .snapshots()
         .listen((clientesSnapshot) {
-      bool dataChanged = false;
       List<FlSpot> clientesRegistrados = List.generate(
           lastDayOfMonth.day, (index) => FlSpot((index + 1).toDouble(), 0));
 
@@ -160,7 +157,6 @@ class LineChartSample1State extends State<LineChartSample1> {
           int dia = dataRegistro.day;
           clientesRegistrados[dia - 1] =
               FlSpot(dia.toDouble(), clientesRegistrados[dia - 1].y + 1);
-          dataChanged = true;
         }
       }
 
@@ -269,6 +265,20 @@ class LineChartSample1State extends State<LineChartSample1> {
         : showLineChart();
   }
 
+  double getMaxValueFromList(List<FlSpot> spots) {
+    if (spots.isEmpty) return 0;
+    return spots.map((spot) => spot.y).reduce((a, b) => a > b ? a : b);
+  }
+
+  double getMaxValue() {
+    double maxVendasEfetuadas = getMaxValueFromList(_listAllData[0]);
+    double maxProdutosVendidos = getMaxValueFromList(_listAllData[1]);
+    double maxClientesRegistrados = getMaxValueFromList(_listAllData[2]);
+
+    return [maxVendasEfetuadas, maxProdutosVendidos, maxClientesRegistrados]
+        .reduce((a, b) => a > b ? a : b);
+  }
+
   // WIDGET PARA RENDERIZAR TODAS AS CONFIGURAÇÕES DO CHART
   LineChartData get sampleData1 => LineChartData(
         lineTouchData: lineTouchData1,
@@ -323,6 +333,58 @@ class LineChartSample1State extends State<LineChartSample1> {
 
     text = '$value';
 
+    if (getMaxValue() <= 10) {
+      //se par
+      if (getMaxValue() % 2 == 0) {
+        return value % 5 != 0
+            ? Text(text.toString(), style: style, textAlign: TextAlign.center)
+            : const Text('');
+      }
+
+      //se impar
+      return value % 5 == 0
+          ? Text(text.toString(), style: style, textAlign: TextAlign.center)
+          : const Text('');
+    } else if (getMaxValue() <= 50) {
+      //se par
+      if (getMaxValue() % 2 == 0) {
+        return value % 10 == 0
+            ? Text(text.toString(), style: style, textAlign: TextAlign.center)
+            : const Text('');
+      }
+
+      //se impar
+      return value % 10 != 0
+          ? Text(text.toString(), style: style, textAlign: TextAlign.center)
+          : const Text('');
+    } else if (getMaxValue() <= 200) {
+
+      //se par
+      if (getMaxValue() % 2 == 0) {
+        return value % 50 == 0
+            ? Text(text.toString(), style: style, textAlign: TextAlign.center)
+            : const Text('');
+      }
+
+      //se impar
+      return value % 50 != 0
+          ? Text(text.toString(), style: style, textAlign: TextAlign.center)
+          : const Text('');
+
+    }else if (getMaxValue() >= 500) {
+      
+      //se par
+      if (getMaxValue() % 2 == 0) {
+        return value % 50 == 0
+            ? Text(text.toString(), style: style, textAlign: TextAlign.center)
+            : const Text('');
+      }
+
+      //se impar
+      return value % 50 != 0
+          ? Text(text.toString(), style: style, textAlign: TextAlign.center)
+          : const Text('');
+    }
     return Text(text.toString(), style: style, textAlign: TextAlign.center);
   }
 

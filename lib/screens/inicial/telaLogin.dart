@@ -2,6 +2,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/screens/inicial/telaCadastroPessoa.dart';
+import 'package:smart_pagamento/screens/widgets/cores.dart';
 
 import '/screens/home.dart';
 
@@ -18,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  Widget column(Size size) {
+  Widget mobile(Size size) {
     return Column(
       children: [
         SizedBox(
@@ -146,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget row(size) {
+  Widget web(size) {
     return Row(
       children: [
         Expanded(
@@ -169,18 +170,11 @@ class _LoginScreenState extends State<LoginScreen> {
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                    bottomRight: Radius.circular(20),
-                    topRight: Radius.circular(20)),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      spreadRadius: 1, // espalhamento
-                      blurRadius: 5, // desfoque
-                      offset: Offset(0, 0) // posição x,y
-                      )
-                ]),
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                  bottomRight: Radius.circular(20),
+                  topRight: Radius.circular(20)),
+            ),
             child: Padding(
               padding: EdgeInsets.only(
                   top: size.width * 0.01,
@@ -199,6 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontSize: size.width * 0.03),
                     ),
                     SizedBox(
+                      width: size.width * 0.2,
                       child: TextFormField(
                         controller: _emailController,
                         decoration: InputDecoration(
@@ -213,35 +208,55 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
                     ),
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: 'Senha',
+                    SizedBox(
+                      width: size.width * 0.2,
+                      child: TextFormField(
+                        controller: _passwordController,
+                        decoration: InputDecoration(
+                          labelText: 'Senha',
+                        ),
+                        obscureText: true,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return 'Por favor, insira uma senha';
+                          }
+                          return null;
+                        },
                       ),
-                      obscureText: true,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'Por favor, insira uma senha';
-                        }
-                        return null;
-                      },
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(
+                      height: size.height * 0.03,
+                    ),
                     _isLoading
-                        ? Center(child: CircularProgressIndicator())
-                        : ElevatedButton(
-                            onPressed: _login,
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.purple,
-                                minimumSize: Size(300, 42),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(5))),
-                            child: Text('Login',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold)),
+                        ? Center(
+                            child: CircularProgressIndicator(
+                            color: corPadrao(),
+                          ))
+                        : Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: gradientBtn(),
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _login,
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  fixedSize: Size(
+                                      size.width * 0.2, size.height * 0.01),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5))),
+                              child: Text('Entrar',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: size.height * 0.022,
+                                      fontWeight: FontWeight.bold)),
+                            ),
                           ),
-                    SizedBox(height: 20),
+                    SizedBox(height: size.height * 0.02),
                     TextButton(
                       onPressed: () {
                         Navigator.push(
@@ -252,6 +267,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       child: Text(
                         'Ainda não possui uma conta? Cadastre-se!',
+                        style: TextStyle(fontSize: size.height * 0.022),
                       ),
                     ),
                   ],
@@ -310,23 +326,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-            gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomRight,
-                colors: [
-              Color.fromRGBO(89, 19, 165, 1.0),
-              Color.fromRGBO(93, 21, 178, 1.0),
-              Color.fromRGBO(123, 22, 161, 1.0),
-              Color.fromRGBO(153, 27, 147, 1.0),
-            ])),
         child: Center(
           child: Container(
               margin: EdgeInsets.symmetric(
-                  horizontal: size.width * 0.15, vertical: size.height * 0.15),
+                  horizontal: size.width * 0.15, vertical: size.height * 0.12),
               //padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: corPadrao(),
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
@@ -336,7 +342,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         offset: Offset(0, 0) // posição x,y
                         )
                   ]),
-              child: size.width <= 720 ? column(size) : row(size)),
+              child: size.width <= 720 ? mobile(size) : web(size)),
         ),
       ),
     );
