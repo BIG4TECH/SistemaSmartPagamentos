@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
+import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/screens/widgets/textfield.dart';
 
 class RegistraCliente extends StatefulWidget {
   final String? clienteId;
@@ -50,6 +52,7 @@ class _RegistraClienteState extends State<RegistraCliente> {
           _nameController.text = clienteData['name'];
           _emailController.text = clienteData['email'];
           _wppController.text = clienteData['whatsapp'];
+          _cpfController.text = clienteData['cpf'];
           break;
         }
       }
@@ -67,7 +70,8 @@ class _RegistraClienteState extends State<RegistraCliente> {
           'email': _emailController.text,
           'whatsapp': _wppController.text.replaceAll(RegExp(r'\D'), ''),
           'data_registro': DateTime.now(),
-          'email_user': widget.email
+          'email_user': widget.email,
+          'cpf': _cpfController.text
         });
       } else {
         await FirebaseFirestore.instance
@@ -77,7 +81,8 @@ class _RegistraClienteState extends State<RegistraCliente> {
           'name': _nameController.text,
           'email': _emailController.text,
           'whatsapp': _wppController.text.replaceAll(RegExp(r'\D'), ''),
-          'email_user': widget.email
+          'email_user': widget.email,
+          'cpf': _cpfController.text.replaceAll(RegExp(r'\D'), '')
         });
       }
 
@@ -90,6 +95,8 @@ class _RegistraClienteState extends State<RegistraCliente> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+
     return Scaffold(
         appBar: AppBar(
           title: Text(
@@ -103,7 +110,7 @@ class _RegistraClienteState extends State<RegistraCliente> {
               )),
           iconTheme: IconThemeData(color: Colors.white),
           centerTitle: true,
-          backgroundColor: Color.fromRGBO(89, 19, 165, 1.0),
+          backgroundColor: corPadrao(),
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -131,80 +138,65 @@ class _RegistraClienteState extends State<RegistraCliente> {
                           key: _formKey,
                           child: SingleChildScrollView(
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                               
                                 // NOME DO CLIENTE
                                 TextFormField(
-                              style: const TextStyle(
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.bold),
-                              controller: _nameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Nome do Cliente',
-                                labelStyle: TextStyle(
-                                    color: Colors.black54,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, digite o nome do Cliente!';
-                                }
-                                return null;
-                              },
-                            ),
-                                
+                                  style: const TextStyle(
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.bold),
+                                  controller: _nameController,
+                                  decoration: inputDec('Nome do Cliente'),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Por favor, digite o nome do cliente!';
+                                    }
+                                    return null;
+                                  },
+                                ),
 
                                 const SizedBox(height: 20),
 
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: 
-                                      // EMAIL
-                                        TextFormField(
-                                      style: const TextStyle(
-                                          color: Colors.black87,
-                                          fontWeight: FontWeight.bold),
-                                      controller: _emailController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Email',
-                                        labelStyle: TextStyle(
-                                            color: Colors.black54,
+                                      child:
+                                          // EMAIL
+                                          TextFormField(
+                                        style: const TextStyle(
+                                            color: Colors.black87,
                                             fontWeight: FontWeight.bold),
+                                        controller: _emailController,
+                                        decoration: inputDec('Email'),
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Por favor, digite o email!';
+                                          }
+                                          return null;
+                                        },
                                       ),
-                                      keyboardType: TextInputType.emailAddress,
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Por favor, digite o Email!';
-                                        }
-                                        return null;
-                                      },
                                     ),
-                                  
+                                    const SizedBox(
+                                      width: 20,
                                     ),
+                                    Expanded(
+                                      child:
+                                          //WHATSAPP
+                                          TextFormField(
+                                        //maxLength: 14,
+                                        //maxLengthEnforcement: MaxLengthEnforcement.enforced,
 
-                                    const SizedBox(width: 20,),
-                                    Expanded(child: 
-                                      //WHATSAPP
-                                      TextFormField(
-                                        maxLength: 14,
-                                        maxLengthEnforcement:
-                                            MaxLengthEnforcement.enforced,
                                         style: const TextStyle(
                                             color: Colors.black87,
                                             fontWeight: FontWeight.bold),
                                         controller: _wppController,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Número do WhatsApp',
-                                          labelStyle: TextStyle(
-                                              color: Colors.black54,
-                                              fontWeight: FontWeight.bold),
-                                        ),
+                                        decoration: inputDec('Whatsapp'),
                                         keyboardType: TextInputType.phone,
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
-                                            return 'Por favor, digite o número do WhatsApp!';
+                                            return 'Por favor, digite o número do whatsApp!';
                                           }
                                           if (value.length < 14) {
                                             return 'Número incompleto!';
@@ -212,27 +204,23 @@ class _RegistraClienteState extends State<RegistraCliente> {
                                           return null;
                                         },
                                       ),
-
                                     ),
-
-                                    const SizedBox(width: 20,),
-                                    Expanded(child: 
-                                      //CPF
-                                      TextFormField(
+                                    const SizedBox(
+                                      width: 20,
+                                    ),
+                                    Expanded(
+                                      child:
+                                          //CPF
+                                          TextFormField(
                                         keyboardType: TextInputType.number,
-                                        maxLength: 14,
+                                        //maxLength: 14,
                                         maxLengthEnforcement:
                                             MaxLengthEnforcement.enforced,
                                         style: const TextStyle(
                                             color: Colors.black87,
                                             fontWeight: FontWeight.bold),
-                                        controller: _nameController,
-                                        decoration: const InputDecoration(
-                                          labelText: 'CPF',
-                                          labelStyle: TextStyle(
-                                              color: Colors.black54,
-                                              fontWeight: FontWeight.bold),
-                                        ),
+                                        controller: _cpfController,
+                                        decoration: inputDec('CPF'),
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
                                             return 'Por favor, digite o CPF do cliente!';
@@ -243,30 +231,34 @@ class _RegistraClienteState extends State<RegistraCliente> {
                                           return null;
                                         },
                                       ),
-
                                     ),
-                                ],),
-
-                                
-                               
+                                  ],
+                                ),
 
                                 const SizedBox(height: 50),
-                                ElevatedButton(
-                                  onPressed: _registerOrEditCliente,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Color.fromRGBO(89, 19, 165, 1.0),
-                                    minimumSize: Size(2000, 42),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(5)),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: gradientBtn(),
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Text(
-                                    widget.clienteId == null
-                                        ? 'Cadastrar'
-                                        : 'Editar',
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
+                                  child: ElevatedButton(
+                                    onPressed: _registerOrEditCliente,
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        fixedSize: Size(size.width * 0.2,
+                                            size.height * 0.01),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(5))),
+                                    child: Text('Confirmar',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: size.height * 0.022,
+                                            fontWeight: FontWeight.bold)),
                                   ),
                                 ),
                               ],

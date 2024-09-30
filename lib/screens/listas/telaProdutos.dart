@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
+import 'package:smart_pagamento/screens/widgets/cores.dart';
+
 import '../cadastros/telaCadastroProduto.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -16,8 +17,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text('Meus Produtos',
@@ -27,39 +29,41 @@ class _ProductListScreenState extends State<ProductListScreen> {
               fontSize: 38,
             )),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        backgroundColor: corPadrao(),
       ),
       body: Container(
         padding: const EdgeInsets.only(top: 40, left: 50, right: 50),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.fromRGBO(89, 19, 165, 1.0),
-              Color.fromRGBO(93, 21, 178, 1.0),
-              Color.fromRGBO(123, 22, 161, 1.0),
-              Color.fromRGBO(153, 27, 147, 1.0),
-            ],
-          ),
-        ),
         child: Column(
           children: [
-            const SizedBox(height: 20),
             TextField(
-              decoration: const InputDecoration(
+              cursorColor: corPadrao(),
+              decoration: InputDecoration(
+                prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
                 labelText: 'Pesquisar Produto',
-                labelStyle: TextStyle(color: Colors.white),
-                prefixIcon: Icon(Icons.search, color: Colors.white),
-                filled: true,
-                fillColor: Colors.white24,
+                labelStyle: TextStyle(color: Colors.grey.shade400),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade400, // Cor da borda
+                    width: 2.0, // Espessura da borda
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade400, // Cor da borda
+                    width: 2.0, // Espessura da borda
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                  borderSide: BorderSide(
+                    color:
+                        corPadrao(), // Cor da borda quando o campo está focado
+                    width: 3.0, // Espessura da borda quando o campo está focado
+                  ),
                 ),
               ),
-              style: const TextStyle(color: Colors.white),
               onChanged: (value) {
                 setState(() {
                   searchQuery = value.toLowerCase();
@@ -92,7 +96,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   if (products.isEmpty) {
                     return const Center(
                         child: Text('Nenhum produto encontrado',
-                            style: TextStyle(color: Colors.white)));
+                            style: TextStyle(fontWeight: FontWeight.bold)));
                   }
 
                   return ListView.builder(
@@ -118,7 +122,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       }
 
                       return Card(
-                        color: Colors.black.withOpacity(0.1),
+                        //color: Colors.black.withOpacity(0.1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15.0),
                         ),
@@ -126,19 +130,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           title: Text(
                             product['name'],
                             style: const TextStyle(
-                                color: Colors.white,
+                                color: Colors.black87,
                                 fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            'Preço: R\$${product['price']} - Recorrência: $recurrence - Desconto: ${product['desconto']}%',
-                            style: const TextStyle(color: Colors.white70),
+                            'Preço: R\$${product['price']}\nRecorrência: $recurrence\nDesconto: ${product['desconto']}%',
+                            //style: const TextStyle(color: Colors.white70),
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon:
-                                    const Icon(Icons.edit, color: Colors.white),
+                                icon: const Icon(Icons.edit),
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -149,40 +152,82 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   );
                                 },
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.delete,
-                                    color: Colors.redAccent),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      backgroundColor: Colors.black87,
-                                      title: const Text(
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: gradientBtn(),
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        //backgroundColor: Colors.black87,
+                                        title: const Text(
                                           'Deseja excluir o produto?',
-                                          style:
-                                              TextStyle(color: Colors.white)),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: const Text('Cancelar',
-                                              style: TextStyle(
-                                                  color: Colors.white)),
+                                          //style:TextStyle(color: Colors.white)
                                         ),
-                                        TextButton(
-                                          onPressed: () {
-                                            _deleteProduct(product.id);
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text('Excluir',
-                                              style: TextStyle(
-                                                  color: Colors.redAccent)),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
+
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: Text('Cancelar',
+                                                style: TextStyle(
+                                                    color:
+                                                        Colors.grey.shade400)),
+                                          ),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: gradientBtn(),
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: ElevatedButton(
+                                                onPressed: () {
+                                                  _deleteProduct(product.id);
+                                                  Navigator.pop(context);
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .transparent,
+                                                    fixedSize: Size(
+                                                        size.width * 0.1,
+                                                        size.height * 0.01),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        5))),
+                                                child: Text('Excluir',
+                                                    style:
+                                                        TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize:
+                                                                size.height *
+                                                                    0.022,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold))),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
+                            
                             ],
                           ),
                         ),

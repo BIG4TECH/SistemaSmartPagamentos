@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_pagamento/screens/widgets/cores.dart';
 
 Widget textFormField(controller, label, keyboardType, validator) {
   return TextFormField(
@@ -20,4 +21,33 @@ Widget loginTextFormField(
       onChanged: onChanged,
       keyboardType: keyboardType,
       validator: validator);
+}
+
+InputDecoration inputDec(String label) {
+  return InputDecoration(
+    //prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
+    labelText: label,
+    labelStyle: TextStyle(color: Colors.grey.shade400),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(15.0)),
+      borderSide: BorderSide(
+        color: Colors.grey.shade400, // Cor da borda
+        width: 2.0, // Espessura da borda
+      ),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(15.0)),
+      borderSide: BorderSide(
+        color: Colors.grey.shade400, // Cor da borda
+        width: 2.0, // Espessura da borda
+      ),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(15.0)),
+      borderSide: BorderSide(
+        color: corPadrao(), // Cor da borda quando o campo está focado
+        width: 3.0, // Espessura da borda quando o campo está focado
+      ),
+    ),
+  );
 }

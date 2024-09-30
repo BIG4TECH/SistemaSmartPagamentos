@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors, use_build_context_synchronously
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'inicial/telaLogin.dart';
 import '/screens/widgets/menuDrawer.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +30,7 @@ class _HomeState extends State<Home> {
             )),
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
-        backgroundColor: Color.fromRGBO(89, 19, 165, 1.0),
+        backgroundColor: corPadrao(),
         actions: [
           IconButton(
             tooltip: 'Sair',

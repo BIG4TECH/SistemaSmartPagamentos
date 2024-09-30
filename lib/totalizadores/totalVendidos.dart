@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_pagamento/screens/widgets/cores.dart';
 
 class TotalVendidos extends StatefulWidget {
   final String email;
@@ -86,7 +87,11 @@ class TotalVendidosState extends State<TotalVendidos> {
                       height: 40,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: Colors.purple,
+                        gradient: LinearGradient(
+                          colors: gradientBtn(),
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                       ),
                       child: Center(
                         child: Text(

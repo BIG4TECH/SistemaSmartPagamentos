@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:smart_pagamento/screens/cadastros/telaCadastroCliente.dart';
+import 'package:smart_pagamento/screens/widgets/cores.dart';
+//import 'package:smart_pagamento/screens/widgets/textfield.dart';
 
 class ClienteListScreen extends StatefulWidget {
   final String? email;
@@ -18,8 +19,9 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
@@ -31,40 +33,41 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        backgroundColor: corPadrao(),
       ),
       body: Container(
         padding: const EdgeInsets.only(top: 40, left: 50, right: 50),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.fromRGBO(89, 19, 165, 1.0),
-              Color.fromRGBO(93, 21, 178, 1.0),
-              Color.fromRGBO(123, 22, 161, 1.0),
-              Color.fromRGBO(153, 27, 147, 1.0),
-            ],
-          ),
-        ),
         child: Column(
           children: [
-            const SizedBox(height: 20),
             TextField(
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
+                prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
                 labelText: 'Pesquisar Cliente',
-                labelStyle: TextStyle(color: Colors.white),
-                prefixIcon: Icon(Icons.search, color: Colors.white),
-                filled: true,
-                fillColor: Colors.white24,
+                labelStyle: TextStyle(color: Colors.grey.shade400),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade400, // Cor da borda
+                    width: 2.0, // Espessura da borda
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade400, // Cor da borda
+                    width: 2.0, // Espessura da borda
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                  borderSide: BorderSide(
+                    color:
+                        corPadrao(), // Cor da borda quando o campo está focado
+                    width: 3.0, // Espessura da borda quando o campo está focado
+                  ),
                 ),
               ),
-              style: const TextStyle(color: Colors.white),
+              //style: const TextStyle(color: Colors.white),
               onChanged: (value) {
                 setState(() {
                   searchQuery = value.toLowerCase();
@@ -107,7 +110,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                       final cliente = clientes[index];
 
                       return Card(
-                        color: Colors.black.withOpacity(0.1),
+                        //color: Colors.black.withOpacity(0.1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15.0),
                         ),
@@ -115,19 +118,19 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                           title: Text(
                             cliente['name'],
                             style: const TextStyle(
-                                color: Colors.white,
+                                color: Colors.black87,
                                 fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            'Email: ${cliente['email']} - WhatsApp: ${cliente['whatsapp']}',
-                            style: const TextStyle(color: Colors.white70),
+                            'Email: ${cliente['email']} \nWhatsApp: ${cliente['whatsapp']}',
+                            // style: const TextStyle(color: Colors.white70),
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
                                 icon:
-                                    const Icon(Icons.edit, color: Colors.white),
+                                    const Icon(Icons.edit),
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -139,47 +142,83 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                               ),
                               IconButton(
                                 icon: const Icon(Icons.delete,
-                                    color: Colors.redAccent),
+                                    ),
                                 onPressed: () {
                                   showDialog(
                                     context: context,
                                     builder: (context) => AlertDialog(
-                                      backgroundColor: Colors.black87,
+                                      //backgroundColor: Colors.black87,
                                       title: const Text(
-                                          'Deseja excluir o cliente?',
-                                          style:
-                                              TextStyle(color: Colors.white)),
+                                        'Deseja excluir o cliente?',
+                                        //style:TextStyle(color: Colors.white)
+                                      ),
+
                                       actions: [
                                         TextButton(
                                           onPressed: () =>
                                               Navigator.pop(context),
-                                          child: const Text('Cancelar',
+                                          child: Text('Cancelar',
                                               style: TextStyle(
-                                                  color: Colors.white)),
+                                                  color: Colors.grey.shade400)),
                                         ),
-                                        TextButton(
-                                          onPressed: () {
-                                            _deleteCliente(cliente.id);
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text('Excluir',
-                                              style: TextStyle(
-                                                  color: Colors.redAccent)),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: gradientBtn(),
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: ElevatedButton(
+                                              onPressed: () {
+                                                _deleteCliente(cliente.id);
+                                                Navigator.pop(context);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  fixedSize: Size(
+                                                      size.width * 0.1,
+                                                      size.height * 0.01),
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5))),
+                                              child: Text('Excluir',
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize:
+                                                          size.height * 0.022,
+                                                      fontWeight:
+                                                          FontWeight.bold))),
                                         ),
                                       ],
                                     ),
                                   );
                                 },
                               ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.list, color: Colors.white),
-                                tooltip: 'Itens Vendas',
-                                onPressed: () async {
-                                  await _getDataItensVendas(cliente.id);
-                                  _showProducts(context);
-                                },
-                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: gradientBtn(),
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.list,
+                                      color: Colors.white),
+                                  tooltip: 'Itens Vendas',
+                                  onPressed: () async {
+                                    await _getDataItensVendas(cliente.id);
+                                    _showProducts(context);
+                                  },
+                                ),
+                              )
+                            
                             ],
                           ),
                         ),
@@ -202,9 +241,14 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
   Future<void> _getDataItensVendas(String clienteid) async {
     _listProdutosEscolhidos.clear();
 
-    var iven =
-        await FirebaseFirestore.instance.collection('itens_vendas').where('email_user', isEqualTo: widget.email).get();
-    var vendas = await FirebaseFirestore.instance.collection('vendas').where('email_user', isEqualTo: widget.email).get();
+    var iven = await FirebaseFirestore.instance
+        .collection('itens_vendas')
+        .where('email_user', isEqualTo: widget.email)
+        .get();
+    var vendas = await FirebaseFirestore.instance
+        .collection('vendas')
+        .where('email_user', isEqualTo: widget.email)
+        .get();
 
     for (var docven in vendas.docs) {
       if (clienteid == docven['idcliente']) {

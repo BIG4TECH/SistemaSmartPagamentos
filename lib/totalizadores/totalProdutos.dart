@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/relatorios/prodRelatorio.dart';
 
 class TotalProdutos extends StatefulWidget {
@@ -53,7 +54,11 @@ class TotalProdutosState extends State<TotalProdutos> {
             height: 40,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: Colors.purple,
+              gradient: LinearGradient(
+                                colors: gradientBtn(),
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
             ),
             child: Center(
               child: Text(
