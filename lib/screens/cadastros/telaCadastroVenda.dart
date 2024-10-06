@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/totalizadores/totalVendidos.dart';
 
 class RegistraVenda extends StatefulWidget {
@@ -21,19 +21,19 @@ class _RegistraVendaState extends State<RegistraVenda> {
   double _totalLiq = 0;
   double _totalVenda = 0;
   String? _dadosCliente;
-  String _dadosProduto = '';
+  Map<String, dynamic> _dadosProduto = {};
   String? _clienteId;
   String? _produtoId;
 
   //Listas para visualizar no dropdownsearch
   List<String> _listClienteDrop = [];
-  List<String> _listProdutoDrop = [];
+  List<Map<String, dynamic>> _listProdutoDrop = [];
 
   //lista para os produtos deletados
-  List<String> _listProdutoDropDeleted = [];
+  List<Map<String, dynamic>> _listProdutoDropDeleted = [];
 
   //Lista dos produtos escolhidos
-  List<String> _listProdutosEscolhidos = [];
+  List<Map<String, dynamic>> _listProdutosEscolhidos = [];
 
   //Lista da quantidade dos produtos escolhidos
   List<int> _listQuantProd = [];
@@ -99,8 +99,11 @@ class _RegistraVendaState extends State<RegistraVenda> {
 
         query.docs.forEach((doc) {
           setState(() {
-            _listProdutoDrop.add(
-                '${doc['name']} | Preço: ${doc['price']} | Desconto: ${doc['desconto']}%');
+            _listProdutoDrop.add({
+              'nome': doc['name'],
+              'preco': doc['price'],
+              'desconto': '${doc['desconto']}%'
+            });
           });
         });
       });
@@ -109,7 +112,10 @@ class _RegistraVendaState extends State<RegistraVenda> {
 
   //BUSCAR E INSERIR O ID DO CLIENTE
   Future<String?> fetchAndSetIdCliente(String? cliSelecionado) async {
-    var query = await FirebaseFirestore.instance.collection('clientes').where('email_user', isEqualTo: widget.email).get();
+    var query = await FirebaseFirestore.instance
+        .collection('clientes')
+        .where('email_user', isEqualTo: widget.email)
+        .get();
     for (var doc in query.docs) {
       if (cliSelecionado ==
           '${doc['name']} | Email: ${doc['email']} | Whatsapp: ${doc['whatsapp']}') {
@@ -121,10 +127,12 @@ class _RegistraVendaState extends State<RegistraVenda> {
 
   //BUSCAR E INSERIR O ID DO PRODUTO
   Future<String?> fetchAndSetIdProduto(String? prodSelecionado) async {
-    var query = await FirebaseFirestore.instance.collection('products').where('email_user', isEqualTo: widget.email).get();
+    var query = await FirebaseFirestore.instance
+        .collection('products')
+        .where('email_user', isEqualTo: widget.email)
+        .get();
     for (var doc in query.docs) {
-      if (prodSelecionado ==
-          '${doc['name']} | Preço: ${doc['price']} | Desconto: ${doc['desconto']}%') {
+      if (prodSelecionado == '${doc['name']}') {
         return doc.id;
       }
     }
@@ -133,11 +141,12 @@ class _RegistraVendaState extends State<RegistraVenda> {
 
   //buscar preço do produto
   Future<double?> fetchPriceProduto(String? prodSelecionado) async {
-    var querySnapshot =
-        await FirebaseFirestore.instance.collection('products').where('email_user', isEqualTo: widget.email).get();
+    var querySnapshot = await FirebaseFirestore.instance
+        .collection('products')
+        .where('email_user', isEqualTo: widget.email)
+        .get();
     for (var doc in querySnapshot.docs) {
-      if (prodSelecionado ==
-          '${doc['name']} | Preço: ${doc['price']} | Desconto: ${doc['desconto']}%') {
+      if (prodSelecionado == '${doc['name']}') {
         return doc['price'];
       }
     }
@@ -146,11 +155,12 @@ class _RegistraVendaState extends State<RegistraVenda> {
 
   //BUSCAR DESCONTO DO PRODUTO
   Future<int?> fetchDescontoProduto(String? prodSelecionado) async {
-    var querySnapshot =
-        await FirebaseFirestore.instance.collection('products').where('email_user', isEqualTo: widget.email).get();
+    var querySnapshot = await FirebaseFirestore.instance
+        .collection('products')
+        .where('email_user', isEqualTo: widget.email)
+        .get();
     for (var doc in querySnapshot.docs) {
-      if (prodSelecionado ==
-          '${doc['name']} | Preço: ${doc['price']} | Desconto: ${doc['desconto']}%') {
+      if (prodSelecionado == '${doc['name']}') {
         return doc['desconto'];
       }
     }
@@ -158,8 +168,8 @@ class _RegistraVendaState extends State<RegistraVenda> {
   }
 
   //ADICIONAR DADOS DO PRODUTO NA LISTA DE PRODUTOS ESCOLHIDOS
-  void _addProduto(String? dadosProduto, int quantidade, double? price,
-      int? desconto, String? produtoId) {
+  void _addProduto(Map<String, dynamic> dadosProduto, int quantidade,
+      double? price, int? desconto, String? produtoId) {
     double valorDescontado = 0;
 
     setState(() {
@@ -177,12 +187,26 @@ class _RegistraVendaState extends State<RegistraVenda> {
       _listValorLiqProd.add((quantidade * (price ?? 0)) - valorDescontado);
       _listValorBrutoProd.add(quantidade * (price ?? 0));
       _listValorDescontadoProd.add(valorDescontado);
-      _listProdutosEscolhidos.add('$dadosProduto | Quant.: $quantidade');
+      _listProdutosEscolhidos.add({
+        'nome': dadosProduto['nome'],
+        'price': price,
+        'desconto': desconto,
+        'quantidade': quantidade,
+        'produtoId': _produtoId,
+        'valorDescontado': valorDescontado,
+        'valorLiq': (quantidade * (price ?? 0)) - valorDescontado,
+        'valorBruto': quantidade * (price ?? 0)
+      });
       _listQuantProd.add(quantidade);
       _listPriceProd.add(price);
       _listDescontoProd.add(desconto);
-      _listProdutoDrop.remove(dadosProduto);
-      _listProdutoDropDeleted.add(dadosProduto.toString());
+
+      //_listProdutoDrop.remove(dadosProduto);
+      //_listProdutoDropDeleted.add(dadosProduto);
+      _listProdutoDrop
+          .removeWhere((produto) => produto['nome'] == dadosProduto['nome']);
+      _listProdutoDropDeleted
+          .removeWhere((produto) => produto['nome'] == dadosProduto['nome']);
     });
   }
 
@@ -223,7 +247,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
     int quantidade = 1;
     double? price;
     int? desconto;
-    _dadosProduto = '';
+    _dadosProduto = {};
 
     showDialog(
       context: context,
@@ -243,9 +267,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
                     //ESCOLHER O PRODUTO
                     DropdownSearch<String>(
                       validator: (value) {
-                        if (value == null ||
-                            value.isEmpty ||
-                            _dadosProduto == '') {
+                        if (value == null || value.isEmpty) {
                           return 'Por favor, escolha o produto!';
                         }
                         return null;
@@ -254,7 +276,9 @@ class _RegistraVendaState extends State<RegistraVenda> {
                           showSelectedItems: true,
                           //disabledItemFn: (String s) => s.startsWith('I'),
                           showSearchBox: true),
-                      items: _listProdutoDrop,
+                      items: _listProdutoDrop
+                          .map((produto) => produto['nome'].toString())
+                          .toList(),
                       dropdownDecoratorProps: const DropDownDecoratorProps(
                         dropdownSearchDecoration: InputDecoration(
                           border: OutlineInputBorder(
@@ -267,15 +291,17 @@ class _RegistraVendaState extends State<RegistraVenda> {
                       ),
                       onChanged: (String? prodSelecionado) {
                         setState(() async {
-                          _dadosProduto = prodSelecionado.toString();
+                          _dadosProduto['nome'] = prodSelecionado.toString();
+
                           _produtoId =
                               await fetchAndSetIdProduto(prodSelecionado);
                           price = await fetchPriceProduto(prodSelecionado);
                           desconto =
                               await fetchDescontoProduto(prodSelecionado);
+                          print('PRICE ESCOLHE PRODUTO: $price');
                         });
                       },
-                      selectedItem: _dadosProduto,
+                      selectedItem: _dadosProduto['nome'],
                     ),
 
                     const SizedBox(height: 20),
@@ -405,7 +431,10 @@ class _RegistraVendaState extends State<RegistraVenda> {
     TotalVendidosState totalVendidos = TotalVendidosState();
 
     if (_formKey.currentState!.validate()) {
-      var query = await FirebaseFirestore.instance.collection('clientes').where('email_user', isEqualTo: widget.email).get();
+      var query = await FirebaseFirestore.instance
+          .collection('clientes')
+          .where('email_user', isEqualTo: widget.email)
+          .get();
       for (var doc in query.docs) {
         if (_dadosCliente ==
             '${doc['name']} | Email: ${doc['email']} | Whatsapp: ${doc['whatsapp']}') {
@@ -467,276 +496,366 @@ class _RegistraVendaState extends State<RegistraVenda> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    print(_totalVenda);
     return Scaffold(
-        extendBodyBehindAppBar: true,
         appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            widget.vendaId == null ? 'Registro de Venda' : 'Edição de Venda',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 38,
+              color: Colors.white,
+            ),
+          ),
           iconTheme: const IconThemeData(color: Colors.white),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          systemOverlayStyle: SystemUiOverlayStyle.light,
+          backgroundColor: corPadrao(),
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color.fromRGBO(89, 19, 165, 1.0),
-                      Color.fromRGBO(93, 21, 178, 1.0),
-                      Color.fromRGBO(123, 22, 161, 1.0),
-                      Color.fromRGBO(153, 27, 147, 1.0),
-                    ],
-                  ),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 5,
+                      offset: const Offset(0, 0),
+                    )
+                  ],
                 ),
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return SingleChildScrollView(
-                      child: ConstrainedBox(
-                          constraints:
-                              BoxConstraints(minHeight: constraints.maxHeight),
-                          child: IntrinsicHeight(
-                              child: Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 100, vertical: 80),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(25),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  spreadRadius: 1,
-                                  blurRadius: 5,
-                                  offset: const Offset(0, 0),
-                                )
-                              ],
-                            ),
-                            child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Form(
-                                  key: _formKey,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        widget.vendaId == null
-                                            ? 'Registro de Venda'
-                                            : 'Edição de Venda',
+                child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      key: _formKey,
+                      //column principal
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          // row dos valores e cliente
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              //column de valores
+                              Expanded(
+                                  child: Container(
+                                //color: Colors.amber,
+                                //height: 400,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                        'Total Bruto: R\$${formatoDouble.format(_totalVenda)}',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 38,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 20),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                          fontSize: 20,
+                                        )),
+                                    Text(
+                                        'Total Liq.: R\$${formatoDouble.format(_totalLiq)}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        )),
+                                  ],
+                                ),
+                              )),
+
+                              //column de cliente e produto
+                              Expanded(
+                                  child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: (Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          //column de valores
+                                          //CLIENTES
+                                          const Text('Clientes',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20)),
 
-                                          Expanded(
-                                              child: Container(
-                                            //color: Colors.amber,
-                                            height: 400,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Card(
-                                                    color: Colors.black
-                                                        .withOpacity(0.1),
-                                                    child: Text(
-                                                        'Total Bruto: R\$${formatoDouble.format(_totalVenda)}',
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 20,
-                                                            color:
-                                                                Colors.white))),
-                                                Card(
-                                                    color: Colors.black
-                                                        .withOpacity(0.1),
-                                                    child: Text(
-                                                        'Total Liq.: R\$${formatoDouble.format(_totalLiq)}',
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 20,
-                                                            color:
-                                                                Colors.white))),
-                                              ],
+                                          const SizedBox(
+                                            height: 8,
+                                          ),
+                                          DropdownSearch<String>(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty ||
+                                                  _listProdutosEscolhidos
+                                                      .isEmpty) {
+                                                return 'Por favor, escolha o cliente e/ou produto!';
+                                              }
+                                              return null;
+                                            },
+                                            popupProps: const PopupProps.menu(
+                                                showSelectedItems: true,
+                                                //disabledItemFn: (String s) => s.startsWith('I'),
+                                                showSearchBox: true),
+                                            items: _listClienteDrop,
+                                            dropdownDecoratorProps:
+                                                const DropDownDecoratorProps(
+                                              dropdownSearchDecoration:
+                                                  InputDecoration(
+                                                labelText:
+                                                    "Selecione um dos clientes.",
+                                                //hintText: "Selecione um dos clientes.",
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(
+                                                              30.0)),
+                                                ),
+                                              ),
                                             ),
-                                          )),
+                                            onChanged:
+                                                (String? cliSelecionado) {
+                                              setState(() async {
+                                                _dadosCliente = cliSelecionado;
+                                                _clienteId =
+                                                    await fetchAndSetIdCliente(
+                                                        cliSelecionado);
+                                              });
+                                            },
+                                            selectedItem: _dadosCliente,
+                                          ),
+                                          const SizedBox(height: 20),
 
-                                          //column de cliente e produto
-                                          Expanded(
-                                              child: Card(
-                                                  child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              16),
-                                                      child: (Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          //CLIENTES
-                                                          const Text('Clientes',
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  fontSize:
-                                                                      20)),
-
-                                                          const SizedBox(
-                                                            height: 8,
-                                                          ),
-                                                          DropdownSearch<
-                                                              String>(
-                                                            validator: (value) {
-                                                              if (value ==
-                                                                      null ||
-                                                                  value
-                                                                      .isEmpty ||
-                                                                  _listProdutosEscolhidos
-                                                                      .isEmpty) {
-                                                                return 'Por favor, escolha o cliente e/ou produto!';
-                                                              }
-                                                              return null;
-                                                            },
-                                                            popupProps: const PopupProps
-                                                                .menu(
-                                                                showSelectedItems:
-                                                                    true,
-                                                                //disabledItemFn: (String s) => s.startsWith('I'),
-                                                                showSearchBox:
-                                                                    true),
-                                                            items:
-                                                                _listClienteDrop,
-                                                            dropdownDecoratorProps:
-                                                                const DropDownDecoratorProps(
-                                                              dropdownSearchDecoration:
-                                                                  InputDecoration(
-                                                                labelText:
-                                                                    "Selecione um dos clientes.",
-                                                                //hintText: "Selecione um dos clientes.",
-                                                                border:
-                                                                    OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.all(
-                                                                          Radius.circular(
-                                                                              30.0)),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            onChanged: (String?
-                                                                cliSelecionado) {
-                                                              setState(
-                                                                  () async {
-                                                                _dadosCliente =
-                                                                    cliSelecionado;
-                                                                _clienteId =
-                                                                    await fetchAndSetIdCliente(
-                                                                        cliSelecionado);
-                                                              });
-                                                            },
-                                                            selectedItem:
-                                                                _dadosCliente,
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 20),
-
-                                                          //PRODUTOS
-                                                          const Text('Produtos',
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  fontSize:
-                                                                      20)),
-
-                                                          //VISUALIZAÇÃO DOS PRODUTOS DA VENDA
-                                                          SizedBox(
-                                                            height: 200,
-                                                            child: ListView
-                                                                .builder(
-                                                                    itemCount:
-                                                                        _listProdutosEscolhidos
-                                                                            .length,
-                                                                    itemBuilder:
-                                                                        (context,
-                                                                            index) {
-                                                                      return Card(
-                                                                          child: ListTile(
-                                                                              title: Text(_listProdutosEscolhidos[index]),
-                                                                              subtitle: Text('Total Bruto: ${_listValorBrutoProd[index]} | Desconto Aplicado: ${_listValorDescontadoProd[index]} | Valor Liq.: ${_listValorLiqProd[index]}'),
-                                                                              trailing: _removeAtListProdutosEscolhidos(index)));
-                                                                    }),
-                                                          ),
-
-                                                          //BOTÃO PARA ADICIONAR PRODUTO NA VENDA
-                                                          ElevatedButton(
-                                                              style:
-                                                                  ElevatedButton
-                                                                      .styleFrom(
-                                                                backgroundColor:
-                                                                    Colors
-                                                                        .purple,
-                                                                minimumSize:
-                                                                    const Size(
-                                                                        2000,
-                                                                        42),
-                                                                shape: RoundedRectangleBorder(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            5)),
-                                                              ),
-                                                              onPressed: () {
-                                                                _setProdutosAndQuant(
-                                                                    context);
-                                                              },
-                                                              child: const Text(
-                                                                  'Adicionar Produtos',
-                                                                  style: TextStyle(
-                                                                      color: Colors
-                                                                          .white,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold))),
-                                                        ],
-                                                      )))))
+                                          //BOTÃO PARA ADICIONAR PRODUTO NA VENDA
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: gradientBtn(),
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: ElevatedButton(
+                                              onPressed: () {
+                                                _setProdutosAndQuant(context);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  fixedSize: Size(
+                                                      size.width * 0.2,
+                                                      size.height * 0.01),
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5))),
+                                              child: Text('Adicionar Produtos',
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize:
+                                                          size.height * 0.022,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ),
+                                          ),
+                                        ],
+                                      ))))
+                            ],
+                          ),
+                          //PRODUTOS
+                          const Text('Produtos',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 20)),
+                          SizedBox(
+                            height: size.height * 0.5,
+                            child: DataTable(
+                              columnSpacing: size.width * 0.1,
+                              //horizontalMargin: ,
+                              columns: [
+                                DataColumn(
+                                    label: Text(
+                                  'Produto',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: size.height * 0.03),
+                                )),
+                                DataColumn(
+                                    label: Text('Preço',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: size.height * 0.03))),
+                                DataColumn(
+                                    label: Text('Desconto (%)',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: size.height * 0.03))),
+                                DataColumn(
+                                    label: Text('Valor Descontado',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: size.height * 0.03))),
+                                DataColumn(
+                                    label: Text('Quantidade',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: size.height * 0.03))),
+                                DataColumn(
+                                    label: Text('Deletar',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: size.height * 0.03))),
+                              ],
+                              rows: _listProdutosEscolhidos
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                int index = entry
+                                    .key; // Aqui está o índice do item atual
+                                var produto = entry.value;
+                                return DataRow(
+                                  cells: [
+                                    DataCell(Text(produto['nome'],
+                                        style: TextStyle(
+                                            fontSize: size.height * 0.025))),
+                                    DataCell(Text('R\$ ${produto['price']}',
+                                        style: TextStyle(
+                                            fontSize: size.height * 0.025))),
+                                    DataCell(Text('${produto['desconto']}%',
+                                        style: TextStyle(
+                                            fontSize: size.height * 0.025))),
+                                    DataCell(Text('${produto['quantidade']}%',
+                                        style: TextStyle(
+                                            fontSize: size.height * 0.025))),
+                                    DataCell(Text(
+                                        '${produto['valorDescontado']}',
+                                        style: TextStyle(
+                                            fontSize: size.height * 0.025))),
+                                    DataCell(
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.delete,
+                                            ),
+                                            onPressed: () {
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) =>
+                                                    AlertDialog(
+                                                  backgroundColor:
+                                                      Colors.black87,
+                                                  title: const Text(
+                                                      'Deseja excluir o produto?',
+                                                      style: TextStyle(
+                                                          color: Colors.white)),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context),
+                                                      child: const Text(
+                                                          'Cancelar',
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .white)),
+                                                    ),
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        gradient:
+                                                            LinearGradient(
+                                                          colors: gradientBtn(),
+                                                          begin:
+                                                              Alignment.topLeft,
+                                                          end: Alignment
+                                                              .bottomRight,
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                      ),
+                                                      child: TextButton(
+                                                        onPressed: () {
+                                                          _removeAtListProdutosEscolhidos(
+                                                              index);
+                                                        },
+                                                        child: const Text(
+                                                            'Excluir',
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold)),
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          ),
                                         ],
                                       ),
+                                    )
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                          //VISUALIZAÇÃO DOS PRODUTOS DA VENDA
+                          /*
+                          SizedBox(
+                            height: 200,
+                            child: ListView.builder(
+                                itemCount: _listProdutosEscolhidos.length,
+                                itemBuilder: (context, index) {
+                                  return Card(
+                                      child: ListTile(
+                                          title: Text(
+                                              _listProdutosEscolhidos[index]),
+                                          subtitle: Text(
+                                              'Total Bruto: ${_listValorBrutoProd[index]} | Desconto Aplicado: ${_listValorDescontadoProd[index]} | Valor Liq.: ${_listValorLiqProd[index]}'),
+                                          trailing:
+                                              _removeAtListProdutosEscolhidos(
+                                                  index)));
+                                }),
+                          ),
+                          */
+                          const SizedBox(height: 20),
 
-                                      const SizedBox(height: 20),
-
-                                      //BOTÃO DE CONFIRMAÇÃO
-                                      Center(
-                                          child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.purple,
-                                          minimumSize: const Size(2000, 42),
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(5)),
-                                        ),
-                                        onPressed: _registerOrEditVenda,
-                                        child: Text(
-                                          widget.vendaId == null
-                                              ? 'Registrar Venda'
-                                              : 'Editar Venda',
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ))
-                                    ],
-                                  ),
-                                )),
-                          ))));
-                })));
+                          //BOTÃO DE CONFIRMAÇÃO
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: gradientBtn(),
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _registerOrEditVenda,
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  fixedSize: Size(
+                                      size.width * 0.2, size.height * 0.01),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5))),
+                              child: Text(
+                                  widget.vendaId != null
+                                      ? 'Editar'
+                                      : 'Cadastrar',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: size.height * 0.022,
+                                      fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+              ));
   }
 }
