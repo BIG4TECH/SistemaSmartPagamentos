@@ -22,6 +22,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
   double _totalVenda = 0;
   String? _dadosCliente;
   Map<String, dynamic> _dadosProduto = {};
+  int quantidade = 1;
   String? _clienteId;
   String? _produtoId;
 
@@ -39,10 +40,10 @@ class _RegistraVendaState extends State<RegistraVenda> {
   List<int> _listQuantProd = [];
 
   //Lista do preço dos produtos
-  List<double?> _listPriceProd = [];
+  //List<double?> _listPriceProd = [];
 
   //Lista do valor de desconto
-  List<int?> _listDescontoProd = [];
+  //List<int?> _listDescontoProd = [];
 
   //Lista do valor descontado
   List<double> _listValorDescontadoProd = [];
@@ -101,8 +102,6 @@ class _RegistraVendaState extends State<RegistraVenda> {
           setState(() {
             _listProdutoDrop.add({
               'nome': doc['name'],
-              'preco': doc['price'],
-              'desconto': '${doc['desconto']}%'
             });
           });
         });
@@ -197,48 +196,55 @@ class _RegistraVendaState extends State<RegistraVenda> {
         'valorLiq': (quantidade * (price ?? 0)) - valorDescontado,
         'valorBruto': quantidade * (price ?? 0)
       });
-      _listQuantProd.add(quantidade);
-      _listPriceProd.add(price);
-      _listDescontoProd.add(desconto);
+      //_listQuantProd.add(quantidade);
+      //_listPriceProd.add(price);
+      //_listDescontoProd.add(desconto);
 
-      //_listProdutoDrop.remove(dadosProduto);
-      //_listProdutoDropDeleted.add(dadosProduto);
+      //_listProdutoDrop.remove(dadosProduto['nome']);
+      //_listProdutoDropDeleted.add(dadosProduto['nome']);
       _listProdutoDrop
           .removeWhere((produto) => produto['nome'] == dadosProduto['nome']);
-      _listProdutoDropDeleted
-          .removeWhere((produto) => produto['nome'] == dadosProduto['nome']);
+
+      _listProdutoDropDeleted.add({'nome': dadosProduto['nome']});
     });
   }
 
   //REMOVER DADOS DO PRODUTO DA LISTA DE PRODUTOS ESCOLHIDOS
   void _removeProduto(int index) {
-    double? price = _listPriceProd[index];
-    int quantidade = _listQuantProd[index];
-    double valorDescontado = _listValorDescontadoProd[index];
+    try {
+      double? price = _listProdutosEscolhidos[index]['price'];
+      int quantidade = _listProdutosEscolhidos[index]['quantidade'];
+      double valorDescontado = _listProdutosEscolhidos[index]['valorDescontado'];
 
-    setState(() {
-      if (price != null) {
-        _totalVenda -= quantidade * price;
+      setState(() {
+        if (price != null) {
+          _totalVenda -= quantidade * price;
 
-        _totalLiq -= (quantidade * price) - valorDescontado;
-      }
+          _totalLiq -= (quantidade * price) - valorDescontado;
+        }
+        print('_listProdutosEscolhidos: ${_listProdutosEscolhidos.length}');
+        print('_listProdutoDrop: ${_listProdutosEscolhidos.length}');
+        print('_listProdutoDropDeleted: ${_listProdutosEscolhidos.length}');
+        //_listProdutoId.removeAt(index);
+        //_listValorLiqProd.removeAt(index);
+        //_listValorBrutoProd.removeAt(index);
+        //_listDescontoProd.removeAt(index);
+        //_listValorDescontadoProd.removeAt(index);
+        _listProdutosEscolhidos.removeAt(index);
+        //_listQuantProd.removeAt(index);
+        //_listPriceProd.removeAt(index);
+        _listProdutoDrop.add(_listProdutoDropDeleted[index]);
+        _listProdutoDropDeleted.removeAt(index);
 
-      _listProdutoId.removeAt(index);
-      _listValorLiqProd.removeAt(index);
-      _listValorBrutoProd.removeAt(index);
-      _listDescontoProd.removeAt(index);
-      _listValorDescontadoProd.removeAt(index);
-      _listProdutosEscolhidos.removeAt(index);
-      _listQuantProd.removeAt(index);
-      _listPriceProd.removeAt(index);
-      _listProdutoDrop.add(_listProdutoDropDeleted[index]);
-      _listProdutoDropDeleted.removeAt(index);
-
-      if (_listProdutosEscolhidos.isEmpty) {
-        _totalVenda = 0;
-        _totalLiq = 0;
-      }
-    });
+        if (_listProdutosEscolhidos.isEmpty) {
+          _totalVenda = 0;
+          _totalLiq = 0;
+        }
+      });
+      print('INDEX: $index');
+    } catch (e) {
+      print(e);
+    }
   }
 
   //Showdialog para selecionar produtos e a quantidade
@@ -347,7 +353,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
               ),
               TextButton(
                 style: TextButton.styleFrom(
-                  backgroundColor: Colors.purple,
+                  backgroundColor: corPadrao(),
                   minimumSize: const Size(20, 42),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5)),
@@ -369,39 +375,6 @@ class _RegistraVendaState extends State<RegistraVenda> {
           );
         });
       },
-    );
-  }
-
-  //remover da lista de produtos escolhidos
-  Widget _removeAtListProdutosEscolhidos(int index) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Deseja excluir o produto?'),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancelar')),
-                  TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _removeProduto(index);
-                          Navigator.pop(context);
-                        });
-                      },
-                      child: const Text('Excluir'))
-                ],
-              ),
-            );
-          },
-        ),
-      ],
     );
   }
 
@@ -665,145 +638,169 @@ class _RegistraVendaState extends State<RegistraVenda> {
                             ],
                           ),
                           //PRODUTOS
-                          const Text('Produtos',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20)),
-                          SizedBox(
-                            height: size.height * 0.5,
-                            child: DataTable(
-                              columnSpacing: size.width * 0.1,
-                              //horizontalMargin: ,
-                              columns: [
-                                DataColumn(
-                                    label: Text(
-                                  'Produto',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: size.height * 0.03),
-                                )),
-                                DataColumn(
-                                    label: Text('Preço',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: size.height * 0.03))),
-                                DataColumn(
-                                    label: Text('Desconto (%)',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: size.height * 0.03))),
-                                DataColumn(
-                                    label: Text('Valor Descontado',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: size.height * 0.03))),
-                                DataColumn(
-                                    label: Text('Quantidade',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: size.height * 0.03))),
-                                DataColumn(
-                                    label: Text('Deletar',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: size.height * 0.03))),
-                              ],
-                              rows: _listProdutosEscolhidos
-                                  .asMap()
-                                  .entries
-                                  .map((entry) {
-                                int index = entry
-                                    .key; // Aqui está o índice do item atual
-                                var produto = entry.value;
-                                return DataRow(
-                                  cells: [
-                                    DataCell(Text(produto['nome'],
-                                        style: TextStyle(
-                                            fontSize: size.height * 0.025))),
-                                    DataCell(Text('R\$ ${produto['price']}',
-                                        style: TextStyle(
-                                            fontSize: size.height * 0.025))),
-                                    DataCell(Text('${produto['desconto']}%',
-                                        style: TextStyle(
-                                            fontSize: size.height * 0.025))),
-                                    DataCell(Text('${produto['quantidade']}%',
-                                        style: TextStyle(
-                                            fontSize: size.height * 0.025))),
-                                    DataCell(Text(
-                                        '${produto['valorDescontado']}',
-                                        style: TextStyle(
-                                            fontSize: size.height * 0.025))),
-                                    DataCell(
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.delete,
-                                            ),
-                                            onPressed: () {
-                                              showDialog(
-                                                context: context,
-                                                builder: (context) =>
-                                                    AlertDialog(
-                                                  backgroundColor:
-                                                      Colors.black87,
-                                                  title: const Text(
-                                                      'Deseja excluir o produto?',
-                                                      style: TextStyle(
-                                                          color: Colors.white)),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context),
-                                                      child: const Text(
-                                                          'Cancelar',
-                                                          style: TextStyle(
-                                                              color: Colors
-                                                                  .white)),
-                                                    ),
-                                                    Container(
-                                                      decoration: BoxDecoration(
-                                                        gradient:
-                                                            LinearGradient(
-                                                          colors: gradientBtn(),
-                                                          begin:
-                                                              Alignment.topLeft,
-                                                          end: Alignment
-                                                              .bottomRight,
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8),
-                                                      ),
-                                                      child: TextButton(
-                                                        onPressed: () {
-                                                          _removeAtListProdutosEscolhidos(
-                                                              index);
-                                                        },
+
+                          SingleChildScrollView(
+                            child: SizedBox(
+                              height: size.height * 0.45,
+                              child: DataTable(
+                                columnSpacing: size.width * 0.045,
+                                horizontalMargin: 0,
+                                columns: [
+                                  DataColumn(
+                                      label: Text(
+                                    'Produto',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: size.height * 0.03),
+                                  )),
+                                  DataColumn(
+                                      label: Text('Preço',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: size.height * 0.03))),
+                                  DataColumn(
+                                      label: Text('Desconto (%)',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: size.height * 0.03))),
+                                  DataColumn(
+                                      label: Text('Quantidade',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: size.height * 0.03))),
+                                  DataColumn(
+                                      label: Text('Total Bruto',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: size.height * 0.03))),
+                                  DataColumn(
+                                      label: Text('Valor Descontado',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: size.height * 0.03))),
+                                  DataColumn(
+                                      label: Text('Total Liq.',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: size.height * 0.03))),
+                                  DataColumn(
+                                      label: Text('Deletar',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: size.height * 0.03))),
+                                ],
+                                rows: _listProdutosEscolhidos
+                                    .asMap()
+                                    .entries
+                                    .map((entry) {
+                                  int index = entry
+                                      .key; // Aqui está o índice do item atual
+                                  var produto = entry.value;
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(Text(produto['nome'],
+                                          style: TextStyle(
+                                              fontSize: size.height * 0.025))),
+                                      DataCell(Text('R\$ ${produto['price']}',
+                                          style: TextStyle(
+                                              fontSize: size.height * 0.025))),
+                                      DataCell(Text('${produto['desconto']}%',
+                                          style: TextStyle(
+                                              fontSize: size.height * 0.025))),
+                                      DataCell(Text('${produto['quantidade']}',
+                                          style: TextStyle(
+                                              fontSize: size.height * 0.025))),
+                                      DataCell(Text(
+                                          'R\$ ${formatoDouble.format(produto['valorBruto'])}',
+                                          style: TextStyle(
+                                              fontSize: size.height * 0.025))),
+                                      DataCell(Text(
+                                          'R\$ ${formatoDouble.format(produto['valorDescontado'])}',
+                                          style: TextStyle(
+                                              fontSize: size.height * 0.025))),
+                                      DataCell(Text(
+                                          'R\$ ${formatoDouble.format(produto['valorLiq'])}',
+                                          style: TextStyle(
+                                              fontSize: size.height * 0.025))),
+                                      DataCell(
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.delete,
+                                              ),
+                                              onPressed: () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (context) =>
+                                                      AlertDialog(
+                                                    backgroundColor:
+                                                        Colors.black87,
+                                                    title: const Text(
+                                                        'Deseja excluir o produto?',
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white)),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                context),
                                                         child: const Text(
-                                                            'Excluir',
+                                                            'Cancelar',
                                                             style: TextStyle(
                                                                 color: Colors
-                                                                    .white,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold)),
+                                                                    .white)),
                                                       ),
-                                                    )
-                                                  ],
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                );
-                              }).toList(),
+                                                      Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          gradient:
+                                                              LinearGradient(
+                                                            colors:
+                                                                gradientBtn(),
+                                                            begin: Alignment
+                                                                .topLeft,
+                                                            end: Alignment
+                                                                .bottomRight,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(8),
+                                                        ),
+                                                        child: TextButton(
+                                                          onPressed: () {
+                                                            _removeProduto(
+                                                                index);
+                                                            Navigator.pop(
+                                                                context);
+                                                          },
+                                                          child: const Text(
+                                                              'Excluir',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold)),
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
                             ),
                           ),
+
                           //VISUALIZAÇÃO DOS PRODUTOS DA VENDA
                           /*
                           SizedBox(
