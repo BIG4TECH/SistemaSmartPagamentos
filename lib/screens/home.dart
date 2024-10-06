@@ -9,15 +9,15 @@ import 'package:smart_pagamento/charts/allCharts.dart';
 
 class Home extends StatefulWidget {
   final String email;
-
-  const Home(this.email);
+  final String tipoUser;
+  
+  const Home(this.email, this.tipoUser);
 
   @override
   State<Home> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,7 +64,7 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-      drawer: menuDrawer(context, widget.email),
+      drawer: menuDrawer(context, widget.email, widget.tipoUser),
       body: AllCharts(widget.email),
     );
   }

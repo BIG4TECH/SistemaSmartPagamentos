@@ -1,4 +1,5 @@
 // ignore_for_file: prefer_const_constructors, library_private_types_in_public_api, use_build_context_synchronously
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/screens/inicial/telaCadastroPessoa.dart';
@@ -280,6 +281,15 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<String> _tipoUser(String email) async {
+    var user = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+
+    return user.docs.first['tipo_user'];
+  }
+
   Future<void> _login() async {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() {
@@ -292,9 +302,11 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text,
         );
 
+        String tipoUser = await _tipoUser(_emailController.text);
+
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Home(_emailController.text)),
+          MaterialPageRoute(builder: (context) => Home(_emailController.text, tipoUser)),
         );
       } on FirebaseAuthException catch (e) {
         showDialog(

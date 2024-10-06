@@ -37,7 +37,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
   List<Map<String, dynamic>> _listProdutosEscolhidos = [];
 
   //Lista da quantidade dos produtos escolhidos
-  List<int> _listQuantProd = [];
+  //List<int> _listQuantProd = [];
 
   //Lista do preço dos produtos
   //List<double?> _listPriceProd = [];
@@ -214,7 +214,8 @@ class _RegistraVendaState extends State<RegistraVenda> {
     try {
       double? price = _listProdutosEscolhidos[index]['price'];
       int quantidade = _listProdutosEscolhidos[index]['quantidade'];
-      double valorDescontado = _listProdutosEscolhidos[index]['valorDescontado'];
+      double valorDescontado =
+          _listProdutosEscolhidos[index]['valorDescontado'];
 
       setState(() {
         if (price != null) {
@@ -378,6 +379,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
     );
   }
 
+
   void _loadVenda() async {
     setState(() {
       _isLoading = true;
@@ -396,6 +398,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
       _isLoading = false;
     });
   }
+
 
   void _registerOrEditVenda() async {
     DateTime datahora = DateTime.now();
@@ -432,12 +435,13 @@ class _RegistraVendaState extends State<RegistraVenda> {
         for (var index = 0; index < _listProdutosEscolhidos.length; index++) {
           await FirebaseFirestore.instance.collection('itens_vendas').add({
             'idvenda': vendaRef.id,
-            'produto': _listProdutosEscolhidos[index],
-            'idproduto': _listProdutoId[index],
-            'quantidade': _listQuantProd[index],
-            'total_bruto_prod': _listValorBrutoProd[index],
-            'valor_descontado': _listValorDescontadoProd[index],
-            'total_liq_prod': _listValorLiqProd[index],
+            'produto': _listProdutosEscolhidos[index]['nome'],
+            'idproduto': _listProdutosEscolhidos[index]['produtoId'],
+            'quantidade': _listProdutosEscolhidos[index]['quantidade'],
+            'total_bruto_prod': _listProdutosEscolhidos[index]['valorBruto'],
+            'valor_descontado': _listProdutosEscolhidos[index]
+                ['valorDescontado'],
+            'total_liq_prod': _listProdutosEscolhidos[index]['valorLiq'],
             'email_user': widget.email
           });
         }
@@ -463,7 +467,20 @@ class _RegistraVendaState extends State<RegistraVenda> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
               'Venda ${widget.vendaId == null ? 'registrada' : 'atualizada'} com sucesso!')));
-      Navigator.of(context).pop();
+      _listProdutosEscolhidos.clear();
+
+      for (var i = 0; i < _listProdutoDropDeleted.length; i++) {
+        _listProdutoDrop.add(_listProdutoDropDeleted[i]);
+        _listProdutoDropDeleted.removeAt(i);
+
+      }
+    
+
+        if (_listProdutosEscolhidos.isEmpty) {
+          _totalVenda = 0;
+          _totalLiq = 0;
+        }
+      //Navigator.of(context).pop();
     }
   }
 

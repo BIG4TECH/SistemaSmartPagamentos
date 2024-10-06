@@ -12,7 +12,7 @@ import 'package:smart_pagamento/screens/widgets/cores.dart';
 import '../cadastros/telaCadastroProduto.dart';
 import '../listas/telaProdutos.dart';
 
-Widget menuDrawer(BuildContext context, String email) {
+Widget menuDrawer(BuildContext context, String email, String tipoUser) {
   return Drawer(
     child: Column(
       children: [
@@ -59,7 +59,7 @@ Widget menuDrawer(BuildContext context, String email) {
             ),
           ),
         ),
-        ListTile(
+        tipoUser == 'master' ? ListTile(
           leading: Icon(
             Icons.new_label,
             color: corPadrao(),
@@ -75,11 +75,11 @@ Widget menuDrawer(BuildContext context, String email) {
                 MaterialPageRoute(
                     builder: (context) => ProductRegisterScreen(email: email)));
           },
-        ),
+        ) : SizedBox(),
         ListTile(
           leading: Icon(Icons.local_offer, color: corPadrao()),
           title: Text(
-            "Meus Produtos",
+            tipoUser == 'master' ? "Meus Produtos" : 'Produtos',
             style: TextStyle(fontSize: 16),
           ),
           onTap: () {
@@ -89,6 +89,7 @@ Widget menuDrawer(BuildContext context, String email) {
                 MaterialPageRoute(
                     builder: (context) => ProductListScreen(
                           email: email,
+                          tipoUser: tipoUser
                         )));
           },
         ),
@@ -117,9 +118,10 @@ Widget menuDrawer(BuildContext context, String email) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => ClienteListScreen(email: email)));
+                    builder: (context) => ClienteListScreen(email: email, tipoUser: tipoUser)));
           },
         ),
+        /*
         ListTile(
           leading: Icon(Icons.supervised_user_circle, color: corPadrao()),
           title: Text(
@@ -148,6 +150,7 @@ Widget menuDrawer(BuildContext context, String email) {
                     builder: (context) => FiliadoListScreen(email: email)));
           },
         ),
+        */
         ListTile(
           leading: Icon(Icons.add_shopping_cart_rounded, color: corPadrao()),
           title: Text(
@@ -174,7 +177,7 @@ Widget menuDrawer(BuildContext context, String email) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => VendasListScreen(email)));
+                    builder: (context) => VendasListScreen(email, tipoUser)));
           },
         ),
       ],
