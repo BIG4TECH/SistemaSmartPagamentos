@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, use_build_context_synchronously
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'inicial/telaLogin.dart';
@@ -9,15 +10,41 @@ import 'package:smart_pagamento/charts/allCharts.dart';
 
 class Home extends StatefulWidget {
   final String email;
-  final String tipoUser;
   
-  const Home(this.email, this.tipoUser);
+  
+  const Home({required this.email});
 
   @override
   State<Home> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
+  String tipoUser = '';
+  
+  void _tipoUser(String email) async {
+    var user = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+    print('USER NO HOME: ${user.docs.first['tipo_user']}');
+    setState(() {
+      tipoUser = user.docs.first['tipo_user'];
+    });
+    
+  }
+
+  @override
+  void initState() {
+    //print('USER NO HOME: ${widget.tipoUser}');
+    // TODO: implement initState
+    super.initState();
+    
+      _tipoUser(widget.email);
+    
+    
+    print('USER NO HOME: $tipoUser');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,7 +91,7 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-      drawer: menuDrawer(context, widget.email, widget.tipoUser),
+      drawer: menuDrawer(context, widget.email, tipoUser),
       body: AllCharts(widget.email),
     );
   }

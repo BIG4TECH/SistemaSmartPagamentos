@@ -89,7 +89,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
                 MaterialPageRoute(
                     builder: (context) => ProductListScreen(
                           email: email,
-                          tipoUser: tipoUser
+                          //tipoUser: tipoUser
                         )));
           },
         ),
@@ -118,7 +118,9 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => ClienteListScreen(email: email, tipoUser: tipoUser)));
+                    builder: (context) => ClienteListScreen(email: email, 
+                    //tipoUser: tipoUser
+                    )));
           },
         ),
         /*
@@ -177,7 +179,9 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => VendasListScreen(email, tipoUser)));
+                    builder: (context) => VendasListScreen(email, 
+                    //tipoUser
+                    )));
           },
         ),
       ],

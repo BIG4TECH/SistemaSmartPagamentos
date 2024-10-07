@@ -282,6 +282,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<String> _tipoUser(String email) async {
+    print(email);
     var user = await FirebaseFirestore.instance
         .collection('users')
         .where('email', isEqualTo: email)
@@ -302,11 +303,11 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text,
         );
 
-        String tipoUser = await _tipoUser(_emailController.text);
-
+        //String tipoUser = await _tipoUser(_emailController.text);
+        //print(tipoUser);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Home(_emailController.text, tipoUser)),
+          MaterialPageRoute(builder: (context) => Home(email:_emailController.text)),
         );
       } on FirebaseAuthException catch (e) {
         showDialog(

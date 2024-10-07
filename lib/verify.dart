@@ -28,7 +28,7 @@ class _verifyState extends State<VerifyState> {
             future: Future.wait([]),
             builder: (context, futureSnapshot) {
               
-              return Home(user!.email.toString());
+              return Home(email: user!.email.toString());
             },
           );
         } else if (snapshot.hasError) {
