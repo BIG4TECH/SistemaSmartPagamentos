@@ -6,8 +6,9 @@ import 'package:smart_pagamento/screens/widgets/cores.dart';
 
 class ClienteListScreen extends StatefulWidget {
   final String? email;
+  final String tipoUser;
 
-  const ClienteListScreen({Key? key, this.email}) : super(key: key);
+  const ClienteListScreen({Key? key, this.email, required this.tipoUser}) : super(key: key);
 
   @override
   _ClienteListScreenState createState() => _ClienteListScreenState();
@@ -77,7 +78,12 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
             const SizedBox(height: 20),
             Expanded(
               child: StreamBuilder(
-                stream: FirebaseFirestore.instance
+                stream: widget.tipoUser == 'master' 
+                ? FirebaseFirestore.instance
+                    .collection('clientes')
+                    //.where('email_user', isEqualTo: widget.email)
+                    .snapshots() 
+                  : FirebaseFirestore.instance
                     .collection('clientes')
                     .where('email_user', isEqualTo: widget.email)
                     .snapshots(),
@@ -129,8 +135,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon:
-                                    const Icon(Icons.edit),
+                                icon: const Icon(Icons.edit),
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -141,8 +146,9 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete,
-                                    ),
+                                icon: const Icon(
+                                  Icons.delete,
+                                ),
                                 onPressed: () {
                                   showDialog(
                                     context: context,
@@ -218,7 +224,6 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                   },
                                 ),
                               )
-                            
                             ],
                           ),
                         ),
@@ -245,6 +250,8 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
         .collection('itens_vendas')
         .where('email_user', isEqualTo: widget.email)
         .get();
+    
+    
     var vendas = await FirebaseFirestore.instance
         .collection('vendas')
         .where('email_user', isEqualTo: widget.email)

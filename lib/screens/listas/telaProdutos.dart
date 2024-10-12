@@ -6,7 +6,11 @@ import '../cadastros/telaCadastroProduto.dart';
 
 class ProductListScreen extends StatefulWidget {
   final String? email;
-  const ProductListScreen({super.key, this.email});
+  //final String tipoUser;
+
+  const ProductListScreen({super.key, required this.email,
+   //required this.tipoUser
+   });
 
   @override
   _ProductListScreenState createState() => _ProductListScreenState();
@@ -75,7 +79,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               child: StreamBuilder(
                 stream: FirebaseFirestore.instance
                     .collection('products')
-                    .where('email_user', isEqualTo: widget.email)
+                    //.where('email_user', isEqualTo: widget.email)
                     .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
@@ -227,7 +231,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   },
                                 ),
                               ),
-                            
                             ],
                           ),
                         ),

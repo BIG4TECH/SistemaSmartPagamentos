@@ -5,8 +5,8 @@ import 'package:smart_pagamento/screens/widgets/cores.dart';
 
 class VendasListScreen extends StatefulWidget {
   final String? email;
-
-  const VendasListScreen(this.email);
+  final String tipoUser;
+  const VendasListScreen({required this.email, required this.tipoUser});
 
   @override
   _VendasListScreenState createState() => _VendasListScreenState();
@@ -37,7 +37,13 @@ class _VendasListScreenState extends State<VendasListScreen> {
       body: Container(
         padding: const EdgeInsets.only(top: 40, left: 50, right: 50),
         child: StreamBuilder(
-          stream: FirebaseFirestore.instance
+          stream: widget.tipoUser == 'master' ?
+          FirebaseFirestore.instance
+              .collection('vendas')
+              //.where('email_user', isEqualTo: widget.email)
+              .orderBy('data', descending: true)
+              .snapshots()
+          : FirebaseFirestore.instance
               .collection('vendas')
               .where('email_user', isEqualTo: widget.email)
               .orderBy('data', descending: true)
@@ -206,7 +212,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
     var query = await FirebaseFirestore.instance
         .collection('itens_vendas')
         .where('idvenda', isEqualTo: vendaId)
-        .where('email_user', isEqualTo: widget.email)
+        //.where('email_user', isEqualTo: widget.email)
         .get();
 
     for (var doc in query.docs) {
@@ -225,7 +231,13 @@ class _VendasListScreenState extends State<VendasListScreen> {
     _listValorDescontadoProd.clear();
     _listValorLiqProd.clear();
 
-    var query = await FirebaseFirestore.instance
+    var query = widget.tipoUser == 'master' 
+    ? await FirebaseFirestore.instance
+        .collection('itens_vendas')
+        //.where('email_user', isEqualTo: widget.email)
+        .get()
+    
+    : await FirebaseFirestore.instance
         .collection('itens_vendas')
         .where('email_user', isEqualTo: widget.email)
         .get();

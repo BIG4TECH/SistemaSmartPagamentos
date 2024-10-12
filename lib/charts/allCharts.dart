@@ -11,8 +11,8 @@ import '../totalizadores/totalVendidos.dart';
 
 class AllCharts extends StatefulWidget {
   final String email;
-
-   AllCharts(this.email);
+  final String tipoUser;
+  AllCharts(this.email, this.tipoUser);
 
   @override
   State<StatefulWidget> createState() => AllChartsState();
@@ -32,7 +32,7 @@ class AllChartsState extends State<AllCharts> {
       width: double.infinity,
       height: double.infinity,
       padding: const EdgeInsets.all(32),
-      child:  SingleChildScrollView(
+      child: SingleChildScrollView(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -41,24 +41,24 @@ class AllChartsState extends State<AllCharts> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  PieChartProd(widget.email),
+                  PieChartProd(widget.email, widget.tipoUser),
                   const SizedBox(width: 20),
-                  Prodchart(widget.email),
+                  Prodchart(widget.email, widget.tipoUser),
                 ],
               ),
               const SizedBox(height: 20), // Espaçamento entre os gráficos
-              LineChartSample1(widget.email),
+              LineChartSample1(widget.email, widget.tipoUser),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TotalClientes(widget.email),
+                  TotalClientes(widget.email, widget.tipoUser),
                   const SizedBox(width: 15),
-                  TotalProdutos(widget.email),
+                  TotalProdutos(widget.email, widget.tipoUser),
                   const SizedBox(width: 15),
-                  TotalVendas(widget.email),
+                  TotalVendas(widget.email, widget.tipoUser),
                   const SizedBox(width: 15),
-                  TotalVendidos(widget.email),
+                  TotalVendidos(widget.email, widget.tipoUser),
                 ],
               ),
               SizedBox(height: 20),

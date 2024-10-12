@@ -307,9 +307,11 @@ class _LoginScreenState extends State<LoginScreen> {
         //print(tipoUser);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Home(email:_emailController.text)),
+          MaterialPageRoute(
+              builder: (context) => Home(email: _emailController.text)),
         );
       } on FirebaseAuthException catch (e) {
+        print(e);
         showDialog(
           context: context,
           builder: (context) => AlertDialog(

@@ -4,8 +4,9 @@ import 'package:smart_pagamento/screens/widgets/cores.dart';
 
 class TotalVendidos extends StatefulWidget {
   final String email;
-
-  const TotalVendidos(this.email);
+  final String tipoUser;
+  
+  const TotalVendidos(this.email, this.tipoUser);
 
   @override
   State<StatefulWidget> createState() => TotalVendidosState();
@@ -28,17 +29,34 @@ class TotalVendidosState extends State<TotalVendidos> {
 
     int cont = 0;
 
-    var vendasSnapshot = await FirebaseFirestore.instance
+    var vendasSnapshot = widget.tipoUser == 'master' 
+    ? await FirebaseFirestore.instance
+        .collection('vendas')
+       //.where('email_user', isEqualTo: widget.email)
+        .get()
+    
+    : await FirebaseFirestore.instance
         .collection('vendas')
         .where('email_user', isEqualTo: widget.email)
         .get();
 
-    var produtosSnapshot = await FirebaseFirestore.instance
+
+    var produtosSnapshot = widget.tipoUser == 'master' 
+    ? await FirebaseFirestore.instance
+        .collection('products')
+       //.where('email_user', isEqualTo: widget.email)
+        .get()
+    : await FirebaseFirestore.instance
         .collection('products')
         .where('email_user', isEqualTo: widget.email)
         .get();
 
-    var itensVendasSnapshot = await FirebaseFirestore.instance
+    var itensVendasSnapshot = widget.tipoUser == 'master' ? 
+    await FirebaseFirestore.instance
+        .collection('itens_vendas')
+        //.where('email_user', isEqualTo: widget.email)
+        .get()
+    : await FirebaseFirestore.instance
         .collection('itens_vendas')
         .where('email_user', isEqualTo: widget.email)
         .get();

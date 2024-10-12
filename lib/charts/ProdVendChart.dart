@@ -7,8 +7,8 @@ import '/presentation/widgets/indicator.dart';
 
 class PieChartProd extends StatefulWidget {
   final String email;
-
-  const PieChartProd(this.email);
+  final String tipoUser;
+  const PieChartProd(this.email, this.tipoUser);
 
   @override
   State<StatefulWidget> createState() => PieChartProdState();
@@ -147,21 +147,34 @@ class PieChartProdState extends State<PieChartProd> {
     DateTime lastDayOfMonth =
         DateTime(now.year, now.month + 1, 1).subtract(Duration(days: 1));
 
-    var vendas = await FirebaseFirestore.instance
-        .collection('vendas')
-        .where('data', isGreaterThanOrEqualTo: firstDayOfMonth, isLessThanOrEqualTo: lastDayOfMonth)
-        //.where('email_user', isEqualTo: widget.email)
-        .get();
+    var vendas = widget.tipoUser == 'master'
+        ? await FirebaseFirestore.instance
+            .collection('vendas')
+            .where('data',
+                isGreaterThanOrEqualTo: firstDayOfMonth,
+                isLessThanOrEqualTo: lastDayOfMonth)
+            //.where('email_user', isEqualTo: widget.email)
+            .get()
+        : await FirebaseFirestore.instance
+            .collection('vendas')
+            .where('data',
+                isGreaterThanOrEqualTo: firstDayOfMonth,
+                isLessThanOrEqualTo: lastDayOfMonth)
+            .where('email_user', isEqualTo: widget.email)
+            .get();
 
     var itensVendas =
-        await FirebaseFirestore.instance.collection('itens_vendas')
-        //.where('email_user', isEqualTo: widget.email)
-        .get();
+        await FirebaseFirestore.instance.collection('itens_vendas').get();
 
-    var produtos =
-        await FirebaseFirestore.instance.collection('products')
-        .where('email_user', isEqualTo: widget.email)
-        .get();
+    var produtos = widget.tipoUser == 'master'
+        ? await FirebaseFirestore.instance
+            .collection('products')
+            //.where('email_user', isEqualTo: widget.email)
+            .get()
+        : await FirebaseFirestore.instance
+            .collection('products')
+            .where('email_user', isEqualTo: widget.email)
+            .get();
 
     Map<String, DadosProduto> produtosEscolhidosMap = {};
     _quantidadeTotal = 0;

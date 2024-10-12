@@ -7,15 +7,16 @@ import 'package:printing/printing.dart';
 
 class ProdRelatorio extends StatelessWidget {
   final String email;
+  final String tipoUser;
 
-  ProdRelatorio(this.email);
+  ProdRelatorio(this.email, this.tipoUser);
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: IconButton(
         onPressed: () async {
-          await generateAndPrintPdf(context, email);
+          await generateAndPrintPdf(context, email, tipoUser);
         },
         icon: const Icon(Icons.picture_as_pdf_rounded),
         tooltip: 'Gerar Relatório',
@@ -24,7 +25,7 @@ class ProdRelatorio extends StatelessWidget {
   }
 }
 
-Future<void> generateAndPrintPdf(BuildContext context, String email) async {
+Future<void> generateAndPrintPdf(BuildContext context, String email, String tipoUser) async {
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
@@ -32,12 +33,29 @@ Future<void> generateAndPrintPdf(BuildContext context, String email) async {
 
   final pdf = pw.Document();
 
-  // Buscar clientes do Firestore
-  final collection = FirebaseFirestore.instance.collection('products').where('email_user', isEqualTo: email);
+  
+  final collection = tipoUser == 'master' ?
+   FirebaseFirestore.instance
+      .collection('products')
+    //
+    //.where('email_user', isEqualTo: email);
+
+  : FirebaseFirestore.instance
+      .collection('products')
+      .where('email_user', isEqualTo: email);
+
   final querySnapshot = await collection.get();
 
   // Buscar iven do Firestore
-  final iven = FirebaseFirestore.instance.collection('itens_vendas').where('email_user', isEqualTo: email);
+  final iven = tipoUser == 'master' 
+  
+  ? FirebaseFirestore.instance
+      .collection('itens_vendas')
+      //.where('email_user', isEqualTo: email)
+  : FirebaseFirestore.instance
+      .collection('itens_vendas')
+      .where('email_user', isEqualTo: email);
+
   final queryIven = await iven.get();
 
   for (var dataProducts in querySnapshot.docs) {

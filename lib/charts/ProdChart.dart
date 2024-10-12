@@ -6,7 +6,8 @@ import '/presentation/widgets/indicator.dart';
 
 class Prodchart extends StatefulWidget {
   final String email;
-  const Prodchart(this.email);
+  final String tipoUser;
+  const Prodchart(this.email, this.tipoUser);
 
   @override
   State<StatefulWidget> createState() => PieChartProdState();
@@ -143,49 +144,63 @@ class PieChartProdState extends State<Prodchart> {
     Map<String, DadosProduto> produtosEscolhidosMap = {};
     _quantidadeTotal = 0;
 
-    var vendas = await FirebaseFirestore.instance
-        .collection('vendas')
-        .where('email_user', isEqualTo: widget.email)
-        .get();
+    var vendas = widget.tipoUser == 'master'
+        ? await FirebaseFirestore.instance
+            .collection('vendas')
+            //.where('email_user', isEqualTo: widget.email)
+            .get()
+        : await FirebaseFirestore.instance
+            .collection('vendas')
+            .where('email_user', isEqualTo: widget.email)
+            .get();
 
-      var itensVendas = await FirebaseFirestore.instance
-          .collection('itens_vendas')
-          .where('email_user', isEqualTo: widget.email)
-          .get();
+    var itensVendas = widget.tipoUser == 'master'
+        ? await FirebaseFirestore.instance
+            .collection('itens_vendas')
+            //.where('email_user', isEqualTo: widget.email)
+            .get()
+        : await FirebaseFirestore.instance
+            .collection('itens_vendas')
+            .where('email_user', isEqualTo: widget.email)
+            .get();
 
-      var produtos = await FirebaseFirestore.instance
-          .collection('products')
-          .where('email_user', isEqualTo: widget.email)
-          .get();
+    var produtos = widget.tipoUser == 'master'
+        ? await FirebaseFirestore.instance
+            .collection('products')
+            //.where('email_user', isEqualTo: widget.email)
+            .get()
+        : await FirebaseFirestore.instance
+            .collection('products')
+            .where('email_user', isEqualTo: widget.email)
+            .get();
 
-      for (var docvenda in vendas.docs) {
-        for (var docprod in produtos.docs) {
-          int quantidade = 0;
+    for (var docvenda in vendas.docs) {
+      for (var docprod in produtos.docs) {
+        int quantidade = 0;
 
-          for (var dociven in itensVendas.docs) {
-            if (dociven['idproduto'] == docprod.id &&
-                docvenda.id == dociven['idvenda']) {
-              quantidade += int.parse(dociven['quantidade'].toString());
-            }
+        for (var dociven in itensVendas.docs) {
+          if (dociven['idproduto'] == docprod.id &&
+              docvenda.id == dociven['idvenda']) {
+            quantidade += int.parse(dociven['quantidade'].toString());
           }
+        }
 
-          if (quantidade > 0) {
-            _quantidadeTotal += quantidade;
-            if (produtosEscolhidosMap.containsKey(docprod.id)) {
-              produtosEscolhidosMap[docprod.id]!.quantidade =
-                  (produtosEscolhidosMap[docprod.id]!.quantidade ?? 0) +
-                      quantidade;
-            } else {
-              produtosEscolhidosMap[docprod.id] = DadosProduto(
-                nome: docprod['name'],
-                quantidade: quantidade,
-                id: docprod.id,
-              );
-            }
+        if (quantidade > 0) {
+          _quantidadeTotal += quantidade;
+          if (produtosEscolhidosMap.containsKey(docprod.id)) {
+            produtosEscolhidosMap[docprod.id]!.quantidade =
+                (produtosEscolhidosMap[docprod.id]!.quantidade ?? 0) +
+                    quantidade;
+          } else {
+            produtosEscolhidosMap[docprod.id] = DadosProduto(
+              nome: docprod['name'],
+              quantidade: quantidade,
+              id: docprod.id,
+            );
           }
         }
       }
-    
+    }
 
     List<DadosProduto> produtosEscolhidos =
         produtosEscolhidosMap.values.toList();

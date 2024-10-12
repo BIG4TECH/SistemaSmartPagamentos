@@ -5,7 +5,8 @@ import 'package:smart_pagamento/screens/widgets/relatorios/prodRelatorio.dart';
 
 class TotalProdutos extends StatefulWidget {
   final String email;
-  const TotalProdutos(this.email);
+  final String tipoUser;
+  const TotalProdutos(this.email, this.tipoUser);
 
   @override
   State<StatefulWidget> createState() => TotalProdutosState();
@@ -21,7 +22,18 @@ class TotalProdutosState extends State<TotalProdutos> {
   }
 
   void getDataProdutos() {
+    
+    widget.tipoUser == 'master' ? 
     FirebaseFirestore.instance
+        .collection('products')
+        //.where('email_user', isEqualTo: widget.email)
+        .snapshots()
+        .listen((produtos) {
+      setState(() {
+        _quantProdutos = produtos.size;
+      });
+    })
+    : FirebaseFirestore.instance
         .collection('products')
         .where('email_user', isEqualTo: widget.email)
         .snapshots()
@@ -55,10 +67,10 @@ class TotalProdutosState extends State<TotalProdutos> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               gradient: LinearGradient(
-                                colors: gradientBtn(),
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                colors: gradientBtn(),
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
             child: Center(
               child: Text(
@@ -76,7 +88,7 @@ class TotalProdutosState extends State<TotalProdutos> {
             ],
           ),
           const SizedBox(width: 10),
-          ProdRelatorio(widget.email)
+          ProdRelatorio(widget.email, widget.tipoUser)
         ],
       ),
     );

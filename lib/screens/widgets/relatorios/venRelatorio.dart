@@ -13,8 +13,9 @@ class VenRelatorio extends StatelessWidget {
   String mesFinal = '';
   String anoInicial = '';
   final String? email;
+  final String tipoUser;
 
-  VenRelatorio({this.clienteid, this.email});
+  VenRelatorio({this.clienteid, this.email, required this.tipoUser});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,7 @@ class VenRelatorio extends StatelessWidget {
       child: IconButton(
         onPressed: () async {
           showDialogCliente(context, dadosCliente, mesInicial, mesFinal,
-              anoInicial, email ?? '');
+              anoInicial, email ?? '', tipoUser);
         },
         icon: const Icon(Icons.picture_as_pdf_rounded),
         tooltip: 'Gerar $email',
@@ -32,7 +33,7 @@ class VenRelatorio extends StatelessWidget {
 }
 
 //TODAS AS VENDAS
-Future<void> generateAndPrintPdf(BuildContext context, String email) async {
+Future<void> generateAndPrintPdf(BuildContext context, String email, String tipoUser) async {
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
@@ -41,18 +42,37 @@ Future<void> generateAndPrintPdf(BuildContext context, String email) async {
   final pdf = pw.Document();
 
   // Buscar clientes do Firestore
-  final collection = FirebaseFirestore.instance.collection('clientes')
-  .where('email_user', isEqualTo: email);
+  final collection = tipoUser == 'master' ?
+   FirebaseFirestore.instance
+      .collection('clientes')
+      //.where('email_user', isEqualTo: email)
+  : FirebaseFirestore.instance
+      .collection('clientes')
+      .where('email_user', isEqualTo: email);
+
   final querySnapshot = await collection.get();
 
   // Buscar vendas do Firestore
-  final vendas = FirebaseFirestore.instance
-      .collection('vendas').where('email_user', isEqualTo: email);
+  final vendas = tipoUser == 'master' ? 
+    FirebaseFirestore.instance
+      .collection('vendas')
+      //.where('email_user', isEqualTo: email)
+  
+  : FirebaseFirestore.instance
+      .collection('vendas')
+      .where('email_user', isEqualTo: email);
+
   final queryVendas = await vendas.get();
 
   // Buscar itens_vendas do Firestore
-  final iven = FirebaseFirestore.instance.collection('itens_vendas')
-  .where('email_user', isEqualTo: email);
+  final iven = tipoUser == 'master' ? 
+  FirebaseFirestore.instance
+      .collection('itens_vendas')
+      //.where('email_user', isEqualTo: email)
+  : FirebaseFirestore.instance
+      .collection('itens_vendas')
+      .where('email_user', isEqualTo: email);
+
   final queryIven = await iven.get();
 
   for (var datavendas in queryVendas.docs) {
@@ -201,7 +221,7 @@ Future<void> generateAndPrintPdf(BuildContext context, String email) async {
 
 //FILTRAR POR CLIENTE
 Future<void> generateAndPrintPdfCliente(
-    BuildContext context, String clienteid, String email) async {
+    BuildContext context, String clienteid, String email, String tipoUser) async {
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
@@ -214,21 +234,35 @@ Future<void> generateAndPrintPdfCliente(
   final pdf = pw.Document();
 
   // Buscar clientes do Firestore
-  final collection = FirebaseFirestore.instance
+  final collection = tipoUser == 'master'  ?
+  FirebaseFirestore.instance
+      .collection('clientes')
+      //.where('email_user', isEqualTo: email)
+  : FirebaseFirestore.instance
       .collection('clientes')
       .where('email_user', isEqualTo: email);
   final querySnapshot = await collection.get();
 
   // Buscar vendas do Firestore
-  final vendas = FirebaseFirestore.instance
+  final vendas = tipoUser == 'master' ? 
+  FirebaseFirestore.instance
+      .collection('vendas')
+      //.where('email_user', isEqualTo: email)
+  : FirebaseFirestore.instance
       .collection('vendas')
       .where('email_user', isEqualTo: email);
+
   final queryVendas = await vendas.get();
 
   // Buscar itens_vendas do Firestore
-  final iven = FirebaseFirestore.instance
+  final iven = tipoUser == 'master' ? 
+  FirebaseFirestore.instance
+      .collection('itens_vendas')
+      //.where('email_user', isEqualTo: email)
+  : FirebaseFirestore.instance
       .collection('itens_vendas')
       .where('email_user', isEqualTo: email);
+
   final queryIven = await iven.get();
 
   for (var datavendas in queryVendas.docs) {
@@ -407,7 +441,7 @@ Future<void> generateAndPrintPdfCliente(
 
 //FILTRAR POR ANO
 Future<void> generateAndPrintPdfAno(
-    BuildContext context, String anoEscolhido, String email) async {
+    BuildContext context, String anoEscolhido, String email, String tipoUser) async {
   DateTime firstDayOfYear = DateTime(int.parse(anoEscolhido), 1, 1);
   DateTime lastDayOfYear = DateTime(int.parse(anoEscolhido), 12, 31);
   DateTime datahora = DateTime.now();
@@ -422,15 +456,27 @@ Future<void> generateAndPrintPdfAno(
   final pdf = pw.Document();
 
   // Buscar clientes do Firestore
-  final collection = FirebaseFirestore.instance
+  final collection = tipoUser == 'master'
+  ? FirebaseFirestore.instance
+      .collection('clientes')
+ //     .where('email_user', isEqualTo: email);
+   
+  : FirebaseFirestore.instance
       .collection('clientes')
       .where('email_user', isEqualTo: email);
+
   final querySnapshot = await collection.get();
 
   // Buscar vendas do Firestore
-  final vendas = FirebaseFirestore.instance
+  final vendas = tipoUser == 'master' ?
+  FirebaseFirestore.instance
+      .collection('vendas')
+      //.where('email_user', isEqualTo: email)
+
+  : FirebaseFirestore.instance
       .collection('vendas')
       .where('email_user', isEqualTo: email);
+
   final queryVendas = await vendas
       .where('data',
           isGreaterThanOrEqualTo: firstDayOfYear,
@@ -438,9 +484,15 @@ Future<void> generateAndPrintPdfAno(
       .get();
 
   // Buscar itens_vendas do Firestore
-  final iven = FirebaseFirestore.instance
+  final iven = tipoUser == 'master'
+  ?  FirebaseFirestore.instance
+      .collection('itens_vendas')
+      //.where('email_user', isEqualTo: email);
+  
+  : FirebaseFirestore.instance
       .collection('itens_vendas')
       .where('email_user', isEqualTo: email);
+
   final queryIven = await iven.get();
 
   for (var datavendas in queryVendas.docs) {
@@ -618,7 +670,7 @@ Future<void> generateAndPrintPdfAno(
 
 //FILTRAR POR UNICO MES NO ANO
 Future<void> generateAndPrintPdfMesAno(BuildContext context,
-    String mesEscolhido, String anoEscolhido, String email) async {
+    String mesEscolhido, String anoEscolhido, String email, String tipoUser) async {
   String mes;
   switch (mesEscolhido) {
     case 'Janeiro':
@@ -680,15 +732,25 @@ Future<void> generateAndPrintPdfMesAno(BuildContext context,
   final pdf = pw.Document();
 
   // Buscar clientes do Firestore
-  final collection = FirebaseFirestore.instance
+  final collection = tipoUser == 'master' ?
+  FirebaseFirestore.instance
+      .collection('clientes')
+    //  .where('email_user', isEqualTo: email);
+  : FirebaseFirestore.instance
       .collection('clientes')
       .where('email_user', isEqualTo: email);
   final querySnapshot = await collection.get();
 
   // Buscar vendas do Firestore
-  final vendas = FirebaseFirestore.instance
+  final vendas = tipoUser == 'master' ? 
+  FirebaseFirestore.instance
+      .collection('vendas')
+    //.where('email_user', isEqualTo: email);
+
+  : FirebaseFirestore.instance
       .collection('vendas')
       .where('email_user', isEqualTo: email);
+
   final queryVendas = await vendas
       .where('data',
           isGreaterThanOrEqualTo: firstDayOfMonth,
@@ -878,7 +940,8 @@ Future<void> generateAndPrintPdfMesAnoCliente(
     String mesEscolhido,
     String clienteid,
     String anoEscolhido,
-    String email) async {
+    String email,
+    String tipoUser) async {
   String mes;
 
   switch (mesEscolhido) {
@@ -943,15 +1006,24 @@ Future<void> generateAndPrintPdfMesAnoCliente(
   final pdf = pw.Document();
 
   // Buscar clientes do Firestore
-  final collection = FirebaseFirestore.instance
+  final collection = tipoUser == 'master' ?
+  FirebaseFirestore.instance
+      .collection('clientes')
+      //.where('email_user', isEqualTo: email);
+  : FirebaseFirestore.instance
       .collection('clientes')
       .where('email_user', isEqualTo: email);
+
   final querySnapshot = await collection.get();
 
   // Buscar vendas do Firestore
-  final vendas = FirebaseFirestore.instance
+  final vendas = tipoUser == 'master' ? 
+  FirebaseFirestore.instance
+      .collection('vendas')
+  : FirebaseFirestore.instance
       .collection('vendas')
       .where('email_user', isEqualTo: email);
+
   final queryVendas = await vendas
       .where('data',
           isGreaterThanOrEqualTo: firstDayOfMonth,
@@ -1142,7 +1214,7 @@ Future<void> generateAndPrintPdfMesAnoCliente(
 
 //FILTRAR POR ANO E CLIENTE
 Future<void> generateAndPrintPdfAnoCliente(BuildContext context,
-    String clienteid, String anoEscolhido, String email) async {
+    String clienteid, String anoEscolhido, String email, String tipoUser) async {
   DateTime datahora = DateTime.now();
   DateTime firstDayOfMonth = DateTime(int.parse(anoEscolhido), 1, 1);
   DateTime lastDayOfMonth = DateTime(int.parse(anoEscolhido), 12, 31);
@@ -1160,15 +1232,23 @@ Future<void> generateAndPrintPdfAnoCliente(BuildContext context,
   final pdf = pw.Document();
 
   // Buscar clientes do Firestore
-  final collection = FirebaseFirestore.instance
+  final collection = tipoUser == 'master' ? 
+  FirebaseFirestore.instance
+      .collection('clientes')
+  : FirebaseFirestore.instance
       .collection('clientes')
       .where('email_user', isEqualTo: email);
   final querySnapshot = await collection.get();
 
   // Buscar vendas do Firestore
-  final vendas = FirebaseFirestore.instance
+  final vendas =  tipoUser == 'master' ? 
+  FirebaseFirestore.instance
+      .collection('vendas')
+    
+  : FirebaseFirestore.instance
       .collection('vendas')
       .where('email_user', isEqualTo: email);
+
   final queryVendas = await vendas
       .where('data',
           isGreaterThanOrEqualTo: firstDayOfMonth,
@@ -1176,7 +1256,11 @@ Future<void> generateAndPrintPdfAnoCliente(BuildContext context,
       .get();
 
   // Buscar itens_vendas do Firestore
-  final iven = FirebaseFirestore.instance
+  final iven = tipoUser == 'master' ? 
+  FirebaseFirestore.instance
+      .collection('itens_vendas')
+    
+  : FirebaseFirestore.instance
       .collection('itens_vendas')
       .where('email_user', isEqualTo: email);
   final queryIven = await iven.get();
@@ -1360,28 +1444,49 @@ Future<void> generateAndPrintPdfAnoCliente(BuildContext context,
 }
 
 //fazer a lista de clistes pro dropdown
-Future<List<String>> _setListCliente(String email) async {
+Future<List<String>> _setListCliente(String email, String tipoUser) async {
   List<String> listClienteDrop = [];
 
-  var query = await FirebaseFirestore.instance
+  var query = tipoUser == 'master' 
+  ?  await FirebaseFirestore.instance
+      .collection('clientes')
+      //.where('email_user', isEqualTo: email)
+      .get()
+  : await FirebaseFirestore.instance
       .collection('clientes')
       .where('email_user', isEqualTo: email)
       .get();
 
-      for(var doc in query.docs){
-        listClienteDrop.add(
-            '${doc['name']} | Email: ${doc['email']} | Whatsapp: ${doc['whatsapp']}');
-      }
-  
+  for (var doc in query.docs) {
+    listClienteDrop.add(
+        '${doc['name']} | Email: ${doc['email']} | Whatsapp: ${doc['whatsapp']}');
+  }
 
   return listClienteDrop;
 }
 
 //fazer a lista de ano pro dropdown
-Future<List<String>> _setListAno(String email) async {
+Future<List<String>> _setListAno(String email, String tipoUser) async {
   List<String> listAnoDrop = [];
+  
+  tipoUser == 'master'
+  
+  ?FirebaseFirestore.instance
+      .collection('vendas')
+      //.where('email_user', isEqualTo: email)
+      .snapshots()
+      .listen((query) {
+    query.docs.forEach((doc) {
+      DateTime dataHora = (doc['data'] as Timestamp).toDate();
+      String year = dataHora.year.toString();
 
-  FirebaseFirestore.instance
+      if (!listAnoDrop.contains(year)) {
+        listAnoDrop.add(year);
+      }
+    });
+  })
+
+  : FirebaseFirestore.instance
       .collection('vendas')
       .where('email_user', isEqualTo: email)
       .snapshots()
@@ -1400,8 +1505,14 @@ Future<List<String>> _setListAno(String email) async {
 }
 
 Future<String?> fetchAndSetIdCliente(
-    String? cliSelecionado, String email) async {
-  var query = await FirebaseFirestore.instance
+    String? cliSelecionado, String email, String tipoUser) async {
+  var query = tipoUser == 'master' ?
+   await FirebaseFirestore.instance
+      .collection('clientes')
+      //.where('email_user', isEqualTo: email)
+      .get()
+  
+  : await FirebaseFirestore.instance
       .collection('clientes')
       .where('email_user', isEqualTo: email)
       .get();
@@ -1415,7 +1526,7 @@ Future<String?> fetchAndSetIdCliente(
 }
 
 void showDialogCliente(BuildContext context, String dadosCliente,
-    String mesInicial, String mesFinal, String anoInicial, String email) async {
+    String mesInicial, String mesFinal, String anoInicial, String email, String tipoUser) async {
   dadosCliente = '';
   mesInicial = '';
   mesFinal = '';
@@ -1425,8 +1536,8 @@ void showDialogCliente(BuildContext context, String dadosCliente,
   List<String> listCliente = [];
   List<String> listAno = [];
 
-  listCliente = await _setListCliente(email);
-  listAno = await _setListAno(email);
+  listCliente = await _setListCliente(email, tipoUser);
+  listAno = await _setListAno(email, tipoUser);
 
   showDialog(
     context: context,
@@ -1442,6 +1553,7 @@ void showDialogCliente(BuildContext context, String dadosCliente,
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
               //CLIENTES
               DropdownSearch<String>(
                 popupProps: const PopupProps.menu(
@@ -1461,7 +1573,7 @@ void showDialogCliente(BuildContext context, String dadosCliente,
                 onChanged: (String? cliSelecionado) {
                   setState(() async {
                     dadosCliente = cliSelecionado.toString();
-                    cliid = await fetchAndSetIdCliente(cliSelecionado, email);
+                    cliid = await fetchAndSetIdCliente(cliSelecionado, email, tipoUser);
                   });
                 },
                 selectedItem: dadosCliente,
@@ -1556,25 +1668,25 @@ void showDialogCliente(BuildContext context, String dadosCliente,
                 if (mesInicial != '' && cliid != '' && anoInicial != '') {
                   //cliente baseado no mês (precisa do ano)
                   await generateAndPrintPdfMesAnoCliente(
-                      context, mesInicial, cliid.toString(), anoInicial, email);
+                      context, mesInicial, cliid.toString(), anoInicial, email, tipoUser);
                 } else if (mesInicial != '' && anoInicial != '') {
                   //mês (precisa do ano)
                   await generateAndPrintPdfMesAno(
-                      context, mesInicial, anoInicial, email);
+                      context, mesInicial, anoInicial, email, tipoUser);
                 } else if (cliid != '' && anoInicial != '') {
                   //cliente baseado no ano
                   await generateAndPrintPdfAnoCliente(
-                      context, cliid.toString(), anoInicial, email);
+                      context, cliid.toString(), anoInicial, email, tipoUser);
                 } else if (cliid != '') {
                   //só o cliente
                   await generateAndPrintPdfCliente(
-                      context, cliid.toString(), email);
+                      context, cliid.toString(), email, tipoUser);
                 } else if (anoInicial != '') {
                   //só o ano
-                  await generateAndPrintPdfAno(context, anoInicial, email);
+                  await generateAndPrintPdfAno(context, anoInicial, email, tipoUser);
                 } else {
                   //geral
-                  await generateAndPrintPdf(context, email);
+                  await generateAndPrintPdf(context, email, tipoUser);
                 }
 
                 //Navigator.of(context).pop();

@@ -80,8 +80,8 @@ class _HomeState extends State<Home> {
                                 Navigator.of(context).pop();
                                 Navigator.pushReplacement(
                                   context,
-                                  MaterialPageRoute(
-                                      builder: (context) => LoginScreen()),
+                                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                                      
                                 );
                               },
                               child: Text('Confirmar')),
@@ -92,7 +92,7 @@ class _HomeState extends State<Home> {
         ],
       ),
       drawer: menuDrawer(context, widget.email, tipoUser),
-      body: AllCharts(widget.email),
+      body: AllCharts(widget.email, tipoUser),
     );
   }
 }

@@ -5,7 +5,8 @@ import 'package:smart_pagamento/screens/widgets/relatorios/venRelatorio.dart';
 
 class TotalVendas extends StatefulWidget {
   final String email;
-  const TotalVendas(this.email);
+  final String tipoUser;
+  const TotalVendas(this.email, this.tipoUser);
 
   @override
   State<StatefulWidget> createState() => TotalVendasState();
@@ -21,6 +22,17 @@ class TotalVendasState extends State<TotalVendas> {
   }
 
   void getDataVendas() {
+    widget.tipoUser == 'master' ?
+    FirebaseFirestore.instance
+        .collection('vendas')
+        //.where('email_user', isEqualTo: widget.email)
+        .snapshots()
+        .listen((vendas) {
+      setState(() {
+        _quantVendas = vendas.size;
+      });
+    })
+    :
     FirebaseFirestore.instance
         .collection('vendas')
         .where('email_user', isEqualTo: widget.email)
@@ -76,7 +88,7 @@ class TotalVendasState extends State<TotalVendas> {
             ],
           ),
           const SizedBox(width: 10),
-          VenRelatorio(email: widget.email)
+          VenRelatorio(email: widget.email, tipoUser: widget.tipoUser,)
         ],
       ),
     );

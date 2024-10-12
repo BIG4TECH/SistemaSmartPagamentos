@@ -2,13 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/screens/cadastros/telaCadastroCliente.dart';
-import 'package:smart_pagamento/screens/cadastros/telaCadastroFiliado.dart';
+//import 'package:smart_pagamento/screens/cadastros/telaCadastroFiliado.dart';
 import 'package:smart_pagamento/screens/cadastros/telaCadastroVenda.dart';
 import 'package:smart_pagamento/screens/listas/telaClientes.dart';
-import 'package:smart_pagamento/screens/listas/telaFiliados.dart';
+//import 'package:smart_pagamento/screens/listas/telaFiliados.dart';
 import 'package:smart_pagamento/screens/listas/telaVendas.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
-
 import '../cadastros/telaCadastroProduto.dart';
 import '../listas/telaProdutos.dart';
 
@@ -119,7 +118,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
                 context,
                 MaterialPageRoute(
                     builder: (context) => ClienteListScreen(email: email, 
-                    //tipoUser: tipoUser
+                    tipoUser: tipoUser
                     )));
           },
         ),
@@ -179,8 +178,8 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => VendasListScreen(email, 
-                    //tipoUser
+                    builder: (context) => VendasListScreen(email: email, 
+                    tipoUser: tipoUser
                     )));
           },
         ),

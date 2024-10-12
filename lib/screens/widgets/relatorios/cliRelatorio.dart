@@ -7,8 +7,8 @@ import 'package:printing/printing.dart';
 
 class CliRelatorio extends StatelessWidget {
   final String email;
-
-  CliRelatorio(this.email);
+  final String tipoUser;
+  CliRelatorio(this.email, this.tipoUser);
 
   @override
   Widget build(BuildContext context) {
@@ -32,19 +32,33 @@ class CliRelatorio extends StatelessWidget {
     final pdf = pw.Document();
 
     // Buscar clientes do Firestore
-    final collection = FirebaseFirestore.instance
-        .collection('clientes')
-        .where('email_user', isEqualTo: email);
+    final collection = tipoUser == 'master'
+        ? FirebaseFirestore.instance.collection('clientes')
+        //.where('email_user', isEqualTo: email)
+        : FirebaseFirestore.instance
+            .collection('clientes')
+            .where('email_user', isEqualTo: email);
+
     final querySnapshot = await collection.get();
 
     // Buscar vendas do Firestore
-    final vendas = FirebaseFirestore.instance
+    final vendas = tipoUser == 'master'
+    ?FirebaseFirestore.instance
+        .collection('vendas')
+    //    .where('email_user', isEqualTo: email);
+    :FirebaseFirestore.instance
         .collection('vendas')
         .where('email_user', isEqualTo: email);
+
     final queryVendas = await vendas.get();
 
     // Buscar iven do Firestore
-    final iven = FirebaseFirestore.instance
+    final iven =  tipoUser == 'master' 
+    ? FirebaseFirestore.instance
+        .collection('itens_vendas')
+        //.where('email_user', isEqualTo: email)
+    
+    :FirebaseFirestore.instance
         .collection('itens_vendas')
         .where('email_user', isEqualTo: email);
     final queryIven = await iven.get();
