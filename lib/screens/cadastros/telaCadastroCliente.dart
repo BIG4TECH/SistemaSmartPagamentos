@@ -19,7 +19,7 @@ class _RegistraClienteState extends State<RegistraCliente> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final _wppController = MaskedTextController(mask: '(00) 0000-0000');
+  final _wppController = MaskedTextController(mask: '(00) 00000-0000');
   final _cpfController = MaskedTextController(mask: '000.000.000-00');
 
   bool _isLoading = false;

@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:http/http.dart' as http;
 //import 'package:smart_pagamento/totalizadores/totalVendidos.dart';
 
 class RegistraVenda extends StatefulWidget {
@@ -67,6 +70,56 @@ class _RegistraVendaState extends State<RegistraVenda> {
       _loadVenda();
     }
   }
+
+  List data = [];
+
+  // Função para fazer a requisição HTTP
+  Future<void> fetchData() async {
+    final url = Uri.parse('https://jsonplaceholder.typicode.com/posts');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      
+      setState(() {
+        data = json.decode(response.body);
+      });
+    } else {
+      
+      throw Exception('Falha ao carregar dados');
+    }
+  }
+
+  Future<void> sendAssinaturaData(String name, String value, String telefone) async {
+  final url = Uri.parse('https://bbc9-186-250-7-224.ngrok-free.app/criar-assinatura');
+
+  // Corpo da requisição que será enviado
+  final Map<String, dynamic> requestBody = {
+    "name": name,
+    "value": value,
+    "telefone": telefone,
+  };
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(requestBody),  // Convertendo o mapa em JSON
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print('Assinatura criada com sucesso!');
+      print('Resposta: ${response.body}');
+    } else {
+      print('Erro ao criar assinatura: ${response.statusCode}');
+      print('Resposta: ${response.body}');
+    }
+  } catch (e) {
+    print('Erro ao enviar a requisição: $e');
+  }
+}
+
 
   //ADICIONAR OS DADOS DO CLIENTE NA LISTA DO DROPDOWNSEARCH
   void _setListCliente() async {
@@ -379,7 +432,6 @@ class _RegistraVendaState extends State<RegistraVenda> {
     );
   }
 
-
   void _loadVenda() async {
     setState(() {
       _isLoading = true;
@@ -399,26 +451,25 @@ class _RegistraVendaState extends State<RegistraVenda> {
     });
   }
 
-
   void _registerOrEditVenda() async {
     DateTime datahora = DateTime.now();
     DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
     String nomeCliente = '';
-    //TotalVendidosState totalVendidos = TotalVendidosState();
-
+    String telefone = '';
+    
     if (_formKey.currentState!.validate()) {
       var query = await FirebaseFirestore.instance
           .collection('clientes')
           .where('email_user', isEqualTo: widget.email)
           .get();
       for (var doc in query.docs) {
-        if (_dadosCliente ==
-            '${doc['name']} | Email: ${doc['email']} | Whatsapp: ${doc['whatsapp']}') {
+        if (_dadosCliente == '${doc['name']} | Email: ${doc['email']} | Whatsapp: ${doc['whatsapp']}') {
           nomeCliente = doc['name'];
+          telefone = doc['whatsapp'];
         }
       }
       if (widget.vendaId == null) {
-        //Registrar venda
+        // Registrar venda
         DocumentReference vendaRef =
             await FirebaseFirestore.instance.collection('vendas').add({
           'cliente': _dadosCliente,
@@ -431,7 +482,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
           'email_user': widget.email
         });
 
-        //registrar itens_vendas
+        // Registrar itens_vendas
         for (var index = 0; index < _listProdutosEscolhidos.length; index++) {
           await FirebaseFirestore.instance.collection('itens_vendas').add({
             'idvenda': vendaRef.id,
@@ -439,14 +490,17 @@ class _RegistraVendaState extends State<RegistraVenda> {
             'idproduto': _listProdutosEscolhidos[index]['produtoId'],
             'quantidade': _listProdutosEscolhidos[index]['quantidade'],
             'total_bruto_prod': _listProdutosEscolhidos[index]['valorBruto'],
-            'valor_descontado': _listProdutosEscolhidos[index]
-                ['valorDescontado'],
+            'valor_descontado': _listProdutosEscolhidos[index]['valorDescontado'],
             'total_liq_prod': _listProdutosEscolhidos[index]['valorLiq'],
             'email_user': widget.email
           });
         }
+
+        // Chame a função sendAssinaturaData() com os parâmetros adequados
+        await sendAssinaturaData(nomeCliente, _totalVenda.toString(), telefone); // Exemplo de telefone
+
       } else {
-        //Atualizar venda
+        // Atualizar venda
         await FirebaseFirestore.instance
             .collection('vendas')
             .doc(widget.vendaId)
@@ -460,7 +514,6 @@ class _RegistraVendaState extends State<RegistraVenda> {
           'email_user': widget.email
         });
       }
-   
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
@@ -470,15 +523,12 @@ class _RegistraVendaState extends State<RegistraVenda> {
       for (var i = 0; i < _listProdutoDropDeleted.length; i++) {
         _listProdutoDrop.add(_listProdutoDropDeleted[i]);
         _listProdutoDropDeleted.removeAt(i);
-
       }
-    
 
-        if (_listProdutosEscolhidos.isEmpty) {
-          _totalVenda = 0;
-          _totalLiq = 0;
-        }
-      //Navigator.of(context).pop();
+      if (_listProdutosEscolhidos.isEmpty) {
+        _totalVenda = 0;
+        _totalLiq = 0;
+      }
     }
   }
 
@@ -648,7 +698,6 @@ class _RegistraVendaState extends State<RegistraVenda> {
                                                           FontWeight.bold)),
                                             ),
                                           ),
-                                       
                                         ],
                                       ))))
                             ],

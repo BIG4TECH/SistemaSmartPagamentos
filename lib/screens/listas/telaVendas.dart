@@ -18,6 +18,8 @@ class _VendasListScreenState extends State<VendasListScreen> {
   List _listValorDescontadoProd = [];
   List _listValorLiqProd = [];
 
+  
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -66,6 +68,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
                 columnSpacing: size.width * 0.1,
                 //horizontalMargin: ,
                 columns: [
+                  /*
                   DataColumn(
                       label: Text(
                     'Cliente',
@@ -73,6 +76,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
                         fontWeight: FontWeight.bold,
                         fontSize: size.height * 0.03),
                   )),
+                  */
                   DataColumn(
                       label: Text('Total Bruto',
                           style: TextStyle(
@@ -98,8 +102,8 @@ class _VendasListScreenState extends State<VendasListScreen> {
                     .map(
                       (venda) => DataRow(
                         cells: [
-                          DataCell(Text(venda['nome_cliente'],
-                              style: TextStyle(fontSize: size.height * 0.025))),
+                          //DataCell(Text(venda['nome_cliente'],style: TextStyle(fontSize: size.height * 0.025))),
+                              
                           DataCell(Text('R\$${venda['total_bruto'].toString()}',
                               style: TextStyle(fontSize: size.height * 0.025))),
                           DataCell(Text('R\$${venda['total_liq'].toString()}',
