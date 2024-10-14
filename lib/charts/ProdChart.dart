@@ -7,7 +7,8 @@ import '/presentation/widgets/indicator.dart';
 class Prodchart extends StatefulWidget {
   final String email;
   final String tipoUser;
-  const Prodchart(this.email, this.tipoUser);
+  final String? idFiliado;
+  const Prodchart(this.email, this.tipoUser, this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => PieChartProdState();

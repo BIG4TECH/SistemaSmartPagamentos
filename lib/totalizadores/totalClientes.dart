@@ -6,44 +6,29 @@ import 'package:smart_pagamento/screens/widgets/relatorios/cliRelatorio.dart';
 class TotalClientes extends StatefulWidget {
   final String email;
   final String tipoUser;
-  const TotalClientes(this.email, this.tipoUser);
+  final String? idFiliado;
+  const TotalClientes(this.email, this.tipoUser, this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalClientesState();
 }
 
 class TotalClientesState extends State<TotalClientes> {
-  int _quantClientes = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    getDataClientes();
+  
+  Stream<QuerySnapshot> _getClientesStream() {
+    if (widget.tipoUser == 'master') {
+      return FirebaseFirestore.instance
+          .collection('clientes')
+          .snapshots();
+    } else {
+      return FirebaseFirestore.instance
+          .collection('clientes')
+          .where('email_user', isEqualTo: widget.email)
+          .snapshots();
+    }
   }
 
-  void getDataClientes() {
-    widget.tipoUser == 'master' ?
-    FirebaseFirestore.instance
-        .collection('clientes')
-        //.where('email_user', isEqualTo: widget.email)
-        .snapshots()
-        .listen((clientesSnapshot) {
-      setState(() {
-        _quantClientes = clientesSnapshot.size;
-      });
-    })
-    :FirebaseFirestore.instance
-        .collection('clientes')
-        .where('email_user', isEqualTo: widget.email)
-        .snapshots()
-        .listen((clientesSnapshot) {
-      setState(() {
-        _quantClientes = clientesSnapshot.size;
-      });
-    });
-  }
-
-  Widget showLineChart() {
+  Widget showLineChart(int quantClientes) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -73,7 +58,7 @@ class TotalClientesState extends State<TotalClientes> {
             ),
             child: Center(
               child: Text(
-                '$_quantClientes',
+                '$quantClientes',
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -95,6 +80,20 @@ class TotalClientesState extends State<TotalClientes> {
 
   @override
   Widget build(BuildContext context) {
-    return showLineChart();
+    return StreamBuilder<QuerySnapshot>(
+      stream: _getClientesStream(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator(color: corPadrao(),); 
+        }
+        if (snapshot.hasError) {
+          return Text('Erro.');
+        }
+       
+
+        int quantClientes = snapshot.data!.size; 
+        return showLineChart(quantClientes); 
+      },
+    );
   }
 }

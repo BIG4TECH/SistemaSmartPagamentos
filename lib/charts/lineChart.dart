@@ -8,8 +8,8 @@ import '/presentation/widgets/indicator.dart';
 class LineChartSample1 extends StatefulWidget {
   final String email;
   final String tipoUser;
-
-  const LineChartSample1(this.email, this.tipoUser);
+  final String? idFiliado;
+  const LineChartSample1(this.email, this.tipoUser, this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => LineChartSample1State();

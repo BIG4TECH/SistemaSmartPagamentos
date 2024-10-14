@@ -49,7 +49,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Fecha o modal
+                Navigator.of(context).pop(); 
               },
               child: Text('Fechar'),
             ),
@@ -107,31 +107,25 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
   }
 
   void _registerOrEditProduct() async {
-    if (_formKey.currentState!.validate()) {
-      if (widget.productId == null) {
-        await _nameExist(_nameController.text);
-        if (await _nameExist(_nameController.text)) {
-          _showDialog(context);
-        } else {
-          // Register new product
-          await FirebaseFirestore.instance.collection('products').add({
-            'name': _nameController.text,
-            'price': double.parse(_priceController.text),
-            'desconto': int.parse(_descontoController.text),
-            'recurrencePeriod': _recurrencePeriod,
-            'paymentOption': _paymentOption,
-            'email_user': widget.email
-          });
+  if (_formKey.currentState!.validate()) {
+    bool nameExists = await _nameExist(_nameController.text);
 
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(
-                  'Produto ${widget.productId == null ? 'registrado' : 'atualizado'} com sucesso!')));
-          _nameController.clear();
-          _priceController.clear();
-          _descontoController.clear();
-        }
+    if (widget.productId == null && nameExists) {
+      
+      _showDialog(context);
+    } else {
+      if (widget.productId == null) {
+        
+        await FirebaseFirestore.instance.collection('products').add({
+          'name': _nameController.text,
+          'price': double.parse(_priceController.text),
+          'desconto': int.parse(_descontoController.text),
+          'recurrencePeriod': _recurrencePeriod,
+          'paymentOption': _paymentOption,
+          'email_user': widget.email
+        });
       } else {
-        // Update existing product
+        
         await FirebaseFirestore.instance
             .collection('products')
             .doc(widget.productId)
@@ -142,13 +136,18 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
           'recurrencePeriod': _recurrencePeriod,
           'paymentOption': _paymentOption,
         });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                'Produto ${widget.productId == null ? 'registrado' : 'atualizado'} com sucesso!')));
-        Navigator.of(context).pop();
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              'Produto ${widget.productId == null ? 'registrado' : 'atualizado'} com sucesso!')));
+      _nameController.clear();
+      _priceController.clear();
+      _descontoController.clear();
+      Navigator.of(context).pop();
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {

@@ -5,136 +5,145 @@ import 'package:smart_pagamento/screens/widgets/cores.dart';
 class TotalVendidos extends StatefulWidget {
   final String email;
   final String tipoUser;
-  
-  const TotalVendidos(this.email, this.tipoUser);
+  final String? idFiliado;
+  const TotalVendidos(this.email, this.tipoUser, this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalVendidosState();
 }
 
 class TotalVendidosState extends State<TotalVendidos> {
-  int _quantVendidos = 0;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    getDataVendidos();
+  Stream<QuerySnapshot> _getVendasStream() {
+    return widget.tipoUser == 'master'
+        ? FirebaseFirestore.instance.collection('vendas').snapshots()
+        : FirebaseFirestore.instance
+            .collection('vendas')
+            .where('email_user', isEqualTo: widget.email)
+            .snapshots();
   }
 
-  void getDataVendidos() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Stream<QuerySnapshot> _getProdutosStream() {
+    return widget.tipoUser == 'master'
+        ? FirebaseFirestore.instance.collection('products').snapshots()
+        : FirebaseFirestore.instance
+            .collection('products')
+            .where('email_user', isEqualTo: widget.email)
+            .snapshots();
+  }
 
-    int cont = 0;
-
-    var vendasSnapshot = widget.tipoUser == 'master' 
-    ? await FirebaseFirestore.instance
-        .collection('vendas')
-       //.where('email_user', isEqualTo: widget.email)
-        .get()
-    
-    : await FirebaseFirestore.instance
-        .collection('vendas')
-        .where('email_user', isEqualTo: widget.email)
-        .get();
-
-
-    var produtosSnapshot = widget.tipoUser == 'master' 
-    ? await FirebaseFirestore.instance
-        .collection('products')
-       //.where('email_user', isEqualTo: widget.email)
-        .get()
-    : await FirebaseFirestore.instance
-        .collection('products')
-        .where('email_user', isEqualTo: widget.email)
-        .get();
-
-    var itensVendasSnapshot = widget.tipoUser == 'master' ? 
-    await FirebaseFirestore.instance
-        .collection('itens_vendas')
-        //.where('email_user', isEqualTo: widget.email)
-        .get()
-    : await FirebaseFirestore.instance
-        .collection('itens_vendas')
-        .where('email_user', isEqualTo: widget.email)
-        .get();
-
-    for (var docvenda in vendasSnapshot.docs) {
-      for (var docprod in produtosSnapshot.docs) {
-        for (var dociven in itensVendasSnapshot.docs) {
-          if (dociven['idproduto'] == docprod.id &&
-              docvenda.id == dociven['idvenda']) {
-            cont += int.parse(dociven['quantidade'].toString());
-          }
-        }
-      }
-    }
-
-    setState(() {
-      _quantVendidos = cont;
-      _isLoading = false;
-    });
+  Stream<QuerySnapshot> _getItensVendasStream() {
+    return widget.tipoUser == 'master'
+        ? FirebaseFirestore.instance.collection('itens_vendas').snapshots()
+        : FirebaseFirestore.instance
+            .collection('itens_vendas')
+            .where('email_user', isEqualTo: widget.email)
+            .snapshots();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _isLoading
-            ? const CircularProgressIndicator()
-            : Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 4,
-                      offset: const Offset(0, 0),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                          colors: gradientBtn(),
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+    return StreamBuilder<QuerySnapshot>(
+      stream: _getVendasStream(),
+      builder: (context, vendasSnapshot) {
+        if (vendasSnapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        }
+        if (vendasSnapshot.hasError) {
+          return Text('Erro ao carregar dados de vendas.');
+        }
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: _getProdutosStream(),
+          builder: (context, produtosSnapshot) {
+            if (produtosSnapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            }
+            if (produtosSnapshot.hasError) {
+              return Text('Erro ao carregar dados de produtos.');
+            }
+
+            return StreamBuilder<QuerySnapshot>(
+              stream: _getItensVendasStream(),
+              builder: (context, itensVendasSnapshot) {
+                if (itensVendasSnapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                }
+                if (itensVendasSnapshot.hasError) {
+                  return Text('Erro ao carregar dados de itens de vendas.');
+                }
+
+                int cont = 0;
+
+                for (var docvenda in vendasSnapshot.data!.docs) {
+                  for (var docprod in produtosSnapshot.data!.docs) {
+                    for (var dociven in itensVendasSnapshot.data!.docs) {
+                      if (dociven['idproduto'] == docprod.id &&
+                          docvenda.id == dociven['idvenda']) {
+                        cont += int.parse(dociven['quantidade'].toString());
+                      }
+                    }
+                  }
+                }
+
+                return Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 2,
+                        blurRadius: 4,
+                        offset: const Offset(0, 0),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: LinearGradient(
+                            colors: gradientBtn(),
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$cont',
+                            style: const TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
-                      child: Center(
-                        child: Text(
-                          '$_quantVendidos',
-                          style: const TextStyle(color: Colors.white),
-                        ),
+                      const SizedBox(width: 10),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Produtos',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text('Total Vendidos'),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Produtos',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text('Total Vendidos'),
-                      ],
-                    ),
-                    const SizedBox(width: 10),
-                    IconButton(
-                        onPressed: getDataVendidos,
-                        icon: const Icon(Icons.restart_alt_rounded))
-                  ],
-                ),
-              ),
-      ],
+                      const SizedBox(width: 10),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {});
+                        },
+                        icon: const Icon(Icons.restart_alt_rounded),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 }

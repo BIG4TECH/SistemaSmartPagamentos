@@ -6,47 +6,31 @@ import 'package:smart_pagamento/screens/widgets/relatorios/venRelatorio.dart';
 class TotalVendas extends StatefulWidget {
   final String email;
   final String tipoUser;
-  const TotalVendas(this.email, this.tipoUser);
+  final String? idFiliado;
+  const TotalVendas(this.email, this.tipoUser, this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalVendasState();
 }
 
 class TotalVendasState extends State<TotalVendas> {
-  int _quantVendas = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    getDataVendas();
+  
+  Stream<QuerySnapshot> _getVendasStream() {
+    if (widget.tipoUser == 'master') {
+      return FirebaseFirestore.instance
+          .collection('vendas')
+          .snapshots();
+    } else {
+      return FirebaseFirestore.instance
+          .collection('vendas')
+          .where('email_user', isEqualTo: widget.email)
+          .snapshots();
+    }
   }
 
-  void getDataVendas() {
-    widget.tipoUser == 'master' ?
-    FirebaseFirestore.instance
-        .collection('vendas')
-        //.where('email_user', isEqualTo: widget.email)
-        .snapshots()
-        .listen((vendas) {
-      setState(() {
-        _quantVendas = vendas.size;
-      });
-    })
-    :
-    FirebaseFirestore.instance
-        .collection('vendas')
-        .where('email_user', isEqualTo: widget.email)
-        .snapshots()
-        .listen((vendas) {
-      setState(() {
-        _quantVendas = vendas.size;
-      });
-    });
-  }
-
-  Widget showLineChart() {
+  Widget showLineChart(int quantVendas) {
     return Container(
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         color: Colors.white,
@@ -55,7 +39,7 @@ class TotalVendasState extends State<TotalVendas> {
             color: Colors.grey.withOpacity(0.5),
             spreadRadius: 2,
             blurRadius: 4,
-            offset: Offset(0, 0),
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -67,14 +51,14 @@ class TotalVendasState extends State<TotalVendas> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               gradient: LinearGradient(
-                                colors: gradientBtn(),
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                colors: gradientBtn(),
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
             child: Center(
               child: Text(
-                '$_quantVendas',
+                '$quantVendas',
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -88,7 +72,7 @@ class TotalVendasState extends State<TotalVendas> {
             ],
           ),
           const SizedBox(width: 10),
-          VenRelatorio(email: widget.email, tipoUser: widget.tipoUser,)
+          VenRelatorio(email: widget.email, tipoUser: widget.tipoUser)
         ],
       ),
     );
@@ -96,6 +80,20 @@ class TotalVendasState extends State<TotalVendas> {
 
   @override
   Widget build(BuildContext context) {
-    return showLineChart();
+    return StreamBuilder<QuerySnapshot>(
+      stream: _getVendasStream(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator(); 
+        }
+        if (snapshot.hasError) {
+          return Text('Erro ao carregar os dados.'); // Mostra uma mensagem de erro
+        }
+       
+
+        int quantVendas = snapshot.data!.size;
+        return showLineChart(quantVendas); 
+      },
+    );
   }
 }

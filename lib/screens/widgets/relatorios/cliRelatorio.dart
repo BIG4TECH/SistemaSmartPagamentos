@@ -1,6 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -43,24 +43,22 @@ class CliRelatorio extends StatelessWidget {
 
     // Buscar vendas do Firestore
     final vendas = tipoUser == 'master'
-    ?FirebaseFirestore.instance
-        .collection('vendas')
-    //    .where('email_user', isEqualTo: email);
-    :FirebaseFirestore.instance
-        .collection('vendas')
-        .where('email_user', isEqualTo: email);
+        ? FirebaseFirestore.instance.collection('vendas')
+        //    .where('email_user', isEqualTo: email);
+        : FirebaseFirestore.instance
+            .collection('vendas')
+            .where('email_user', isEqualTo: email);
 
     final queryVendas = await vendas.get();
 
     // Buscar iven do Firestore
-    final iven =  tipoUser == 'master' 
-    ? FirebaseFirestore.instance
-        .collection('itens_vendas')
+    final iven = tipoUser == 'master'
+        ? FirebaseFirestore.instance.collection('itens_vendas')
         //.where('email_user', isEqualTo: email)
-    
-    :FirebaseFirestore.instance
-        .collection('itens_vendas')
-        .where('email_user', isEqualTo: email);
+
+        : FirebaseFirestore.instance
+            .collection('itens_vendas')
+            .where('email_user', isEqualTo: email);
     final queryIven = await iven.get();
 
     for (var datacliente in querySnapshot.docs) {
@@ -90,6 +88,7 @@ class CliRelatorio extends StatelessWidget {
 
       // Adicionando o novo cliente à lista
       clientes.add(novoCliente);
+      //print(clientes);
     }
 
     // Estilos
@@ -116,21 +115,30 @@ class CliRelatorio extends StatelessWidget {
     );
 
     // Adicionar dados ao PDF
-    pw.Widget buildPage(List<Map<String, dynamic>> vendas) {
+    pw.Widget buildPage(List<Map<String, dynamic>> clientesPage, bool showH) {
+      pw.Column showHeader() {
+        return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('Relatório de Clientes', style: titleStyle),
+              pw.SizedBox(height: 5),
+              pw.Text('Quantidade Total de Clientes: ${clientes.length}',
+                  style: subtitleStyle),
+              pw.SizedBox(height: 5),
+              // Linha horizontal
+              pw.Container(
+                height: 2,
+                color: PdfColors.grey,
+                width: double.infinity,
+              ),
+              pw.SizedBox(height: 20),
+            ]);
+      }
+
       return pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text('Relatório de Clientes', style: titleStyle),
-          pw.SizedBox(height: 5),
-
-          // Linha horizontal
-          pw.Container(
-            height: 2,
-            color: PdfColors.grey,
-            width: double.infinity,
-          ),
-          pw.SizedBox(height: 20),
-
+          showH ? showHeader() : pw.SizedBox(),
           pw.TableHelper.fromTextArray(
             headers: [
               'Nome',
@@ -138,14 +146,14 @@ class CliRelatorio extends StatelessWidget {
               'Email',
               'Quant. Compras',
               'Quant. Produtos'
-            ], // Cabeçalhos das colunas
-            data: clientes.map((item) {
+            ],
+            data: clientesPage.map((cliente) {
               return [
-                item['name'],
-                item['whatsapp'].toString(),
-                item['email'],
-                item['quantvendas'],
-                item['quantiven']
+                cliente['name'],
+                cliente['whatsapp'].toString(),
+                cliente['email'],
+                cliente['quantvendas'].toString(),
+                cliente['quantiven'].toString()
               ];
             }).toList(),
             headerStyle: headerStyle,
@@ -175,9 +183,10 @@ class CliRelatorio extends StatelessWidget {
       );
     }
 
-    // Dividir a lista em páginas
-    int itemsPerPage = 15; // Defina quantos itens deseja por página
+    int itemsPerPage = 15;
+    
     for (int i = 0; i < clientes.length; i += itemsPerPage) {
+      bool showH = i < itemsPerPage ? true : false;
       var vendasPage = clientes.sublist(
           i,
           i + itemsPerPage > clientes.length
@@ -185,9 +194,10 @@ class CliRelatorio extends StatelessWidget {
               : i + itemsPerPage);
       pdf.addPage(
         pw.Page(
-          build: (pw.Context context) => buildPage(vendasPage),
+          build: (pw.Context context) => buildPage(vendasPage, showH),
         ),
       );
+      
     }
 
     // Exibir e imprimir o PDF na web

@@ -26,9 +26,10 @@ class _HomeState extends State<Home> {
         .collection('users')
         .where('email', isEqualTo: email)
         .get();
-    print('USER NO HOME: ${user.docs.first['tipo_user']}');
+    
     setState(() {
       tipoUser = user.docs.first['tipo_user'];
+      print('USER NO HOME: ${user.docs.first['tipo_user']}');
     });
     
   }

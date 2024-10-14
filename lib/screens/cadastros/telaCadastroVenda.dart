@@ -3,7 +3,7 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
-import 'package:smart_pagamento/totalizadores/totalVendidos.dart';
+//import 'package:smart_pagamento/totalizadores/totalVendidos.dart';
 
 class RegistraVenda extends StatefulWidget {
   final String? vendaId;
@@ -404,7 +404,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
     DateTime datahora = DateTime.now();
     DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
     String nomeCliente = '';
-    TotalVendidosState totalVendidos = TotalVendidosState();
+    //TotalVendidosState totalVendidos = TotalVendidosState();
 
     if (_formKey.currentState!.validate()) {
       var query = await FirebaseFirestore.instance
@@ -460,9 +460,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
           'email_user': widget.email
         });
       }
-      setState(() {
-        totalVendidos.getDataVendidos;
-      });
+   
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
@@ -650,6 +648,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
                                                           FontWeight.bold)),
                                             ),
                                           ),
+                                       
                                         ],
                                       ))))
                             ],

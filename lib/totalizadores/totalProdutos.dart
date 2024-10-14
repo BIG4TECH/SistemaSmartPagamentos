@@ -6,47 +6,31 @@ import 'package:smart_pagamento/screens/widgets/relatorios/prodRelatorio.dart';
 class TotalProdutos extends StatefulWidget {
   final String email;
   final String tipoUser;
-  const TotalProdutos(this.email, this.tipoUser);
+  final String? idFiliado;
+  const TotalProdutos(this.email, this.tipoUser, this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalProdutosState();
 }
 
 class TotalProdutosState extends State<TotalProdutos> {
-  int _quantProdutos = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    getDataProdutos();
+  
+  Stream<QuerySnapshot> _getProdutosStream() {
+    if (widget.tipoUser == 'master') {
+      return FirebaseFirestore.instance
+          .collection('products')
+          .snapshots();
+    } else {
+      return FirebaseFirestore.instance
+          .collection('products')
+          .where('email_user', isEqualTo: widget.email)
+          .snapshots();
+    }
   }
 
-  void getDataProdutos() {
-    
-    widget.tipoUser == 'master' ? 
-    FirebaseFirestore.instance
-        .collection('products')
-        //.where('email_user', isEqualTo: widget.email)
-        .snapshots()
-        .listen((produtos) {
-      setState(() {
-        _quantProdutos = produtos.size;
-      });
-    })
-    : FirebaseFirestore.instance
-        .collection('products')
-        .where('email_user', isEqualTo: widget.email)
-        .snapshots()
-        .listen((produtos) {
-      setState(() {
-        _quantProdutos = produtos.size;
-      });
-    });
-  }
-
-  Widget showLineChart() {
+  Widget showLineChart(int quantProdutos) {
     return Container(
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         color: Colors.white,
@@ -55,7 +39,7 @@ class TotalProdutosState extends State<TotalProdutos> {
             color: Colors.grey.withOpacity(0.5),
             spreadRadius: 2,
             blurRadius: 4,
-            offset: Offset(0, 0),
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -74,7 +58,7 @@ class TotalProdutosState extends State<TotalProdutos> {
             ),
             child: Center(
               child: Text(
-                '$_quantProdutos',
+                '$quantProdutos',
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -96,6 +80,20 @@ class TotalProdutosState extends State<TotalProdutos> {
 
   @override
   Widget build(BuildContext context) {
-    return showLineChart();
+    return StreamBuilder<QuerySnapshot>(
+      stream: _getProdutosStream(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator(color: corPadrao(),); 
+        }
+        if (snapshot.hasError) {
+          return Text('Erro ao carregar os dados.'); 
+        }
+    
+
+        int quantProdutos = snapshot.data!.size; 
+        return showLineChart(quantProdutos); 
+      },
+    );
   }
 }

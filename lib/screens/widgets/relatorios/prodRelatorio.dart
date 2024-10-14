@@ -25,7 +25,8 @@ class ProdRelatorio extends StatelessWidget {
   }
 }
 
-Future<void> generateAndPrintPdf(BuildContext context, String email, String tipoUser) async {
+Future<void> generateAndPrintPdf(
+    BuildContext context, String email, String tipoUser) async {
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
@@ -33,28 +34,24 @@ Future<void> generateAndPrintPdf(BuildContext context, String email, String tipo
 
   final pdf = pw.Document();
 
-  
-  final collection = tipoUser == 'master' ?
-   FirebaseFirestore.instance
-      .collection('products')
-    //
-    //.where('email_user', isEqualTo: email);
+  final collection = tipoUser == 'master'
+      ? FirebaseFirestore.instance.collection('products')
+      //
+      //.where('email_user', isEqualTo: email);
 
-  : FirebaseFirestore.instance
-      .collection('products')
-      .where('email_user', isEqualTo: email);
+      : FirebaseFirestore.instance
+          .collection('products')
+          .where('email_user', isEqualTo: email);
 
   final querySnapshot = await collection.get();
 
   // Buscar iven do Firestore
-  final iven = tipoUser == 'master' 
-  
-  ? FirebaseFirestore.instance
-      .collection('itens_vendas')
+  final iven = tipoUser == 'master'
+      ? FirebaseFirestore.instance.collection('itens_vendas')
       //.where('email_user', isEqualTo: email)
-  : FirebaseFirestore.instance
-      .collection('itens_vendas')
-      .where('email_user', isEqualTo: email);
+      : FirebaseFirestore.instance
+          .collection('itens_vendas')
+          .where('email_user', isEqualTo: email);
 
   final queryIven = await iven.get();
 
@@ -67,32 +64,35 @@ Future<void> generateAndPrintPdf(BuildContext context, String email, String tipo
         quantiven += aux;
       }
     }
-    String recur = '';
 
-    switch (dataProducts['recurrencePeriod']) {
-      case 30:
-        recur = 'Mensal';
-        break;
-      case 60:
-        recur = 'Bimestral';
-        break;
-      case 90:
-        recur = 'Trimestral';
-        break;
-      default:
+    if (products.indexWhere((prod) => prod['name'] == dataProducts['name']) ==
+        -1) {
+      String recur = '';
+      switch (dataProducts['recurrencePeriod']) {
+        case 30:
+          recur = 'Mensal';
+          break;
+        case 60:
+          recur = 'Bimestral';
+          break;
+        case 90:
+          recur = 'Trimestral';
+          break;
+        default:
+      }
+
+      Map<String, dynamic> novoProduto = {
+        'name': dataProducts['name'],
+        'price': 'R\$ ${dataProducts['price']}',
+        'desconto': '${dataProducts['desconto']}%',
+        'recurrencePeriod': recur,
+        'paymentOption': dataProducts['paymentOption'],
+        'quantiven': quantiven
+      };
+
+      // Adicionando o novo produto à lista
+      products.add(novoProduto);
     }
-
-    Map<String, dynamic> novoProduto = {
-      'name': dataProducts['name'],
-      'price': 'R\$ ${dataProducts['price']}',
-      'desconto': '${dataProducts['desconto']}%',
-      'recurrencePeriod': recur,
-      'paymentOption': dataProducts['paymentOption'],
-      'quantiven': quantiven
-    };
-
-    // Adicionando o novo cliente à lista
-    products.add(novoProduto);
   }
 
   // Estilos
@@ -119,21 +119,31 @@ Future<void> generateAndPrintPdf(BuildContext context, String email, String tipo
   );
 
   // Adicionar dados ao PDF
-  pw.Widget buildPage(List<Map<String, dynamic>> vendas) {
+  pw.Widget buildPage(List<Map<String, dynamic>> vendas, showH) {
+    pw.Column showHeader() {
+      return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text('Relatório de Produtos', style: titleStyle),
+            pw.SizedBox(height: 5),
+            pw.Text('Quantidade Total de Produtos: ${products.length}',
+                style: titleStyle),
+            pw.SizedBox(height: 5),
+
+            // Linha horizontal
+            pw.Container(
+              height: 2,
+              color: PdfColors.grey,
+              width: double.infinity,
+            ),
+            pw.SizedBox(height: 20),
+          ]);
+    }
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('Relatório de Produtos', style: titleStyle),
-        pw.SizedBox(height: 5),
-
-        // Linha horizontal
-        pw.Container(
-          height: 2,
-          color: PdfColors.grey,
-          width: double.infinity,
-        ),
-        pw.SizedBox(height: 20),
-
+        showH ? showHeader() : pw.SizedBox(),
         pw.TableHelper.fromTextArray(
           headers: [
             'Nome',
@@ -183,6 +193,7 @@ Future<void> generateAndPrintPdf(BuildContext context, String email, String tipo
   int itemsPerPage = 15;
 
   for (int i = 0; i < products.length; i += itemsPerPage) {
+    bool showH = i < itemsPerPage ? true : false;
     var vendasPage = products.sublist(
         i,
         i + itemsPerPage > products.length
@@ -190,7 +201,7 @@ Future<void> generateAndPrintPdf(BuildContext context, String email, String tipo
             : i + itemsPerPage);
     pdf.addPage(
       pw.Page(
-        build: (pw.Context context) => buildPage(vendasPage),
+        build: (pw.Context context) => buildPage(vendasPage, showH),
       ),
     );
   }
