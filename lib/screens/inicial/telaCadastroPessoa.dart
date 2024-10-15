@@ -93,12 +93,12 @@ class _SignupScreenState extends State<SignupScreen> {
     return Column(
       children: [
         SizedBox(
-          height: size.height * 0.2,
+          height: size.height * 0.35,
           child: Padding(
             padding: EdgeInsets.all(size.width * 0.01),
             child: Center(
               child: Text(
-                'Cadastro',
+                'Preencha seus dados!',
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: size.width * 0.07,
@@ -124,18 +124,18 @@ class _SignupScreenState extends State<SignupScreen> {
                 padding: EdgeInsets.only(
                     top: size.width * 0.01,
                     bottom: size.width * 0.01,
-                    right: size.width * 0.04,
-                    left: size.width * 0.04),
+                    right: size.width * 0.09,
+                    left: size.width * 0.09),
                 child: Form(
                   key: _formKey,
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        SizedBox(height: size.height * 0.02),
+                        SizedBox(height: size.height * 0.02),
                         TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'Nome Completo',
-                          ),
+                          decoration: inputDec('Nome Completo'),
                           keyboardType: TextInputType.name,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -147,10 +147,9 @@ class _SignupScreenState extends State<SignupScreen> {
                             _nome = value;
                           },
                         ),
+                        SizedBox(height: size.height * 0.01),
                         TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                          ),
+                          decoration: inputDec('Email'),
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -162,10 +161,9 @@ class _SignupScreenState extends State<SignupScreen> {
                             _email = value;
                           },
                         ),
+                        SizedBox(height: size.height * 0.01),
                         TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'WhatsApp',
-                          ),
+                          decoration: inputDec('Whatsapp'),
                           keyboardType: TextInputType.phone,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -177,10 +175,9 @@ class _SignupScreenState extends State<SignupScreen> {
                             _whatsapp = value;
                           },
                         ),
+                        SizedBox(height: size.height * 0.01),
                         TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'Senha',
-                          ),
+                          decoration: inputDec('Senha'),
                           obscureText: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -192,10 +189,9 @@ class _SignupScreenState extends State<SignupScreen> {
                             _password = value;
                           },
                         ),
+                        SizedBox(height: size.height * 0.01),
                         TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'Confirme a senha',
-                          ),
+                          decoration: inputDec('Confirmar Senha'),
                           obscureText: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -207,24 +203,34 @@ class _SignupScreenState extends State<SignupScreen> {
                             _confirmPassword = value;
                           },
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: size.height * 0.02),
+                        SizedBox(height: size.height * 0.02),
                         _isLoading
                             ? const Center(child: CircularProgressIndicator())
-                            : ElevatedButton(
-                                onPressed: () {
-                                  _signup();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.purple,
-                                    minimumSize:
-                                        Size(size.width, size.height * 0.06),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(5))),
-                                child: const Text('Cadastrar',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold)),
+                            : Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: gradientBtn(),
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: _signup,
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      fixedSize: Size(
+                                          size.width * 0.8, size.height * 0.01),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(5))),
+                                  child: Text('Cadastrar',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: size.height * 0.022,
+                                          fontWeight: FontWeight.bold)),
+                                ),
                               ),
                         TextButton(
                           onPressed: () {
@@ -412,14 +418,11 @@ class _SignupScreenState extends State<SignupScreen> {
                               builder: (context) => LoginScreen()),
                         );
                       },
-                      child: Text(
-                        'Já possui uma conta? Realize o login!',
-                        style: TextStyle(fontSize: size.height * 0.022)
-                      ),
+                      child: Text('Já possui uma conta? Realize o login!',
+                          style: TextStyle(fontSize: size.height * 0.022)),
                     ),
                     SizedBox(
                       height: size.height * 0.02,
-                      
                     )
                   ])),
             ),
@@ -451,13 +454,8 @@ class _SignupScreenState extends State<SignupScreen> {
     var size = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: Container(
-        child: Center(
-          child: Container(
-              height: size.height * 0.8,
-              margin: EdgeInsets.symmetric(
-                  horizontal: size.width * 0.15, vertical: size.height * 0.12),
-              //padding: EdgeInsets.all(20),
+      body: size.width <= 720
+          ? Container(
               decoration: BoxDecoration(
                   color: corPadrao(),
                   borderRadius: BorderRadius.circular(25),
@@ -469,9 +467,28 @@ class _SignupScreenState extends State<SignupScreen> {
                         offset: Offset(0, 0) // posição x,y
                         )
                   ]),
-              child: size.width <= 720 ? _mobile(size) : _web(size)),
-        ),
-      ),
+              child: _mobile(size),
+            )
+          : Center(
+              child: Container(
+                  height: size.height * 0.8,
+                  margin: EdgeInsets.symmetric(
+                      horizontal: size.width * 0.15,
+                      vertical: size.height * 0.12),
+                  //padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                      color: corPadrao(),
+                      borderRadius: BorderRadius.circular(25),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            spreadRadius: 1, // espalhamento
+                            blurRadius: 5, // desfoque
+                            offset: Offset(0, 0) // posição x,y
+                            )
+                      ]),
+                  child: _web(size)),
+            ),
     );
   }
 }

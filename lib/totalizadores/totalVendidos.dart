@@ -129,13 +129,7 @@ class TotalVendidosState extends State<TotalVendidos> {
                           Text('Total Vendidos'),
                         ],
                       ),
-                      const SizedBox(width: 10),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {});
-                        },
-                        icon: const Icon(Icons.restart_alt_rounded),
-                      ),
+                     
                     ],
                   ),
                 );

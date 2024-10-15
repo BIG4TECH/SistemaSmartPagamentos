@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/screens/inicial/telaCadastroPessoa.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/screens/widgets/textfield.dart';
 
 import '/screens/home.dart';
 
@@ -24,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       children: [
         SizedBox(
-          height: size.height * 0.2,
+          height: size.height * 0.35,
           child: Padding(
             padding: EdgeInsets.all(size.width * 0.01),
             child: Center(
@@ -55,8 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: EdgeInsets.only(
                     top: size.width * 0.01,
                     bottom: size.width * 0.01,
-                    right: size.width * 0.04,
-                    left: size.width * 0.04),
+                    right: size.width * 0.09,
+                    left: size.width * 0.09),
                 child: SingleChildScrollView(
                   child: Form(
                     key: _formKey,
@@ -70,9 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         //EMAIL
                         TextFormField(
                           controller: _emailController,
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                          ),
+                          decoration: inputDec('Email'),
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
                             if (value?.isEmpty ?? true) {
@@ -82,12 +81,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
 
+                        SizedBox(height: size.height * 0.01),
+
                         //SENHA
                         TextFormField(
                           controller: _passwordController,
-                          decoration: InputDecoration(
-                            labelText: 'Senha',
-                          ),
+                          decoration: inputDec('Senha'),
                           obscureText: true,
                           validator: (value) {
                             if (value?.isEmpty ?? true) {
@@ -101,19 +100,30 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(height: size.height * 0.02),
                         _isLoading
                             ? Center(child: CircularProgressIndicator())
-                            : ElevatedButton(
-                                onPressed: _login,
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.purple,
-                                    minimumSize:
-                                        Size(size.width, size.height * 0.06),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(5))),
-                                child: Text('Login',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold)),
+                            : Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: gradientBtn(),
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: _login,
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      fixedSize: Size(
+                                          size.width * 0.8, size.height * 0.01),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(5))),
+                                  child: Text('Entrar',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: size.height * 0.022,
+                                          fontWeight: FontWeight.bold)),
+                                ),
                               ),
                         SizedBox(height: size.height * 0.02),
                         SizedBox(
@@ -340,12 +350,8 @@ class _LoginScreenState extends State<LoginScreen> {
     var size = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: Container(
-        child: Center(
-          child: Container(
-              margin: EdgeInsets.symmetric(
-                  horizontal: size.width * 0.15, vertical: size.height * 0.12),
-              //padding: EdgeInsets.all(20),
+      body: size.width <= 720
+          ? Container(
               decoration: BoxDecoration(
                   color: corPadrao(),
                   borderRadius: BorderRadius.circular(25),
@@ -357,9 +363,26 @@ class _LoginScreenState extends State<LoginScreen> {
                         offset: Offset(0, 0) // posição x,y
                         )
                   ]),
-              child: size.width <= 720 ? mobile(size) : web(size)),
-        ),
-      ),
+              child: mobile(size))
+          : Center(
+              child: Container(
+                  margin: EdgeInsets.symmetric(
+                      horizontal: size.width * 0.15,
+                      vertical: size.height * 0.12),
+                  //padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                      color: corPadrao(),
+                      borderRadius: BorderRadius.circular(25),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            spreadRadius: 1, // espalhamento
+                            blurRadius: 5, // desfoque
+                            offset: Offset(0, 0) // posição x,y
+                            )
+                      ]),
+                  child: web(size)),
+            ),
     );
   }
 

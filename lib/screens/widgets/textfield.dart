@@ -51,3 +51,32 @@ InputDecoration inputDec(String label) {
     ),
   );
 }
+
+InputDecoration inputDecMob(String label) {
+  return InputDecoration(
+    //prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
+    labelText: label,
+    labelStyle: TextStyle(color: Colors.grey.shade600),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(15.0)),
+      borderSide: BorderSide(
+        color: Colors.grey.shade600, // Cor da borda
+        width: 2.0, // Espessura da borda
+      ),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(15.0)),
+      borderSide: BorderSide(
+        color: Colors.grey.shade600, // Cor da borda
+        width: 2.0, // Espessura da borda
+      ),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(15.0)),
+      borderSide: BorderSide(
+        color: corPadrao(), // Cor da borda quando o campo está focado
+        width: 3.0, // Espessura da borda quando o campo está focado
+      ),
+    ),
+  );
+}

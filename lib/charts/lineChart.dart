@@ -248,7 +248,7 @@ class LineChartSample1State extends State<LineChartSample1> {
           });
   }
 
-  Widget showLineChart() {
+  Widget showLineChart(Size size) {
     DateTime now = DateTime.now();
     DateTime data = DateTime(now.year, now.month + 1, 0);
 
@@ -278,7 +278,7 @@ class LineChartSample1State extends State<LineChartSample1> {
               ),
               Text(
                 'Quantidade por Dia (${data.month}/${data.year})',
-                style: TextStyle(
+                style: const TextStyle(
                   color: Color.fromARGB(255, 0, 10, 12),
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -289,32 +289,58 @@ class LineChartSample1State extends State<LineChartSample1> {
               const SizedBox(
                 height: 20,
               ),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Indicator(
-                    color: AppColors.contentColorGreen,
-                    text: 'Vendas Efetuadas',
-                    isSquare: true,
-                  ),
-                  SizedBox(
-                    width: 24,
-                  ),
-                  Indicator(
-                    color: AppColors.contentColorPink,
-                    text: 'Produtos Vendidos',
-                    isSquare: true,
-                  ),
-                  SizedBox(
-                    width: 24,
-                  ),
-                  Indicator(
-                    color: AppColors.contentColorCyan,
-                    text: 'Clientes Registrados',
-                    isSquare: true,
-                  ),
-                ],
-              ),
+              size.width <= 720
+                  ? const Column(
+                      children: [
+                        Indicator(
+                          color: AppColors.contentColorGreen,
+                          text: 'Vendas Efetuadas',
+                          isSquare: true,
+                        ),
+                        SizedBox(
+                          width: 24,
+                        ),
+                        Indicator(
+                          color: AppColors.contentColorPink,
+                          text: 'Produtos Vendidos',
+                          isSquare: true,
+                        ),
+                        SizedBox(
+                          width: 24,
+                        ),
+                        Indicator(
+                          color: AppColors.contentColorCyan,
+                          text: 'Clientes Registrados',
+                          isSquare: true,
+                        ),
+                      ],
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Indicator(
+                          color: AppColors.contentColorGreen,
+                          text: 'Vendas Efetuadas',
+                          isSquare: true,
+                        ),
+                        SizedBox(
+                          width: 24,
+                        ),
+                        Indicator(
+                          color: AppColors.contentColorPink,
+                          text: 'Produtos Vendidos',
+                          isSquare: true,
+                        ),
+                        SizedBox(
+                          width: 24,
+                        ),
+                        Indicator(
+                          color: AppColors.contentColorCyan,
+                          text: 'Clientes Registrados',
+                          isSquare: true,
+                        ),
+                      ],
+                    ),
               const SizedBox(
                 height: 30,
               ),
@@ -339,9 +365,10 @@ class LineChartSample1State extends State<LineChartSample1> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     return _listAllData.isEmpty
         ? const Center(child: CircularProgressIndicator())
-        : showLineChart();
+        : showLineChart(size);
   }
 
   double getMaxValueFromList(List<FlSpot> spots) {
