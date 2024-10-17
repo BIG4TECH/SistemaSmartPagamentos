@@ -8,8 +8,8 @@ import '/presentation/widgets/indicator.dart';
 class LineChartSample1 extends StatefulWidget {
   final String email;
   final String tipoUser;
-  final String? idFiliado;
-  const LineChartSample1(this.email, this.tipoUser, this.idFiliado);
+  final String? emailFiliado;
+  const LineChartSample1(this.email, this.tipoUser, this.emailFiliado);
 
   @override
   State<StatefulWidget> createState() => LineChartSample1State();
@@ -49,74 +49,51 @@ class LineChartSample1State extends State<LineChartSample1> {
 
     print('VENDAS EFETUADAS ANTES DO LISTEN: $vendasEfetuadas ');
 
-    widget.tipoUser == 'master'
-        ? FirebaseFirestore.instance
-            .collection('vendas')
-            .where('data',
+    var query = widget.tipoUser == 'master'
+        ? (widget.emailFiliado == null
+            ? FirebaseFirestore.instance.collection('vendas').where('data',
                 isGreaterThanOrEqualTo: firstDayOfMonth,
                 isLessThanOrEqualTo: lastDayOfMonth)
-            //.where('email_user', isEqualTo: widget.email)
-            .snapshots()
-            .listen((vendasSnapshot) async {
-            print('INICIO DO LISTEN');
-
-            // VENDAS EFETUADAS
-            for (var docvenda in vendasSnapshot.docs) {
-              if (docvenda.data().containsKey('data')) {
-                DateTime dataVenda = (docvenda['data'] as Timestamp).toDate();
-                int dia = dataVenda.day;
-                print(dia);
-                vendasEfetuadas[dia - 1] =
-                    FlSpot(dia.toDouble(), vendasEfetuadas[dia - 1].y + 1);
-              }
-            }
-
-            print('VENDAS EFETUADAS DEPOIS DO LISTEN: $vendasEfetuadas ');
-            try {
-              await Future.delayed(const Duration(milliseconds: 100));
-              setState(() {
-                _listAllData[0] = vendasEfetuadas;
-                print('VENDAS EFETUADAS NO SET STATE: ${_listAllData[0]}');
-              });
-            } catch (e) {
-              print(e);
-            }
-          }, onError: (error) {
-            print('VENDAS EFETUADAS ERRO: $error');
-          })
+            : FirebaseFirestore.instance
+                .collection('vendas')
+                .where('data',
+                    isGreaterThanOrEqualTo: firstDayOfMonth,
+                    isLessThanOrEqualTo: lastDayOfMonth)
+                .where('email_user', isEqualTo: widget.emailFiliado))
         : FirebaseFirestore.instance
             .collection('vendas')
             .where('data',
                 isGreaterThanOrEqualTo: firstDayOfMonth,
                 isLessThanOrEqualTo: lastDayOfMonth)
-            .where('email_user', isEqualTo: widget.email)
-            .snapshots()
-            .listen((vendasSnapshot) async {
-            print('INICIO DO LISTEN');
-            // VENDAS EFETUADAS
-            for (var docvenda in vendasSnapshot.docs) {
-              if (docvenda.data().containsKey('data')) {
-                DateTime dataVenda = (docvenda['data'] as Timestamp).toDate();
-                int dia = dataVenda.day;
-                print(dia);
-                vendasEfetuadas[dia - 1] =
-                    FlSpot(dia.toDouble(), vendasEfetuadas[dia - 1].y + 1);
-              }
-            }
+            .where('email_user', isEqualTo: widget.email);
 
-            print('VENDAS EFETUADAS DEPOIS DO LISTEN: $vendasEfetuadas ');
-            try {
-              await Future.delayed(const Duration(milliseconds: 100));
-              setState(() {
-                _listAllData[0] = vendasEfetuadas;
-                print('VENDAS EFETUADAS NO SET STATE: ${_listAllData[0]}');
-              });
-            } catch (e) {
-              print(e);
-            }
-          }, onError: (error) {
-            print('VENDAS EFETUADAS ERRO: $error');
-          });
+    query.snapshots().listen((vendasSnapshot) async {
+      print('INICIO DO LISTEN');
+
+      // VENDAS EFETUADAS
+      for (var docvenda in vendasSnapshot.docs) {
+        if (docvenda.data().containsKey('data')) {
+          DateTime dataVenda = (docvenda['data'] as Timestamp).toDate();
+          int dia = dataVenda.day;
+          print(dia);
+          vendasEfetuadas[dia - 1] =
+              FlSpot(dia.toDouble(), vendasEfetuadas[dia - 1].y + 1);
+        }
+      }
+
+      print('VENDAS EFETUADAS DEPOIS DO LISTEN: $vendasEfetuadas ');
+      try {
+        await Future.delayed(const Duration(milliseconds: 100));
+        setState(() {
+          _listAllData[0] = vendasEfetuadas;
+          print('VENDAS EFETUADAS NO SET STATE: ${_listAllData[0]}');
+        });
+      } catch (e) {
+        print(e);
+      }
+    }, onError: (error) {
+      print('VENDAS EFETUADAS ERRO: $error');
+    });
   }
 
   //1 - produtosVendidos
@@ -131,13 +108,20 @@ class LineChartSample1State extends State<LineChartSample1> {
         .snapshots()
         .listen((itensVendasSnapshot) async {
       var vendasSnapshot = widget.tipoUser == 'master'
-          ? await FirebaseFirestore.instance
-              .collection('vendas')
-              //.where('email_user', isEqualTo: widget.email)
-              .where('data',
-                  isGreaterThanOrEqualTo: firstDayOfMonth,
-                  isLessThanOrEqualTo: lastDayOfMonth)
-              .get()
+          ? (widget.emailFiliado == null
+              ? await FirebaseFirestore.instance
+                  .collection('vendas')
+                  .where('data',
+                      isGreaterThanOrEqualTo: firstDayOfMonth,
+                      isLessThanOrEqualTo: lastDayOfMonth)
+                  .get()
+              : await FirebaseFirestore.instance
+                  .collection('vendas')
+                  .where('email_user', isEqualTo: widget.emailFiliado)
+                  .where('data',
+                      isGreaterThanOrEqualTo: firstDayOfMonth,
+                      isLessThanOrEqualTo: lastDayOfMonth)
+                  .get())
           : await FirebaseFirestore.instance
               .collection('vendas')
               .where('email_user', isEqualTo: widget.email)
@@ -147,10 +131,12 @@ class LineChartSample1State extends State<LineChartSample1> {
               .get();
 
       var produtosSnapshot = widget.tipoUser == 'master'
-          ? await FirebaseFirestore.instance
-              .collection('products')
-              //.where('email_user', isEqualTo: widget.email)
-              .get()
+          ? (widget.emailFiliado == null
+              ? await FirebaseFirestore.instance.collection('products').get()
+              : await FirebaseFirestore.instance
+                  .collection('products')
+                  .where('email_user', isEqualTo: widget.emailFiliado)
+                  .get())
           : await FirebaseFirestore.instance
               .collection('products')
               .where('email_user', isEqualTo: widget.email)
@@ -188,64 +174,47 @@ class LineChartSample1State extends State<LineChartSample1> {
     DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
     DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
 
-    widget.tipoUser == 'master'
-        ? FirebaseFirestore.instance
-            .collection('clientes')
-            .where('data_registro',
+    var query = widget.tipoUser == 'master'
+        ? (widget.emailFiliado == null
+            ? FirebaseFirestore.instance.collection('clientes').where(
+                'data_registro',
                 isGreaterThanOrEqualTo: firstDayOfMonth,
                 isLessThanOrEqualTo: lastDayOfMonth)
-            .snapshots()
-            .listen((clientesSnapshot) {
-            List<FlSpot> clientesRegistrados = List.generate(lastDayOfMonth.day,
-                (index) => FlSpot((index + 1).toDouble(), 0));
-
-            // CLIENTES REGISTRADOS
-            for (var doccliente in clientesSnapshot.docs) {
-              if (doccliente.data().containsKey('data_registro')) {
-                DateTime dataRegistro =
-                    (doccliente['data_registro'] as Timestamp).toDate();
-                int dia = dataRegistro.day;
-                clientesRegistrados[dia - 1] =
-                    FlSpot(dia.toDouble(), clientesRegistrados[dia - 1].y + 1);
-              }
-            }
-
-            setState(() {
-              _listAllData[2] = clientesRegistrados;
-              print('CLIENTES REGISTRADOS SET STATE: ${_listAllData[2]}');
-            });
-          }, onError: (error) {
-            print('CLIENTES REGISTRADOS ERRO: $error');
-          })
+            : FirebaseFirestore.instance
+                .collection('clientes')
+                .where('data_registro',
+                    isGreaterThanOrEqualTo: firstDayOfMonth,
+                    isLessThanOrEqualTo: lastDayOfMonth)
+                .where('email_user', isEqualTo: widget.emailFiliado))
         : FirebaseFirestore.instance
             .collection('clientes')
             .where('data_registro',
                 isGreaterThanOrEqualTo: firstDayOfMonth,
                 isLessThanOrEqualTo: lastDayOfMonth)
-            .where('email_user', isEqualTo: widget.email)
-            .snapshots()
-            .listen((clientesSnapshot) {
-            List<FlSpot> clientesRegistrados = List.generate(lastDayOfMonth.day,
-                (index) => FlSpot((index + 1).toDouble(), 0));
+            .where('email_user', isEqualTo: widget.email);
 
-            // CLIENTES REGISTRADOS
-            for (var doccliente in clientesSnapshot.docs) {
-              if (doccliente.data().containsKey('data_registro')) {
-                DateTime dataRegistro =
-                    (doccliente['data_registro'] as Timestamp).toDate();
-                int dia = dataRegistro.day;
-                clientesRegistrados[dia - 1] =
-                    FlSpot(dia.toDouble(), clientesRegistrados[dia - 1].y + 1);
-              }
-            }
+    query.snapshots().listen((clientesSnapshot) {
+      List<FlSpot> clientesRegistrados = List.generate(
+          lastDayOfMonth.day, (index) => FlSpot((index + 1).toDouble(), 0));
 
-            setState(() {
-              _listAllData[2] = clientesRegistrados;
-              print('CLIENTES REGISTRADOS SET STATE: ${_listAllData[2]}');
-            });
-          }, onError: (error) {
-            print('CLIENTES REGISTRADOS ERRO: $error');
-          });
+      // CLIENTES REGISTRADOS
+      for (var doccliente in clientesSnapshot.docs) {
+        if (doccliente.data().containsKey('data_registro')) {
+          DateTime dataRegistro =
+              (doccliente['data_registro'] as Timestamp).toDate();
+          int dia = dataRegistro.day;
+          clientesRegistrados[dia - 1] =
+              FlSpot(dia.toDouble(), clientesRegistrados[dia - 1].y + 1);
+        }
+      }
+
+      setState(() {
+        _listAllData[2] = clientesRegistrados;
+        print('CLIENTES REGISTRADOS SET STATE: ${_listAllData[2]}');
+      });
+    }, onError: (error) {
+      print('CLIENTES REGISTRADOS ERRO: $error');
+    });
   }
 
   Widget showLineChart(Size size) {
@@ -362,6 +331,20 @@ class LineChartSample1State extends State<LineChartSample1> {
       ),
     );
   }
+
+  @override
+  void didUpdateWidget(LineChartSample1 oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Se o emailFiliado mudar, buscar os dados novamente
+    if (oldWidget.emailFiliado != widget.emailFiliado) {
+      _listAllData = [[], [], []]; // Limpa os dados antigos
+      getDataVendas();
+      getDataProducts();
+      getDataClientes();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {

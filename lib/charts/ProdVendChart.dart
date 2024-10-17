@@ -8,8 +8,8 @@ import '/presentation/widgets/indicator.dart';
 class PieChartProd extends StatefulWidget {
   final String email;
   final String tipoUser;
-  final String? idFiliado;
-  const PieChartProd(this.email, this.tipoUser, this.idFiliado);
+  final String? emailFiliado;
+  const PieChartProd(this.email, this.tipoUser, this.emailFiliado);
 
   @override
   State<StatefulWidget> createState() => PieChartProdState();
@@ -148,34 +148,69 @@ class PieChartProdState extends State<PieChartProd> {
     DateTime lastDayOfMonth =
         DateTime(now.year, now.month + 1, 1).subtract(Duration(days: 1));
 
-    var vendas = widget.tipoUser == 'master'
-        ? await FirebaseFirestore.instance
+    var vendas;
+
+    if (widget.tipoUser == 'master') {
+      if (widget.emailFiliado == null) {
+        vendas = await FirebaseFirestore.instance
             .collection('vendas')
             .where('data',
                 isGreaterThanOrEqualTo: firstDayOfMonth,
                 isLessThanOrEqualTo: lastDayOfMonth)
             //.where('email_user', isEqualTo: widget.email)
-            .get()
-        : await FirebaseFirestore.instance
+            .get();
+      } else {
+        vendas = await FirebaseFirestore.instance
             .collection('vendas')
             .where('data',
                 isGreaterThanOrEqualTo: firstDayOfMonth,
                 isLessThanOrEqualTo: lastDayOfMonth)
-            .where('email_user', isEqualTo: widget.email)
+            .where('email_user', isEqualTo: widget.emailFiliado)
             .get();
+      }
+    } else {
+      vendas = await FirebaseFirestore.instance
+          .collection('vendas')
+          .where('data',
+              isGreaterThanOrEqualTo: firstDayOfMonth,
+              isLessThanOrEqualTo: lastDayOfMonth)
+          .where('email_user', isEqualTo: widget.email)
+          .get();
+    }
 
-    var itensVendas =
-        await FirebaseFirestore.instance.collection('itens_vendas').get();
+    var itensVendas = widget.tipoUser == 'master'
+      ? (widget.emailFiliado == null 
+          ? await FirebaseFirestore.instance
+              .collection('itens_vendas')
+              .get()
+          : await FirebaseFirestore.instance
+              .collection('itens_vendas')
+              .where('email_user', isEqualTo: widget.emailFiliado)
+              .get())
+      : await FirebaseFirestore.instance
+          .collection('itens_vendas')
+          .where('email_user', isEqualTo: widget.email)
+          .get();
 
-    var produtos = widget.tipoUser == 'master'
-        ? await FirebaseFirestore.instance
+    var produtos;
+    if (widget.tipoUser == 'master') {
+      if (widget.emailFiliado == null) {
+        produtos = await FirebaseFirestore.instance
             .collection('products')
             //.where('email_user', isEqualTo: widget.email)
-            .get()
-        : await FirebaseFirestore.instance
-            .collection('products')
-            .where('email_user', isEqualTo: widget.email)
             .get();
+      } else {
+        produtos = await FirebaseFirestore.instance
+            .collection('products')
+            .where('email_user', isEqualTo: widget.emailFiliado)
+            .get();
+      }
+    } else {
+      produtos = await FirebaseFirestore.instance
+          .collection('products')
+          .where('email_user', isEqualTo: widget.email)
+          .get();
+    }
 
     Map<String, DadosProduto> produtosEscolhidosMap = {};
     _quantidadeTotal = 0;

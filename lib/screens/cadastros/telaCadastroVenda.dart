@@ -497,7 +497,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
         }
 
         // Chame a função sendAssinaturaData() com os parâmetros adequados
-        await sendAssinaturaData(nomeCliente, _totalVenda.toString(), telefone); // Exemplo de telefone
+        //await sendAssinaturaData(nomeCliente, _totalVenda.toString(), telefone); // Exemplo de telefone
 
       } else {
         // Atualizar venda

@@ -10,7 +10,6 @@ import '../totalizadores/totalVendidos.dart';
 import 'ProdChart.dart';
 import 'ProdVendChart.dart';
 import 'lineChart.dart';
-//import 'package:smart_pagamento/screens/widgets/relatorios/cliRelatorio.dart';
 
 class AllCharts extends StatefulWidget {
   final String email;
@@ -24,36 +23,31 @@ class AllCharts extends StatefulWidget {
 class AllChartsState extends State<AllCharts> {
   int touchedIndex = -1;
   String? _dadosFiliado;
-  String? _filiadoId;
+  String? _filiadoEmail;
   List<String> _listFiliadoDrop = [];
 
+  // Função para buscar os dados dos filiados
   Future<void> _fetchFiliadoData() async {
-    setState(() async {
-      _listFiliadoDrop = await _setListFiliado();
+    List<String> filiados = await _setListFiliado();
+    setState(() {
+      _listFiliadoDrop = filiados;
     });
   }
 
+  // Função para obter a lista de filiados
   Future<List<String>> _setListFiliado() async {
     var filiados = await FirebaseFirestore.instance
         .collection('users')
         .where('tipo_user', isEqualTo: 'filiado')
         .get();
 
-    List<String> listFiliados = [];
-
-    setState(() {
-      listFiliados = filiados.docs.map((doc) {
-        return '${doc['name']} | ${doc['email']}';
-      }).toList();
-    });
-
-    await Future.delayed(Duration(seconds: 1));
-
-    return listFiliados;
+    return filiados.docs.map((doc) {
+      return '${doc['name']} | ${doc['email']}';
+    }).toList();
   }
 
-  Future<String?> fetchAndSetIdFiliado(String? filiSelecionado) async {
-    String? idFiliado;
+  Future<String?> fetchAndSetFiliadoEmail(String? filiSelecionado) async {
+    String? filiadoEmail;
     var filiados = await FirebaseFirestore.instance
         .collection('users')
         .where('tipo_user', isEqualTo: 'filiado')
@@ -61,18 +55,17 @@ class AllChartsState extends State<AllCharts> {
 
     for (var filiado in filiados.docs) {
       if (filiSelecionado == '${filiado['name']} | ${filiado['email']}') {
-        idFiliado = filiado.id;
+        filiadoEmail = filiado['email'];
         break;
       }
     }
-    return idFiliado;
+    return filiadoEmail;
   }
 
   @override
   void initState() {
     super.initState();
-
-    _fetchFiliadoData();
+    _fetchFiliadoData(); // Busca os dados ao iniciar o widget
   }
 
   @override
@@ -95,93 +88,90 @@ class AllChartsState extends State<AllCharts> {
                 height: size.height * 0.02,
               ),
               Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: DropdownSearch<String>(
-                        popupProps: const PopupProps.menu(
-                          showSelectedItems: true,
-                          showSearchBox: true,
-                        ),
-                        items: _listFiliadoDrop,
-                        dropdownDecoratorProps: const DropDownDecoratorProps(
-                          dropdownSearchDecoration: InputDecoration(
-                            labelText:
-                                "Selecione um filiado para filtrar os dados",
-                            border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(30.0)),
-                            ),
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: DropdownSearch<String>(
+                      popupProps: const PopupProps.menu(
+                        showSelectedItems: true,
+                        showSearchBox: true,
+                      ),
+                      items: _listFiliadoDrop, // Lista de dados preenchida corretamente
+                      dropdownDecoratorProps: const DropDownDecoratorProps(
+                        dropdownSearchDecoration: InputDecoration(
+                          labelText: "Selecione um filiado para filtrar os dados",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(30.0)),
                           ),
                         ),
-                        onChanged: (String? cliSelecionado) async {
-                          setState(() {
-                            _dadosFiliado = cliSelecionado;
-                          });
-                          _filiadoId =
-                              await fetchAndSetIdFiliado(cliSelecionado);
-                          setState(() {});
-                        },
-                        selectedItem: _dadosFiliado,
                       ),
+                      onChanged: (String? cliSelecionado) async {
+                        setState(() {
+                          _dadosFiliado = cliSelecionado;
+                        });
+                        _filiadoEmail = await fetchAndSetFiliadoEmail(cliSelecionado);
+                        setState(() {});
+                      },
+                      selectedItem: _dadosFiliado,
                     ),
-                    SizedBox(
-                      width: size.width * 0.045,
-                    ),
-                    Container(
-                      height: 40,
-                      width: 40,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: gradientBtn(),
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
+                  ),
+                  SizedBox(
+                    width: size.width * 0.045,
+                  ),
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: gradientBtn(),
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _filiadoId = '';
-                          _dadosFiliado = '';
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          minimumSize: Size(40,
-                              40), // Garantir que o botão ocupe o tamanho do Container
-                          padding: EdgeInsets
-                              .zero, // Remover padding para centralizar o ícone
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.clear_rounded,
-                          color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _filiadoEmail = null;
+                          _dadosFiliado = null;
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        minimumSize: Size(40, 40), // Garantir que o botão ocupe o tamanho do Container
+                        padding: EdgeInsets.zero, // Remover padding para centralizar o ícone
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
                         ),
                       ),
+                      child: const Icon(
+                        Icons.clear_rounded,
+                        color: Colors.white,
+                      ),
                     ),
-                  ]),
-
+                  ),
+                ],
+              ),
               const SizedBox(height: 20),
               size.width <= 720
                   ? Column(
                       children: [
-                        PieChartProd(widget.email, widget.tipoUser, _filiadoId),
+                        PieChartProd(widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(height: 20),
-                        Prodchart(widget.email, widget.tipoUser, _filiadoId),
+                        Prodchart(widget.email, widget.tipoUser, _filiadoEmail),
                       ],
                     )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        PieChartProd(widget.email, widget.tipoUser, _filiadoId),
+                        PieChartProd(widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(width: 20),
-                        Prodchart(widget.email, widget.tipoUser, _filiadoId),
+                        Prodchart(widget.email, widget.tipoUser, _filiadoEmail),
                       ],
                     ),
               const SizedBox(height: 20), // Espaçamento entre os gráficos
-              LineChartSample1(widget.email, widget.tipoUser, _filiadoId),
+              LineChartSample1(widget.email, widget.tipoUser, _filiadoEmail),
               const SizedBox(height: 20),
               size.width <= 720
                   ? Column(
@@ -189,30 +179,30 @@ class AllChartsState extends State<AllCharts> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         TotalClientes(
-                            widget.email, widget.tipoUser, _filiadoId),
+                            widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(height: 15),
                         TotalProdutos(
-                            widget.email, widget.tipoUser, _filiadoId),
+                            widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(height: 15),
-                        TotalVendas(widget.email, widget.tipoUser, _filiadoId),
+                        TotalVendas(widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(height: 15),
                         TotalVendidos(
-                            widget.email, widget.tipoUser, _filiadoId),
+                            widget.email, widget.tipoUser, _filiadoEmail),
                       ],
                     )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         TotalClientes(
-                            widget.email, widget.tipoUser, _filiadoId),
+                            widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(width: 15),
                         TotalProdutos(
-                            widget.email, widget.tipoUser, _filiadoId),
+                            widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(width: 15),
-                        TotalVendas(widget.email, widget.tipoUser, _filiadoId),
+                        TotalVendas(widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(width: 15),
                         TotalVendidos(
-                            widget.email, widget.tipoUser, _filiadoId),
+                            widget.email, widget.tipoUser, _filiadoEmail),
                       ],
                     ),
               const SizedBox(height: 20),
