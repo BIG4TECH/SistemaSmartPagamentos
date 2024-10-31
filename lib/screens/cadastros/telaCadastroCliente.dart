@@ -118,7 +118,10 @@ class _RegistraClienteState extends State<RegistraCliente> {
                 child: Wrap(children: [
                 Center(
                   child: Container(
-                    margin: const EdgeInsets.only(left: 150, right: 150),
+                    margin: size.width <= 720
+                        ? EdgeInsets.only(
+                            left: size.width * 0.07, right: size.width * 0.07)
+                        : const EdgeInsets.only(left: 150, right: 150),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -157,85 +160,165 @@ class _RegistraClienteState extends State<RegistraCliente> {
 
                                 const SizedBox(height: 20),
 
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child:
+                                size.width <= 720
+                                    ? Column(
+                                        children: [
                                           // EMAIL
                                           TextFormField(
-                                        style: const TextStyle(
-                                            color: Colors.black87,
-                                            fontWeight: FontWeight.bold),
-                                        controller: _emailController,
-                                        decoration: inputDec('Email'),
-                                        keyboardType:
-                                            TextInputType.emailAddress,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Por favor, digite o email!';
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      width: 20,
-                                    ),
-                                    Expanded(
-                                      child:
+                                            style: const TextStyle(
+                                                color: Colors.black87,
+                                                fontWeight: FontWeight.bold),
+                                            controller: _emailController,
+                                            decoration: inputDec('Email'),
+                                            keyboardType:
+                                                TextInputType.emailAddress,
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Por favor, digite o email!';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+
+                                          const SizedBox(
+                                            height: 20,
+                                          ),
+
                                           //WHATSAPP
                                           TextFormField(
-                                        //maxLength: 14,
-                                        //maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                                            //maxLength: 14,
+                                            //maxLengthEnforcement: MaxLengthEnforcement.enforced,
 
-                                        style: const TextStyle(
-                                            color: Colors.black87,
-                                            fontWeight: FontWeight.bold),
-                                        controller: _wppController,
-                                        decoration: inputDec('Whatsapp'),
-                                        keyboardType: TextInputType.phone,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Por favor, digite o número do whatsApp!';
-                                          }
-                                          if (value.length < 14) {
-                                            return 'Número incompleto!';
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      width: 20,
-                                    ),
-                                    Expanded(
-                                      child:
+                                            style: const TextStyle(
+                                                color: Colors.black87,
+                                                fontWeight: FontWeight.bold),
+                                            controller: _wppController,
+                                            decoration: inputDec('Whatsapp'),
+                                            keyboardType: TextInputType.phone,
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Por favor, digite o número do whatsApp!';
+                                              }
+                                              if (value.length < 14) {
+                                                return 'Número incompleto!';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+
+                                          //const SizedBox(height: 20),
+
                                           //CPF
+                                          /*
                                           TextFormField(
-                                        keyboardType: TextInputType.number,
-                                        //maxLength: 14,
-                                        maxLengthEnforcement:
-                                            MaxLengthEnforcement.enforced,
-                                        style: const TextStyle(
-                                            color: Colors.black87,
-                                            fontWeight: FontWeight.bold),
-                                        controller: _cpfController,
-                                        decoration: inputDec('CPF'),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Por favor, digite o CPF do cliente!';
-                                          }
-                                          if (value.length < 14) {
-                                            return 'CPF incompleto!';
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                            keyboardType: TextInputType.number,
+                                            //maxLength: 14,
+                                            maxLengthEnforcement:
+                                                MaxLengthEnforcement.enforced,
+                                            style: const TextStyle(
+                                                color: Colors.black87,
+                                                fontWeight: FontWeight.bold),
+                                            controller: _cpfController,
+                                            decoration: inputDec('CPF'),
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Por favor, digite o CPF do cliente!';
+                                              }
+                                              if (value.length < 14) {
+                                                return 'CPF incompleto!';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                          */
+                                        ],
+                                      )
+                                    : Row(
+                                        children: [
+                                          Expanded(
+                                            child:
+                                                // EMAIL
+                                                TextFormField(
+                                              style: const TextStyle(
+                                                  color: Colors.black87,
+                                                  fontWeight: FontWeight.bold),
+                                              controller: _emailController,
+                                              decoration: inputDec('Email'),
+                                              keyboardType:
+                                                  TextInputType.emailAddress,
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'Por favor, digite o email!';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            width: 20,
+                                          ),
+                                          Expanded(
+                                            child:
+                                                //WHATSAPP
+                                                TextFormField(
+                                              //maxLength: 14,
+                                              //maxLengthEnforcement: MaxLengthEnforcement.enforced,
 
-                                const SizedBox(height: 50),
+                                              style: const TextStyle(
+                                                  color: Colors.black87,
+                                                  fontWeight: FontWeight.bold),
+                                              controller: _wppController,
+                                              decoration: inputDec('Whatsapp'),
+                                              keyboardType: TextInputType.phone,
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'Por favor, digite o número do whatsApp!';
+                                                }
+                                                if (value.length < 14) {
+                                                  return 'Número incompleto!';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            width: 20,
+                                          ),
+                                          Expanded(
+                                            child:
+                                                //CPF
+                                                TextFormField(
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              //maxLength: 14,
+                                              maxLengthEnforcement:
+                                                  MaxLengthEnforcement.enforced,
+                                              style: const TextStyle(
+                                                  color: Colors.black87,
+                                                  fontWeight: FontWeight.bold),
+                                              controller: _cpfController,
+                                              decoration: inputDec('CPF'),
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'Por favor, digite o CPF do cliente!';
+                                                }
+                                                if (value.length < 14) {
+                                                  return 'CPF incompleto!';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                const SizedBox(height: 40),
                                 Container(
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
@@ -249,7 +332,7 @@ class _RegistraClienteState extends State<RegistraCliente> {
                                     onPressed: _registerOrEditCliente,
                                     style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.transparent,
-                                        fixedSize: Size(size.width * 0.2,
+                                        fixedSize: Size(size.width * 0.35,
                                             size.height * 0.01),
                                         shape: RoundedRectangleBorder(
                                             borderRadius:

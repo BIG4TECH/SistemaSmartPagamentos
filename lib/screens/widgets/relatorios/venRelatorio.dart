@@ -5,10 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:http/http.dart' as http;
+//import 'package:http/http.dart' as http;
 
 class VenRelatorio extends StatelessWidget {
   final String? clienteid;
+  final String? emailFiliado;
   String dadosCliente = '';
   String mesInicial = '';
   String mesFinal = '';
@@ -16,7 +17,7 @@ class VenRelatorio extends StatelessWidget {
   final String? email;
   final String tipoUser;
 
-  VenRelatorio({this.clienteid, this.email, required this.tipoUser});
+  VenRelatorio({this.clienteid, this.email, required this.tipoUser, required this.emailFiliado});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,7 @@ class VenRelatorio extends StatelessWidget {
       child: IconButton(
         onPressed: () async {
           showDialogCliente(context, dadosCliente, mesInicial, mesFinal,
-              anoInicial, email ?? '', tipoUser);
+              anoInicial, email ?? '', tipoUser, emailFiliado);
         },
         icon: const Icon(Icons.picture_as_pdf_rounded),
         tooltip: 'Gerar $email',
@@ -34,8 +35,8 @@ class VenRelatorio extends StatelessWidget {
 }
 
 //TODAS AS VENDAS
-Future<void> generateAndPrintPdf(
-    BuildContext context, String email, String tipoUser) async {
+Future<void> generateAndPrintPdf(BuildContext context, String email,
+    String tipoUser, String? emailFiliado) async {
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
@@ -45,8 +46,11 @@ Future<void> generateAndPrintPdf(
 
   // Buscar clientes do Firestore
   final collection = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('clientes')
-      //.where('email_user', isEqualTo: email)
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('clientes')
+          : FirebaseFirestore.instance
+              .collection('clientes')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('clientes')
           .where('email_user', isEqualTo: email);
@@ -55,9 +59,11 @@ Future<void> generateAndPrintPdf(
 
   // Buscar vendas do Firestore
   final vendas = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('vendas')
-      //.where('email_user', isEqualTo: email)
-
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('vendas')
+          : FirebaseFirestore.instance
+              .collection('vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('vendas')
           .where('email_user', isEqualTo: email);
@@ -66,18 +72,22 @@ Future<void> generateAndPrintPdf(
 
   // Buscar itens_vendas do Firestore
   final iven = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('itens_vendas')
-      //.where('email_user', isEqualTo: email)
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('itens_vendas')
+          : FirebaseFirestore.instance
+              .collection('itens_vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('itens_vendas')
           .where('email_user', isEqualTo: email);
 
   final queryIven = await iven.get();
 
+  // Processar dados de vendas e clientes
   for (var datavendas in queryVendas.docs) {
     String data_hora = '';
     String name = '';
-    String email = '';
+    String clienteEmail = '';
     num total_bruto = 0;
     num total_liq = 0;
     num quantiven = 0;
@@ -88,7 +98,7 @@ Future<void> generateAndPrintPdf(
         total_bruto = datavendas['total_bruto'];
         total_liq = datavendas['total_liq'];
         name = datacliente['name'];
-        email = datacliente['email'];
+        clienteEmail = datacliente['email'];
 
         for (var dataiven in queryIven.docs) {
           if (dataiven['idvenda'] == datavendas.id) {
@@ -101,7 +111,7 @@ Future<void> generateAndPrintPdf(
 
     Map<String, dynamic> novaVenda = {
       'name': name,
-      'email': email,
+      'email': clienteEmail,
       'data_hora': data_hora,
       'total_bruto': total_bruto,
       'total_liq': total_liq,
@@ -136,15 +146,14 @@ Future<void> generateAndPrintPdf(
   );
 
   // Função para gerar uma página
-  pw.Widget buildPage(List<Map<String, dynamic>> vendas, showH) {
+  pw.Widget buildPage(List<Map<String, dynamic>> vendas, bool showH) {
     pw.Column showHeader() {
       return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            showH ? showHeader() : pw.SizedBox(),
             pw.Text('Relatório de Vendas', style: titleStyle),
             pw.SizedBox(height: 5),
-            pw.Text('Quantidade Total de Vendas: ${vendas.length}',
+            pw.Text('Quantidade Total de Vendas: ${listVendas.length}',
                 style: titleStyle),
             pw.SizedBox(height: 5),
 
@@ -161,7 +170,6 @@ Future<void> generateAndPrintPdf(
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-
         showH ? showHeader() : pw.SizedBox(),
         pw.TableHelper.fromTextArray(
           headers: [
@@ -211,7 +219,7 @@ Future<void> generateAndPrintPdf(
 
   int itemsPerPage = 15;
   for (int i = 0; i < listVendas.length; i += itemsPerPage) {
-    bool showH = i < itemsPerPage ? true : false;
+    bool showH = i < itemsPerPage;
     var vendasPage = listVendas.sublist(
         i,
         i + itemsPerPage > listVendas.length
@@ -230,10 +238,9 @@ Future<void> generateAndPrintPdf(
   );
 }
 
-
 //FILTRAR POR CLIENTE
 Future<void> generateAndPrintPdfCliente(BuildContext context, String clienteid,
-    String email, String tipoUser) async {
+    String email, String tipoUser, String? emailFiliado) async {
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
@@ -247,8 +254,11 @@ Future<void> generateAndPrintPdfCliente(BuildContext context, String clienteid,
 
   // Buscar clientes do Firestore
   final collection = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('clientes')
-      //.where('email_user', isEqualTo: email)
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('clientes')
+          : FirebaseFirestore.instance
+              .collection('clientes')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('clientes')
           .where('email_user', isEqualTo: email);
@@ -256,8 +266,11 @@ Future<void> generateAndPrintPdfCliente(BuildContext context, String clienteid,
 
   // Buscar vendas do Firestore
   final vendas = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('vendas')
-      //.where('email_user', isEqualTo: email)
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('vendas')
+          : FirebaseFirestore.instance
+              .collection('vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('vendas')
           .where('email_user', isEqualTo: email);
@@ -266,18 +279,22 @@ Future<void> generateAndPrintPdfCliente(BuildContext context, String clienteid,
 
   // Buscar itens_vendas do Firestore
   final iven = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('itens_vendas')
-      //.where('email_user', isEqualTo: email)
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('itens_vendas')
+          : FirebaseFirestore.instance
+              .collection('itens_vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('itens_vendas')
           .where('email_user', isEqualTo: email);
 
   final queryIven = await iven.get();
 
+  // Processar dados de vendas e clientes
   for (var datavendas in queryVendas.docs) {
     String data_hora = '';
     String name = '';
-    String email = '';
+    String clienteEmail = '';
     num total_bruto = 0;
     num total_liq = 0;
     num quantiven = 0;
@@ -289,7 +306,7 @@ Future<void> generateAndPrintPdfCliente(BuildContext context, String clienteid,
         total_bruto = datavendas['total_bruto'];
         total_liq = datavendas['total_liq'];
         name = datacliente['name'];
-        email = datacliente['email'];
+        clienteEmail = datacliente['email'];
 
         totalBrutoGeral += total_bruto;
         totalLiqGeral += total_liq;
@@ -304,7 +321,7 @@ Future<void> generateAndPrintPdfCliente(BuildContext context, String clienteid,
 
         Map<String, dynamic> novaVenda = {
           'name': name,
-          'email': email,
+          'email': clienteEmail,
           'data_hora': data_hora,
           'total_bruto': total_bruto,
           'total_liq': total_liq,
@@ -348,47 +365,45 @@ Future<void> generateAndPrintPdfCliente(BuildContext context, String clienteid,
   );
 
   // Função para gerar uma página
-  pw.Widget buildPage(List<Map<String, dynamic>> vendas, showH) {
+  pw.Widget buildPage(List<Map<String, dynamic>> vendas, bool showH) {
     pw.Column showHeader() {
       return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-           pw.Text('Relatório de Vendas', style: titleStyle),
-        pw.SizedBox(height: 5),
-        pw.Container(
-          height: 2,
-          color: PdfColors.grey,
-          width: double.infinity,
-        ),
-        pw.SizedBox(height: 5),
-        pw.Text('Informações Gerais', style: nameCliente),
-        pw.SizedBox(height: 5),
-        pw.Text('Cliente: $nomeCliente', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Quant. Total Itens Vendidos: $cont', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Quant. Total Vendas: ${vendas.length}', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Total Bruto: R\$$totalBrutoGeral', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Total Liq.: R\$$totalLiqGeral', style: subtitleStyle),
-
-        pw.SizedBox(height: 5),
-        // Linha horizontal
-        pw.Container(
-          height: 2,
-          color: PdfColors.grey,
-          width: double.infinity,
-        ),
-        pw.SizedBox(height: 20),
+            pw.Text('Relatório de Vendas', style: titleStyle),
+            pw.SizedBox(height: 5),
+            pw.Container(
+              height: 2,
+              color: PdfColors.grey,
+              width: double.infinity,
+            ),
+            pw.SizedBox(height: 5),
+            pw.Text('Informações Gerais', style: nameCliente),
+            pw.SizedBox(height: 5),
+            pw.Text('Cliente: $nomeCliente', style: subtitleStyle),
+            pw.SizedBox(height: 2),
+            pw.Text('Quant. Total Itens Vendidos: $cont', style: subtitleStyle),
+            pw.SizedBox(height: 2),
+            pw.Text('Quant. Total Vendas: ${vendas.length}', style: subtitleStyle),
+            pw.SizedBox(height: 2),
+            pw.Text('Total Bruto: R\$$totalBrutoGeral', style: subtitleStyle),
+            pw.SizedBox(height: 2),
+            pw.Text('Total Liq.: R\$$totalLiqGeral', style: subtitleStyle),
+            pw.SizedBox(height: 5),
+            // Linha horizontal
+            pw.Container(
+              height: 2,
+              color: PdfColors.grey,
+              width: double.infinity,
+            ),
+            pw.SizedBox(height: 20),
           ]);
     }
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        
- showH ? showHeader() : pw.SizedBox(),
+        showH ? showHeader() : pw.SizedBox(),
         pw.TableHelper.fromTextArray(
           headers: [
             'Cliente',
@@ -435,17 +450,12 @@ Future<void> generateAndPrintPdfCliente(BuildContext context, String clienteid,
     );
   }
 
-  
-  int itemsPerPage = 10; 
+  int itemsPerPage = 10;
   for (int i = 0; i < listVendas.length; i += itemsPerPage) {
-    bool showH = i < itemsPerPage
-        ? true
-        : false; 
+    bool showH = i < itemsPerPage;
     var vendasPage = listVendas.sublist(
         i,
-        i + itemsPerPage > listVendas.length
-            ? listVendas.length
-            : i + itemsPerPage);
+        i + itemsPerPage > listVendas.length ? listVendas.length : i + itemsPerPage);
     pdf.addPage(
       pw.Page(
         build: (pw.Context context) => buildPage(vendasPage, showH),
@@ -459,17 +469,15 @@ Future<void> generateAndPrintPdfCliente(BuildContext context, String clienteid,
   );
 }
 
-
 //FILTRAR POR ANO
 Future<void> generateAndPrintPdfAno(BuildContext context, String anoEscolhido,
-    String email, String tipoUser) async {
+    String email, String tipoUser, String? emailFiliado) async {
   DateTime firstDayOfYear = DateTime(int.parse(anoEscolhido), 1, 1);
   DateTime lastDayOfYear = DateTime(int.parse(anoEscolhido), 12, 31);
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
   List<Map<String, dynamic>> listVendas = [];
-
   num cont = 0;
   num totalBrutoGeral = 0;
   num totalLiqGeral = 0;
@@ -478,9 +486,11 @@ Future<void> generateAndPrintPdfAno(BuildContext context, String anoEscolhido,
 
   // Buscar clientes do Firestore
   final collection = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('clientes')
-      //     .where('email_user', isEqualTo: email);
-
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('clientes')
+          : FirebaseFirestore.instance
+              .collection('clientes')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('clientes')
           .where('email_user', isEqualTo: email);
@@ -489,9 +499,11 @@ Future<void> generateAndPrintPdfAno(BuildContext context, String anoEscolhido,
 
   // Buscar vendas do Firestore
   final vendas = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('vendas')
-      //.where('email_user', isEqualTo: email)
-
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('vendas')
+          : FirebaseFirestore.instance
+              .collection('vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('vendas')
           .where('email_user', isEqualTo: email);
@@ -504,19 +516,22 @@ Future<void> generateAndPrintPdfAno(BuildContext context, String anoEscolhido,
 
   // Buscar itens_vendas do Firestore
   final iven = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('itens_vendas')
-      //.where('email_user', isEqualTo: email);
-
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('itens_vendas')
+          : FirebaseFirestore.instance
+              .collection('itens_vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('itens_vendas')
           .where('email_user', isEqualTo: email);
 
   final queryIven = await iven.get();
 
+  // Processar dados de vendas e clientes
   for (var datavendas in queryVendas.docs) {
     String data_hora = '';
     String name = '';
-    String email = '';
+    String clienteEmail = '';
     num total_bruto = 0;
     num total_liq = 0;
     num quantiven = 0;
@@ -527,7 +542,7 @@ Future<void> generateAndPrintPdfAno(BuildContext context, String anoEscolhido,
         total_bruto = datavendas['total_bruto'];
         total_liq = datavendas['total_liq'];
         name = datacliente['name'];
-        email = datacliente['email'];
+        clienteEmail = datacliente['email'];
 
         totalBrutoGeral += total_bruto;
         totalLiqGeral += total_liq;
@@ -542,7 +557,7 @@ Future<void> generateAndPrintPdfAno(BuildContext context, String anoEscolhido,
 
         Map<String, dynamic> novaVenda = {
           'name': name,
-          'email': email,
+          'email': clienteEmail,
           'data_hora': data_hora,
           'total_bruto': total_bruto,
           'total_liq': total_liq,
@@ -586,46 +601,44 @@ Future<void> generateAndPrintPdfAno(BuildContext context, String anoEscolhido,
   );
 
   // Função para gerar uma página
-  pw.Widget buildPage(List<Map<String, dynamic>> vendas, showH) {
+  pw.Widget buildPage(List<Map<String, dynamic>> vendas, bool showH) {
     pw.Column showHeader() {
       return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-           pw.Text('Relatório de Vendas', style: titleStyle),
-        pw.SizedBox(height: 5),
-        pw.Container(
-          height: 2,
-          color: PdfColors.grey,
-          width: double.infinity,
-        ),
-        pw.SizedBox(height: 5),
-        pw.Text('Informações Gerais', style: nameCliente),
-        pw.SizedBox(height: 2),
-        pw.Text('Período: $anoEscolhido', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Quant. Total Itens Vendidos: $cont', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Quant. Total Vendas: ${vendas.length}', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Total Bruto: R\$$totalBrutoGeral', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Total Liq.: R\$$totalLiqGeral', style: subtitleStyle),
-
-        pw.SizedBox(height: 5),
-        // Linha horizontal
-        pw.Container(
-          height: 2,
-          color: PdfColors.grey,
-          width: double.infinity,
-        ),
-        pw.SizedBox(height: 20),
+            pw.Text('Relatório de Vendas', style: titleStyle),
+            pw.SizedBox(height: 5),
+            pw.Container(
+              height: 2,
+              color: PdfColors.grey,
+              width: double.infinity,
+            ),
+            pw.SizedBox(height: 5),
+            pw.Text('Informações Gerais', style: nameCliente),
+            pw.SizedBox(height: 2),
+            pw.Text('Período: $anoEscolhido', style: subtitleStyle),
+            pw.SizedBox(height: 2),
+            pw.Text('Quant. Total Itens Vendidos: $cont', style: subtitleStyle),
+            pw.SizedBox(height: 2),
+            pw.Text('Quant. Total Vendas: ${vendas.length}', style: subtitleStyle),
+            pw.SizedBox(height: 2),
+            pw.Text('Total Bruto: R\$$totalBrutoGeral', style: subtitleStyle),
+            pw.SizedBox(height: 2),
+            pw.Text('Total Liq.: R\$$totalLiqGeral', style: subtitleStyle),
+            pw.SizedBox(height: 5),
+            // Linha horizontal
+            pw.Container(
+              height: 2,
+              color: PdfColors.grey,
+              width: double.infinity,
+            ),
+            pw.SizedBox(height: 20),
           ]);
     }
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        
         showH ? showHeader() : pw.SizedBox(),
         pw.TableHelper.fromTextArray(
           headers: [
@@ -675,12 +688,10 @@ Future<void> generateAndPrintPdfAno(BuildContext context, String anoEscolhido,
 
   int itemsPerPage = 11;
   for (int i = 0; i < listVendas.length; i += itemsPerPage) {
-    bool showH = i < itemsPerPage ? true : false;
+    bool showH = i < itemsPerPage;
     var vendasPage = listVendas.sublist(
         i,
-        i + itemsPerPage > listVendas.length
-            ? listVendas.length
-            : i + itemsPerPage);
+        i + itemsPerPage > listVendas.length ? listVendas.length : i + itemsPerPage);
     pdf.addPage(
       pw.Page(
         build: (pw.Context context) => buildPage(vendasPage, showH),
@@ -694,14 +705,14 @@ Future<void> generateAndPrintPdfAno(BuildContext context, String anoEscolhido,
   );
 }
 
-
 //FILTRAR POR UNICO MES NO ANO
 Future<void> generateAndPrintPdfMesAno(
     BuildContext context,
     String mesEscolhido,
     String anoEscolhido,
     String email,
-    String tipoUser) async {
+    String tipoUser,
+    String? emailFiliado) async {
   String mes;
   switch (mesEscolhido) {
     case 'Janeiro':
@@ -722,6 +733,9 @@ Future<void> generateAndPrintPdfMesAno(
     case 'Junho':
       mes = '6';
       break;
+    case 'Julho':
+      mes = '7';
+      break;
     case 'Agosto':
       mes = '8';
       break;
@@ -737,10 +751,6 @@ Future<void> generateAndPrintPdfMesAno(
     case 'Dezembro':
       mes = '12';
       break;
-    case 'Julho':
-      mes = '7';
-      break;
-
     default:
       mes = '0';
   }
@@ -764,18 +774,24 @@ Future<void> generateAndPrintPdfMesAno(
 
   // Buscar clientes do Firestore
   final collection = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('clientes')
-      //  .where('email_user', isEqualTo: email);
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('clientes')
+          : FirebaseFirestore.instance
+              .collection('clientes')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('clientes')
           .where('email_user', isEqualTo: email);
+
   final querySnapshot = await collection.get();
 
   // Buscar vendas do Firestore
   final vendas = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('vendas')
-      //.where('email_user', isEqualTo: email);
-
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('vendas')
+          : FirebaseFirestore.instance
+              .collection('vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('vendas')
           .where('email_user', isEqualTo: email);
@@ -787,13 +803,22 @@ Future<void> generateAndPrintPdfMesAno(
       .get();
 
   // Buscar itens_vendas do Firestore
-  final iven = FirebaseFirestore.instance.collection('itens_vendas');
+  final iven = tipoUser == 'master'
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('itens_vendas')
+          : FirebaseFirestore.instance
+              .collection('itens_vendas')
+              .where('email_user', isEqualTo: emailFiliado))
+      : FirebaseFirestore.instance
+          .collection('itens_vendas')
+          .where('email_user', isEqualTo: email);
+
   final queryIven = await iven.get();
 
   for (var datavendas in queryVendas.docs) {
     String data_hora = '';
     String name = '';
-    String email = '';
+    String clienteEmail = '';
     num total_bruto = 0;
     num total_liq = 0;
     num quantiven = 0;
@@ -804,7 +829,7 @@ Future<void> generateAndPrintPdfMesAno(
         total_bruto = datavendas['total_bruto'];
         total_liq = datavendas['total_liq'];
         name = datacliente['name'];
-        email = datacliente['email'];
+        clienteEmail = datacliente['email'];
 
         totalBrutoGeral += total_bruto;
         totalLiqGeral += total_liq;
@@ -819,7 +844,7 @@ Future<void> generateAndPrintPdfMesAno(
 
         Map<String, dynamic> novaVenda = {
           'name': name,
-          'email': email,
+          'email': clienteEmail,
           'data_hora': data_hora,
           'total_bruto': total_bruto,
           'total_liq': total_liq,
@@ -863,47 +888,46 @@ Future<void> generateAndPrintPdfMesAno(
   );
 
   // Função para gerar uma página
-  pw.Widget buildPage(List<Map<String, dynamic>> vendas, showH) {
+  pw.Widget buildPage(List<Map<String, dynamic>> vendas, bool showH) {
     pw.Column showHeader() {
       return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-             pw.Text('Relatório de Vendas', style: titleStyle),
-        pw.SizedBox(height: 5),
-        pw.Container(
-          height: 2,
-          color: PdfColors.grey,
-          width: double.infinity,
-        ),
-        pw.SizedBox(height: 5),
-        pw.Text('Informações Gerais', style: nameCliente),
-        pw.SizedBox(height: 2),
-        pw.Text('Período: $mesEscolhido - $anoEscolhido', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Quant. Total Itens Vendidos: $cont', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Quant. Total Vendas: ${vendas.length}', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Total Bruto: R\$$totalBrutoGeral', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Total Liq.: R\$$totalLiqGeral', style: subtitleStyle),
-
-        pw.SizedBox(height: 5),
-        // Linha horizontal
-        pw.Container(
-          height: 2,
-          color: PdfColors.grey,
-          width: double.infinity,
-        ),
-        pw.SizedBox(height: 20),
-          ]);
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('Relatório de Vendas', style: titleStyle),
+          pw.SizedBox(height: 5),
+          pw.Container(
+            height: 2,
+            color: PdfColors.grey,
+            width: double.infinity,
+          ),
+          pw.SizedBox(height: 5),
+          pw.Text('Informações Gerais', style: nameCliente),
+          pw.SizedBox(height: 2),
+          pw.Text('Período: $mesEscolhido - $anoEscolhido', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Quant. Total Itens Vendidos: $cont', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Quant. Total Vendas: ${vendas.length}', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Total Bruto: R\$$totalBrutoGeral', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Total Liq.: R\$$totalLiqGeral', style: subtitleStyle),
+          pw.SizedBox(height: 5),
+          // Linha horizontal
+          pw.Container(
+            height: 2,
+            color: PdfColors.grey,
+            width: double.infinity,
+          ),
+          pw.SizedBox(height: 20),
+        ],
+      );
     }
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-       
-           showH ? showHeader() : pw.SizedBox(),
+        showH ? showHeader() : pw.SizedBox(),
         pw.TableHelper.fromTextArray(
           headers: [
             'Cliente',
@@ -953,12 +977,10 @@ Future<void> generateAndPrintPdfMesAno(
   // Dividir a lista em páginas
   int itemsPerPage = 11; // Defina quantos itens deseja por página
   for (int i = 0; i < listVendas.length; i += itemsPerPage) {
-    bool showH = i < itemsPerPage ? true : false;
+    bool showH = i < itemsPerPage;
     var vendasPage = listVendas.sublist(
         i,
-        i + itemsPerPage > listVendas.length
-            ? listVendas.length
-            : i + itemsPerPage);
+        i + itemsPerPage > listVendas.length ? listVendas.length : i + itemsPerPage);
     pdf.addPage(
       pw.Page(
         build: (pw.Context context) => buildPage(vendasPage, showH),
@@ -972,7 +994,6 @@ Future<void> generateAndPrintPdfMesAno(
   );
 }
 
-
 //FILTRAR POR MES, ANO E CLIENTE
 Future<void> generateAndPrintPdfMesAnoCliente(
     BuildContext context,
@@ -980,7 +1001,8 @@ Future<void> generateAndPrintPdfMesAnoCliente(
     String clienteid,
     String anoEscolhido,
     String email,
-    String tipoUser) async {
+    String tipoUser,
+    String? emailFiliado) async {
   String mes;
 
   switch (mesEscolhido) {
@@ -1002,6 +1024,9 @@ Future<void> generateAndPrintPdfMesAnoCliente(
     case 'Junho':
       mes = '6';
       break;
+    case 'Julho':
+      mes = '7';
+      break;
     case 'Agosto':
       mes = '8';
       break;
@@ -1017,10 +1042,6 @@ Future<void> generateAndPrintPdfMesAnoCliente(
     case 'Dezembro':
       mes = '12';
       break;
-    case 'Julho':
-      mes = '7';
-      break;
-
     default:
       mes = '0';
   }
@@ -1035,19 +1056,20 @@ Future<void> generateAndPrintPdfMesAnoCliente(
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
   List<Map<String, dynamic>> listVendas = [];
-
   num cont = 0;
   num totalBrutoGeral = 0;
   num totalLiqGeral = 0;
-
   String nomeCliente = '';
 
   final pdf = pw.Document();
 
   // Buscar clientes do Firestore
   final collection = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('clientes')
-      //.where('email_user', isEqualTo: email);
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('clientes')
+          : FirebaseFirestore.instance
+              .collection('clientes')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('clientes')
           .where('email_user', isEqualTo: email);
@@ -1056,7 +1078,11 @@ Future<void> generateAndPrintPdfMesAnoCliente(
 
   // Buscar vendas do Firestore
   final vendas = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('vendas')
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('vendas')
+          : FirebaseFirestore.instance
+              .collection('vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('vendas')
           .where('email_user', isEqualTo: email);
@@ -1068,13 +1094,22 @@ Future<void> generateAndPrintPdfMesAnoCliente(
       .get();
 
   // Buscar itens_vendas do Firestore
-  final iven = FirebaseFirestore.instance.collection('itens_vendas');
+  final iven = tipoUser == 'master'
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('itens_vendas')
+          : FirebaseFirestore.instance
+              .collection('itens_vendas')
+              .where('email_user', isEqualTo: emailFiliado))
+      : FirebaseFirestore.instance
+          .collection('itens_vendas')
+          .where('email_user', isEqualTo: email);
+
   final queryIven = await iven.get();
 
   for (var datavendas in queryVendas.docs) {
     String data_hora = '';
     String name = '';
-    String email = '';
+    String clienteEmail = '';
     num total_bruto = 0;
     num total_liq = 0;
     num quantiven = 0;
@@ -1086,7 +1121,7 @@ Future<void> generateAndPrintPdfMesAnoCliente(
         total_bruto = datavendas['total_bruto'];
         total_liq = datavendas['total_liq'];
         name = datacliente['name'];
-        email = datacliente['email'];
+        clienteEmail = datacliente['email'];
 
         totalBrutoGeral += total_bruto;
         totalLiqGeral += total_liq;
@@ -1103,7 +1138,7 @@ Future<void> generateAndPrintPdfMesAnoCliente(
 
         Map<String, dynamic> novaVenda = {
           'name': name,
-          'email': email,
+          'email': clienteEmail,
           'data_hora': data_hora,
           'total_bruto': total_bruto,
           'total_liq': total_liq,
@@ -1124,7 +1159,7 @@ Future<void> generateAndPrintPdfMesAnoCliente(
     color: PdfColors.blue,
   );
 
-  final pw.TextStyle nameCliente = pw.TextStyle(
+  final pw.TextStyle nameClienteStyle = pw.TextStyle(
     fontSize: 18,
     fontWeight: pw.FontWeight.bold,
     color: PdfColors.black,
@@ -1147,43 +1182,42 @@ Future<void> generateAndPrintPdfMesAnoCliente(
   );
 
   // Função para gerar uma página
-  pw.Widget buildPage(List<Map<String, dynamic>> vendas, showH) {
+  pw.Widget buildPage(List<Map<String, dynamic>> vendas, bool showH) {
     pw.Column showHeader() {
       return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-             pw.Text('Relatório de Vendas', style: titleStyle),
-        pw.SizedBox(height: 5),
-        pw.Container(
-          height: 2,
-          color: PdfColors.grey,
-          width: double.infinity,
-        ),
-        pw.SizedBox(height: 5),
-        pw.Text('Informações Gerais', style: nameCliente),
-        pw.SizedBox(height: 2),
-        pw.Text('Cliente: $nomeCliente', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Período: $mesEscolhido - $anoEscolhido', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Quant. Total Itens Vendidos: $cont', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Quant. Total Vendas: ${vendas.length}', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Total Bruto: R\$$totalBrutoGeral', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Total Liq.: R\$$totalLiqGeral', style: subtitleStyle),
-
-        pw.SizedBox(height: 5),
-        // Linha horizontal
-        pw.Container(
-          height: 2,
-          color: PdfColors.grey,
-          width: double.infinity,
-        ),
-        pw.SizedBox(height: 20),
-
-          ]);
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('Relatório de Vendas', style: titleStyle),
+          pw.SizedBox(height: 5),
+          pw.Container(
+            height: 2,
+            color: PdfColors.grey,
+            width: double.infinity,
+          ),
+          pw.SizedBox(height: 5),
+          pw.Text('Informações Gerais', style: nameClienteStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Cliente: $nomeCliente', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Período: $mesEscolhido - $anoEscolhido', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Quant. Total Itens Vendidos: $cont', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Quant. Total Vendas: ${vendas.length}', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Total Bruto: R\$$totalBrutoGeral', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Total Liq.: R\$$totalLiqGeral', style: subtitleStyle),
+          pw.SizedBox(height: 5),
+          // Linha horizontal
+          pw.Container(
+            height: 2,
+            color: PdfColors.grey,
+            width: double.infinity,
+          ),
+          pw.SizedBox(height: 20),
+        ],
+      );
     }
 
     return pw.Column(
@@ -1238,12 +1272,10 @@ Future<void> generateAndPrintPdfMesAnoCliente(
 
   int itemsPerPage = 11;
   for (int i = 0; i < listVendas.length; i += itemsPerPage) {
-    bool showH = i < itemsPerPage ? true : false;
+    bool showH = i < itemsPerPage;
     var vendasPage = listVendas.sublist(
         i,
-        i + itemsPerPage > listVendas.length
-            ? listVendas.length
-            : i + itemsPerPage);
+        i + itemsPerPage > listVendas.length ? listVendas.length : i + itemsPerPage);
     pdf.addPage(
       pw.Page(
         build: (pw.Context context) => buildPage(vendasPage, showH),
@@ -1257,14 +1289,14 @@ Future<void> generateAndPrintPdfMesAnoCliente(
   );
 }
 
-
 //FILTRAR POR ANO E CLIENTE
 Future<void> generateAndPrintPdfAnoCliente(
     BuildContext context,
     String clienteid,
     String anoEscolhido,
     String email,
-    String tipoUser) async {
+    String tipoUser,
+    String? emailFiliado) async {
   DateTime datahora = DateTime.now();
   DateTime firstDayOfMonth = DateTime(int.parse(anoEscolhido), 1, 1);
   DateTime lastDayOfMonth = DateTime(int.parse(anoEscolhido), 12, 31);
@@ -1272,18 +1304,20 @@ Future<void> generateAndPrintPdfAnoCliente(
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
   List<Map<String, dynamic>> listVendas = [];
-
   num cont = 0;
   num totalBrutoGeral = 0;
   num totalLiqGeral = 0;
-
   String nomeCliente = '';
 
   final pdf = pw.Document();
 
   // Buscar clientes do Firestore
   final collection = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('clientes')
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('clientes')
+          : FirebaseFirestore.instance
+              .collection('clientes')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('clientes')
           .where('email_user', isEqualTo: email);
@@ -1291,7 +1325,11 @@ Future<void> generateAndPrintPdfAnoCliente(
 
   // Buscar vendas do Firestore
   final vendas = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('vendas')
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('vendas')
+          : FirebaseFirestore.instance
+              .collection('vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('vendas')
           .where('email_user', isEqualTo: email);
@@ -1304,7 +1342,11 @@ Future<void> generateAndPrintPdfAnoCliente(
 
   // Buscar itens_vendas do Firestore
   final iven = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('itens_vendas')
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('itens_vendas')
+          : FirebaseFirestore.instance
+              .collection('itens_vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('itens_vendas')
           .where('email_user', isEqualTo: email);
@@ -1313,7 +1355,7 @@ Future<void> generateAndPrintPdfAnoCliente(
   for (var datavendas in queryVendas.docs) {
     String data_hora = '';
     String name = '';
-    String email = '';
+    String clienteEmail = '';
     num total_bruto = 0;
     num total_liq = 0;
     num quantiven = 0;
@@ -1325,7 +1367,7 @@ Future<void> generateAndPrintPdfAnoCliente(
         total_bruto = datavendas['total_bruto'];
         total_liq = datavendas['total_liq'];
         name = datacliente['name'];
-        email = datacliente['email'];
+        clienteEmail = datacliente['email'];
 
         totalBrutoGeral += total_bruto;
         totalLiqGeral += total_liq;
@@ -1342,7 +1384,7 @@ Future<void> generateAndPrintPdfAnoCliente(
 
         Map<String, dynamic> novaVenda = {
           'name': name,
-          'email': email,
+          'email': clienteEmail,
           'data_hora': data_hora,
           'total_bruto': total_bruto,
           'total_liq': total_liq,
@@ -1363,7 +1405,7 @@ Future<void> generateAndPrintPdfAnoCliente(
     color: PdfColors.blue,
   );
 
-  final pw.TextStyle nameCliente = pw.TextStyle(
+  final pw.TextStyle nameClienteStyle = pw.TextStyle(
     fontSize: 18,
     fontWeight: pw.FontWeight.bold,
     color: PdfColors.black,
@@ -1386,49 +1428,48 @@ Future<void> generateAndPrintPdfAnoCliente(
   );
 
   // Função para gerar uma página
-  pw.Widget buildPage(List<Map<String, dynamic>> vendas, showH) {
-     pw.Column showHeader() {
+  pw.Widget buildPage(List<Map<String, dynamic>> vendas, bool showH) {
+    pw.Column showHeader() {
       return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text('Relatório de Vendas', style: titleStyle),
-        pw.SizedBox(height: 5),
-        pw.Container(
-          height: 2,
-          color: PdfColors.grey,
-          width: double.infinity,
-        ),
-        pw.SizedBox(height: 5),
-        pw.Text('Informações Gerais', style: nameCliente),
-        pw.SizedBox(height: 2),
-        pw.Text('Cliente: $nomeCliente', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Período: $anoEscolhido', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Quant. Total Itens Vendidos: $cont', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Quant. Total Vendas: ${vendas.length}', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Total Bruto: R\$$totalBrutoGeral', style: subtitleStyle),
-        pw.SizedBox(height: 2),
-        pw.Text('Total Liq.: R\$$totalLiqGeral', style: subtitleStyle),
-
-        pw.SizedBox(height: 5),
-        // Linha horizontal
-        pw.Container(
-          height: 2,
-          color: PdfColors.grey,
-          width: double.infinity,
-        ),
-        pw.SizedBox(height: 20),
-
-          ]);
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('Relatório de Vendas', style: titleStyle),
+          pw.SizedBox(height: 5),
+          pw.Container(
+            height: 2,
+            color: PdfColors.grey,
+            width: double.infinity,
+          ),
+          pw.SizedBox(height: 5),
+          pw.Text('Informações Gerais', style: nameClienteStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Cliente: $nomeCliente', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Período: $anoEscolhido', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Quant. Total Itens Vendidos: $cont', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Quant. Total Vendas: ${vendas.length}', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Total Bruto: R\$$totalBrutoGeral', style: subtitleStyle),
+          pw.SizedBox(height: 2),
+          pw.Text('Total Liq.: R\$$totalLiqGeral', style: subtitleStyle),
+          pw.SizedBox(height: 5),
+          // Linha horizontal
+          pw.Container(
+            height: 2,
+            color: PdfColors.grey,
+            width: double.infinity,
+          ),
+          pw.SizedBox(height: 20),
+        ],
+      );
     }
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-         showH ? showHeader() : pw.SizedBox(),
+        showH ? showHeader() : pw.SizedBox(),
         pw.TableHelper.fromTextArray(
           headers: [
             'Cliente',
@@ -1477,12 +1518,10 @@ Future<void> generateAndPrintPdfAnoCliente(
 
   int itemsPerPage = 11;
   for (int i = 0; i < listVendas.length; i += itemsPerPage) {
-    bool showH = i < itemsPerPage ? true : false;
+    bool showH = i < itemsPerPage;
     var vendasPage = listVendas.sublist(
         i,
-        i + itemsPerPage > listVendas.length
-            ? listVendas.length
-            : i + itemsPerPage);
+        i + itemsPerPage > listVendas.length ? listVendas.length : i + itemsPerPage);
     pdf.addPage(
       pw.Page(
         build: (pw.Context context) => buildPage(vendasPage, showH),
@@ -1497,14 +1536,16 @@ Future<void> generateAndPrintPdfAnoCliente(
 }
 
 //fazer a lista de clistes pro dropdown
-Future<List<String>> _setListCliente(String email, String tipoUser) async {
+Future<List<String>> _setListCliente(String email, String tipoUser, String? emailFiliado) async {
   List<String> listClienteDrop = [];
 
   var query = tipoUser == 'master'
-      ? await FirebaseFirestore.instance
-          .collection('clientes')
-          //.where('email_user', isEqualTo: email)
-          .get()
+      ? (emailFiliado == null
+          ? await FirebaseFirestore.instance.collection('clientes').get()
+          : await FirebaseFirestore.instance
+              .collection('clientes')
+              .where('email_user', isEqualTo: emailFiliado)
+              .get())
       : await FirebaseFirestore.instance
           .collection('clientes')
           .where('email_user', isEqualTo: email)
@@ -1519,53 +1560,47 @@ Future<List<String>> _setListCliente(String email, String tipoUser) async {
 }
 
 //fazer a lista de ano pro dropdown
-Future<List<String>> _setListAno(String email, String tipoUser) async {
+Future<List<String>> _setListAno(String email, String tipoUser, String? emailFiliado) async {
   List<String> listAnoDrop = [];
 
-  tipoUser == 'master'
-      ? FirebaseFirestore.instance
-          .collection('vendas')
-          //.where('email_user', isEqualTo: email)
-          .snapshots()
-          .listen((query) {
-          query.docs.forEach((doc) {
-            DateTime dataHora = (doc['data'] as Timestamp).toDate();
-            String year = dataHora.year.toString();
-
-            if (!listAnoDrop.contains(year)) {
-              listAnoDrop.add(year);
-            }
-          });
-        })
+  var query = tipoUser == 'master'
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('vendas')
+          : FirebaseFirestore.instance
+              .collection('vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('vendas')
-          .where('email_user', isEqualTo: email)
-          .snapshots()
-          .listen((query) {
-          query.docs.forEach((doc) {
-            DateTime dataHora = (doc['data'] as Timestamp).toDate();
-            String year = dataHora.year.toString();
+          .where('email_user', isEqualTo: email);
 
-            if (!listAnoDrop.contains(year)) {
-              listAnoDrop.add(year);
-            }
-          });
-        });
+  query.snapshots().listen((querySnapshot) {
+    for (var doc in querySnapshot.docs) {
+      DateTime dataHora = (doc['data'] as Timestamp).toDate();
+      String year = dataHora.year.toString();
+
+      if (!listAnoDrop.contains(year)) {
+        listAnoDrop.add(year);
+      }
+    }
+  });
 
   return listAnoDrop;
 }
 
 Future<String?> fetchAndSetIdCliente(
-    String? cliSelecionado, String email, String tipoUser) async {
+    String? cliSelecionado, String email, String tipoUser, String? emailFiliado) async {
   var query = tipoUser == 'master'
-      ? await FirebaseFirestore.instance
-          .collection('clientes')
-          //.where('email_user', isEqualTo: email)
-          .get()
+      ? (emailFiliado == null
+          ? await FirebaseFirestore.instance.collection('clientes').get()
+          : await FirebaseFirestore.instance
+              .collection('clientes')
+              .where('email_user', isEqualTo: emailFiliado)
+              .get())
       : await FirebaseFirestore.instance
           .collection('clientes')
           .where('email_user', isEqualTo: email)
           .get();
+
   for (var doc in query.docs) {
     if (cliSelecionado ==
         '${doc['name']} | Email: ${doc['email']} | Whatsapp: ${doc['whatsapp']}') {
@@ -1582,7 +1617,8 @@ void showDialogCliente(
     String mesFinal,
     String anoInicial,
     String email,
-    String tipoUser) async {
+    String tipoUser,
+    String? emailFiliado) async {
   dadosCliente = '';
   mesInicial = '';
   mesFinal = '';
@@ -1592,8 +1628,8 @@ void showDialogCliente(
   List<String> listCliente = [];
   List<String> listAno = [];
 
-  listCliente = await _setListCliente(email, tipoUser);
-  listAno = await _setListAno(email, tipoUser);
+  listCliente = await _setListCliente(email, tipoUser, emailFiliado);
+  listAno = await _setListAno(email, tipoUser, emailFiliado);
 
   showDialog(
     context: context,
@@ -1629,7 +1665,7 @@ void showDialogCliente(
                   setState(() async {
                     dadosCliente = cliSelecionado.toString();
                     cliid = await fetchAndSetIdCliente(
-                        cliSelecionado, email, tipoUser);
+                        cliSelecionado, email, tipoUser, emailFiliado);
                   });
                 },
                 selectedItem: dadosCliente,
@@ -1724,26 +1760,26 @@ void showDialogCliente(
                 if (mesInicial != '' && cliid != '' && anoInicial != '') {
                   //cliente baseado no mês (precisa do ano)
                   await generateAndPrintPdfMesAnoCliente(context, mesInicial,
-                      cliid.toString(), anoInicial, email, tipoUser);
+                      cliid.toString(), anoInicial, email, tipoUser, emailFiliado);
                 } else if (mesInicial != '' && anoInicial != '') {
                   //mês (precisa do ano)
                   await generateAndPrintPdfMesAno(
-                      context, mesInicial, anoInicial, email, tipoUser);
+                      context, mesInicial, anoInicial, email, tipoUser, emailFiliado);
                 } else if (cliid != '' && anoInicial != '') {
                   //cliente baseado no ano
                   await generateAndPrintPdfAnoCliente(
-                      context, cliid.toString(), anoInicial, email, tipoUser);
+                      context, cliid.toString(), anoInicial, email, tipoUser, emailFiliado);
                 } else if (cliid != '') {
                   //só o cliente
                   await generateAndPrintPdfCliente(
-                      context, cliid.toString(), email, tipoUser);
+                      context, cliid.toString(), email, tipoUser, emailFiliado);
                 } else if (anoInicial != '') {
                   //só o ano
                   await generateAndPrintPdfAno(
-                      context, anoInicial, email, tipoUser);
+                      context, anoInicial, email, tipoUser, emailFiliado);
                 } else {
                   //geral
-                  await generateAndPrintPdf(context, email, tipoUser);
+                  await generateAndPrintPdf(context, email, tipoUser, emailFiliado);
                 }
 
                 //Navigator.of(context).pop();

@@ -6,8 +6,8 @@ import 'package:smart_pagamento/screens/widgets/relatorios/cliRelatorio.dart';
 class TotalClientes extends StatefulWidget {
   final String email;
   final String tipoUser;
-  final String? idFiliado;
-  const TotalClientes(this.email, this.tipoUser, this.idFiliado);
+  final String? emailFiliado;
+  const TotalClientes(this.email, this.tipoUser, this.emailFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalClientesState();
@@ -17,9 +17,14 @@ class TotalClientesState extends State<TotalClientes> {
   
   Stream<QuerySnapshot> _getClientesStream() {
     if (widget.tipoUser == 'master') {
-      return FirebaseFirestore.instance
-          .collection('clientes')
-          .snapshots();
+      if (widget.emailFiliado == null) {
+        return FirebaseFirestore.instance.collection('clientes').snapshots();
+      } else {
+        return FirebaseFirestore.instance
+            .collection('clientes')
+            .where('email_user', isEqualTo: widget.emailFiliado)
+            .snapshots();
+      }
     } else {
       return FirebaseFirestore.instance
           .collection('clientes')
@@ -72,7 +77,7 @@ class TotalClientesState extends State<TotalClientes> {
             ],
           ),
           const SizedBox(width: 10),
-          CliRelatorio(widget.email, widget.tipoUser)
+          CliRelatorio(widget.email, widget.tipoUser, widget.emailFiliado)
         ],
       ),
     );
@@ -84,15 +89,16 @@ class TotalClientesState extends State<TotalClientes> {
       stream: _getClientesStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator(color: corPadrao(),); 
+          return CircularProgressIndicator(
+            color: corPadrao(),
+          );
         }
         if (snapshot.hasError) {
           return Text('Erro.');
         }
-       
 
-        int quantClientes = snapshot.data!.size; 
-        return showLineChart(quantClientes); 
+        int quantClientes = snapshot.data!.size;
+        return showLineChart(quantClientes);
       },
     );
   }

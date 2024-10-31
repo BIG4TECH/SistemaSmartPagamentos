@@ -142,82 +142,76 @@ class PieChartProdState extends State<Prodchart> {
   }
 
   Future<List<DadosProduto>> getDataProductsPie() async {
-  Map<String, DadosProduto> produtosEscolhidosMap = {};
-  _quantidadeTotal = 0;
+    Map<String, DadosProduto> produtosEscolhidosMap = {};
+    _quantidadeTotal = 0;
 
-  var vendas = widget.tipoUser == 'master'
-      ? (widget.emailFiliado == null 
-          ? await FirebaseFirestore.instance
-              .collection('vendas')
-              .get()
-          : await FirebaseFirestore.instance
-              .collection('vendas')
-              .where('email_user', isEqualTo: widget.emailFiliado)
-              .get())
-      : await FirebaseFirestore.instance
-          .collection('vendas')
-          .where('email_user', isEqualTo: widget.email)
-          .get();
+    var vendas = widget.tipoUser == 'master'
+        ? (widget.emailFiliado == null
+            ? await FirebaseFirestore.instance.collection('vendas').get()
+            : await FirebaseFirestore.instance
+                .collection('vendas')
+                .where('email_user', isEqualTo: widget.emailFiliado)
+                .get())
+        : await FirebaseFirestore.instance
+            .collection('vendas')
+            .where('email_user', isEqualTo: widget.email)
+            .get();
 
-  var itensVendas = widget.tipoUser == 'master'
-      ? (widget.emailFiliado == null 
-          ? await FirebaseFirestore.instance
-              .collection('itens_vendas')
-              .get()
-          : await FirebaseFirestore.instance
-              .collection('itens_vendas')
-              .where('email_user', isEqualTo: widget.emailFiliado)
-              .get())
-      : await FirebaseFirestore.instance
-          .collection('itens_vendas')
-          .where('email_user', isEqualTo: widget.email)
-          .get();
+    var itensVendas = widget.tipoUser == 'master'
+        ? (widget.emailFiliado == null
+            ? await FirebaseFirestore.instance.collection('itens_vendas').get()
+            : await FirebaseFirestore.instance
+                .collection('itens_vendas')
+                .where('email_user', isEqualTo: widget.emailFiliado)
+                .get())
+        : await FirebaseFirestore.instance
+            .collection('itens_vendas')
+            .where('email_user', isEqualTo: widget.email)
+            .get();
 
-  var produtos = widget.tipoUser == 'master'
-      ? (widget.emailFiliado == null 
-          ? await FirebaseFirestore.instance
-              .collection('products')
-              .get()
-          : await FirebaseFirestore.instance
-              .collection('products')
-              .where('email_user', isEqualTo: widget.emailFiliado)
-              .get())
-      : await FirebaseFirestore.instance
-          .collection('products')
-          .where('email_user', isEqualTo: widget.email)
-          .get();
+    var produtos = widget.tipoUser == 'master'
+        ? (widget.emailFiliado == null
+            ? await FirebaseFirestore.instance.collection('products').get()
+            : await FirebaseFirestore.instance
+                .collection('products')
+                .where('email_user', isEqualTo: widget.emailFiliado)
+                .get())
+        : await FirebaseFirestore.instance
+            .collection('products')
+            .where('email_user', isEqualTo: widget.email)
+            .get();
 
-  // Processamento das vendas, produtos e itens de vendas
-  for (var docvenda in vendas.docs) {
-    for (var docprod in produtos.docs) {
-      int quantidade = 0;
+    // Processamento das vendas, produtos e itens de vendas
+    for (var docvenda in vendas.docs) {
+      for (var docprod in produtos.docs) {
+        int quantidade = 0;
 
-      for (var dociven in itensVendas.docs) {
-        if (dociven['idproduto'] == docprod.id &&
-            docvenda.id == dociven['idvenda']) {
-          quantidade += int.parse(dociven['quantidade'].toString());
+        for (var dociven in itensVendas.docs) {
+          if (dociven['idproduto'] == docprod.id &&
+              docvenda.id == dociven['idvenda']) {
+            quantidade += int.parse(dociven['quantidade'].toString());
+          }
         }
-      }
 
-      if (quantidade > 0) {
-        _quantidadeTotal += quantidade;
-        if (produtosEscolhidosMap.containsKey(docprod.id)) {
-          produtosEscolhidosMap[docprod.id]!.quantidade =
-              (produtosEscolhidosMap[docprod.id]!.quantidade ?? 0) +
-                  quantidade;
-        } else {
-          produtosEscolhidosMap[docprod.id] = DadosProduto(
-            nome: docprod['name'],
-            quantidade: quantidade,
-            id: docprod.id,
-          );
+        if (quantidade > 0) {
+          _quantidadeTotal += quantidade;
+          if (produtosEscolhidosMap.containsKey(docprod.id)) {
+            produtosEscolhidosMap[docprod.id]!.quantidade =
+                (produtosEscolhidosMap[docprod.id]!.quantidade ?? 0) +
+                    quantidade;
+          } else {
+            produtosEscolhidosMap[docprod.id] = DadosProduto(
+              nome: docprod['name'],
+              quantidade: quantidade,
+              id: docprod.id,
+            );
+          }
         }
       }
     }
-  }
 
-  return produtosEscolhidosMap.values.toList();
-}
+    return produtosEscolhidosMap.values.toList();
+  }
 
   List<PieChartSectionData> showingSections() {
     if (_listProdutosEscolhidos.isEmpty) {

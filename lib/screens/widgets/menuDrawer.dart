@@ -3,11 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/screens/cadastros/telaCadastroCliente.dart';
 //import 'package:smart_pagamento/screens/cadastros/telaCadastroFiliado.dart';
-import 'package:smart_pagamento/screens/cadastros/telaCadastroVenda.dart';
+//import 'package:smart_pagamento/screens/cadastros/telaCadastroVenda.dart';
 import 'package:smart_pagamento/screens/listas/telaClientes.dart';
 //import 'package:smart_pagamento/screens/listas/telaFiliados.dart';
 import 'package:smart_pagamento/screens/listas/telaVendas.dart';
+import 'package:smart_pagamento/screens/recebimentos.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/screens/wpp.dart';
 import '../cadastros/telaCadastroProduto.dart';
 import '../listas/telaProdutos.dart';
 
@@ -58,7 +60,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
             ),
           ),
         ),
-        tipoUser == 'master' ? ListTile(
+        ListTile(
           leading: Icon(
             Icons.new_label,
             color: corPadrao(),
@@ -74,7 +76,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
                 MaterialPageRoute(
                     builder: (context) => ProductRegisterScreen(email: email)));
           },
-        ) : SizedBox(),
+        ),
         ListTile(
           leading: Icon(Icons.local_offer, color: corPadrao()),
           title: Text(
@@ -151,7 +153,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
                     builder: (context) => FiliadoListScreen(email: email)));
           },
         ),
-        */
+        
         ListTile(
           leading: Icon(Icons.add_shopping_cart_rounded, color: corPadrao()),
           title: Text(
@@ -166,6 +168,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
                     builder: (context) => RegistraVenda(email: email)));
           },
         ),
+        */
         ListTile(
           leading:
               Icon(Icons.shopping_cart_checkout_rounded, color: corPadrao()),
@@ -181,6 +184,36 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
                     builder: (context) => VendasListScreen(email: email, 
                     tipoUser: tipoUser
                     )));
+          },
+        ),
+        tipoUser == 'master' ? ListTile(
+          leading:
+              Icon(Icons.qr_code, color: corPadrao()),
+          title: Text(
+            "Configurar",
+            style: TextStyle(fontSize: 16),
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ConfiguracaoWhatsApp()));
+          },
+        ) : SizedBox(),
+        ListTile(
+          leading:
+              Icon(Icons.qr_code, color: corPadrao()),
+          title: Text(
+            "Recebimentos",
+            style: TextStyle(fontSize: 16),
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => RecebimentosRelatorio(email)));
           },
         ),
       ],

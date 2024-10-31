@@ -8,7 +8,8 @@ import 'package:printing/printing.dart';
 class CliRelatorio extends StatelessWidget {
   final String email;
   final String tipoUser;
-  CliRelatorio(this.email, this.tipoUser);
+  final String? emailFiliado;
+  CliRelatorio(this.email, this.tipoUser, this.emailFiliado);
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +34,11 @@ class CliRelatorio extends StatelessWidget {
 
     // Buscar clientes do Firestore
     final collection = tipoUser == 'master'
-        ? FirebaseFirestore.instance.collection('clientes')
-        //.where('email_user', isEqualTo: email)
+        ? (emailFiliado == null
+            ? FirebaseFirestore.instance.collection('clientes')
+            : FirebaseFirestore.instance
+                .collection('clientes')
+                .where('email_user', isEqualTo: emailFiliado))
         : FirebaseFirestore.instance
             .collection('clientes')
             .where('email_user', isEqualTo: email);
@@ -43,22 +47,28 @@ class CliRelatorio extends StatelessWidget {
 
     // Buscar vendas do Firestore
     final vendas = tipoUser == 'master'
-        ? FirebaseFirestore.instance.collection('vendas')
-        //    .where('email_user', isEqualTo: email);
+        ? (emailFiliado == null
+            ? FirebaseFirestore.instance.collection('vendas')
+            : FirebaseFirestore.instance
+                .collection('vendas')
+                .where('email_user', isEqualTo: emailFiliado))
         : FirebaseFirestore.instance
             .collection('vendas')
             .where('email_user', isEqualTo: email);
 
     final queryVendas = await vendas.get();
 
-    // Buscar iven do Firestore
+    // Buscar itens_vendas do Firestore
     final iven = tipoUser == 'master'
-        ? FirebaseFirestore.instance.collection('itens_vendas')
-        //.where('email_user', isEqualTo: email)
-
+        ? (emailFiliado == null
+            ? FirebaseFirestore.instance.collection('itens_vendas')
+            : FirebaseFirestore.instance
+                .collection('itens_vendas')
+                .where('email_user', isEqualTo: emailFiliado))
         : FirebaseFirestore.instance
             .collection('itens_vendas')
             .where('email_user', isEqualTo: email);
+
     final queryIven = await iven.get();
 
     for (var datacliente in querySnapshot.docs) {
@@ -88,7 +98,6 @@ class CliRelatorio extends StatelessWidget {
 
       // Adicionando o novo cliente à lista
       clientes.add(novoCliente);
-      //print(clientes);
     }
 
     // Estilos
@@ -118,21 +127,22 @@ class CliRelatorio extends StatelessWidget {
     pw.Widget buildPage(List<Map<String, dynamic>> clientesPage, bool showH) {
       pw.Column showHeader() {
         return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text('Relatório de Clientes', style: titleStyle),
-              pw.SizedBox(height: 5),
-              pw.Text('Quantidade Total de Clientes: ${clientes.length}',
-                  style: subtitleStyle),
-              pw.SizedBox(height: 5),
-              // Linha horizontal
-              pw.Container(
-                height: 2,
-                color: PdfColors.grey,
-                width: double.infinity,
-              ),
-              pw.SizedBox(height: 20),
-            ]);
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text('Relatório de Clientes', style: titleStyle),
+            pw.SizedBox(height: 5),
+            pw.Text('Quantidade Total de Clientes: ${clientes.length}',
+                style: subtitleStyle),
+            pw.SizedBox(height: 5),
+            // Linha horizontal
+            pw.Container(
+              height: 2,
+              color: PdfColors.grey,
+              width: double.infinity,
+            ),
+            pw.SizedBox(height: 20),
+          ],
+        );
       }
 
       return pw.Column(
@@ -184,7 +194,7 @@ class CliRelatorio extends StatelessWidget {
     }
 
     int itemsPerPage = 15;
-    
+
     for (int i = 0; i < clientes.length; i += itemsPerPage) {
       bool showH = i < itemsPerPage ? true : false;
       var vendasPage = clientes.sublist(
@@ -197,7 +207,6 @@ class CliRelatorio extends StatelessWidget {
           build: (pw.Context context) => buildPage(vendasPage, showH),
         ),
       );
-      
     }
 
     // Exibir e imprimir o PDF na web

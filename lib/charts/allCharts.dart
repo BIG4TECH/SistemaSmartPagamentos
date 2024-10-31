@@ -65,7 +65,7 @@ class AllChartsState extends State<AllCharts> {
   @override
   void initState() {
     super.initState();
-    _fetchFiliadoData(); // Busca os dados ao iniciar o widget
+    _fetchFiliadoData(); 
   }
 
   @override
@@ -73,6 +73,7 @@ class AllChartsState extends State<AllCharts> {
     Size size = MediaQuery.of(context).size;
 
     return Container(
+      //color: Colors.amber,
       width: double.infinity,
       height: double.infinity,
       padding: EdgeInsets.only(
@@ -87,77 +88,87 @@ class AllChartsState extends State<AllCharts> {
               SizedBox(
                 height: size.height * 0.02,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: DropdownSearch<String>(
-                      popupProps: const PopupProps.menu(
-                        showSelectedItems: true,
-                        showSearchBox: true,
-                      ),
-                      items: _listFiliadoDrop, // Lista de dados preenchida corretamente
-                      dropdownDecoratorProps: const DropDownDecoratorProps(
-                        dropdownSearchDecoration: InputDecoration(
-                          labelText: "Selecione um filiado para filtrar os dados",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(30.0)),
+              widget.tipoUser == 'master'
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: DropdownSearch<String>(
+                            popupProps: const PopupProps.menu(
+                              showSelectedItems: true,
+                              showSearchBox: true,
+                            ),
+                            items:
+                                _listFiliadoDrop, 
+                            dropdownDecoratorProps:
+                                const DropDownDecoratorProps(
+                              dropdownSearchDecoration: InputDecoration(
+                                labelText:
+                                    "Selecione um filiado para filtrar os dados",
+                                border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(30.0)),
+                                ),
+                              ),
+                            ),
+                            onChanged: (String? cliSelecionado) async {
+                              setState(() {
+                                _dadosFiliado = cliSelecionado;
+                              });
+                              _filiadoEmail =
+                                  await fetchAndSetFiliadoEmail(cliSelecionado);
+                              setState(() {});
+                            },
+                            selectedItem: _dadosFiliado,
                           ),
                         ),
-                      ),
-                      onChanged: (String? cliSelecionado) async {
-                        setState(() {
-                          _dadosFiliado = cliSelecionado;
-                        });
-                        _filiadoEmail = await fetchAndSetFiliadoEmail(cliSelecionado);
-                        setState(() {});
-                      },
-                      selectedItem: _dadosFiliado,
-                    ),
-                  ),
-                  SizedBox(
-                    width: size.width * 0.045,
-                  ),
-                  Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: gradientBtn(),
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _filiadoEmail = null;
-                          _dadosFiliado = null;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        minimumSize: Size(40, 40), // Garantir que o botão ocupe o tamanho do Container
-                        padding: EdgeInsets.zero, // Remover padding para centralizar o ícone
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
+                        SizedBox(
+                          width: size.width * 0.045,
                         ),
-                      ),
-                      child: const Icon(
-                        Icons.clear_rounded,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                        Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: gradientBtn(),
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _filiadoEmail = null;
+                                _dadosFiliado = null;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              minimumSize: Size(40,
+                                  40), // Garantir que o botão ocupe o tamanho do Container
+                              padding: EdgeInsets
+                                  .zero, // Remover padding para centralizar o ícone
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.clear_rounded,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : const SizedBox(),
               const SizedBox(height: 20),
               size.width <= 720
                   ? Column(
                       children: [
-                        PieChartProd(widget.email, widget.tipoUser, _filiadoEmail),
+                        PieChartProd(
+                            widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(height: 20),
                         Prodchart(widget.email, widget.tipoUser, _filiadoEmail),
                       ],
@@ -165,7 +176,8 @@ class AllChartsState extends State<AllCharts> {
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        PieChartProd(widget.email, widget.tipoUser, _filiadoEmail),
+                        PieChartProd(
+                            widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(width: 20),
                         Prodchart(widget.email, widget.tipoUser, _filiadoEmail),
                       ],
@@ -184,7 +196,8 @@ class AllChartsState extends State<AllCharts> {
                         TotalProdutos(
                             widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(height: 15),
-                        TotalVendas(widget.email, widget.tipoUser, _filiadoEmail),
+                        TotalVendas(
+                            widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(height: 15),
                         TotalVendidos(
                             widget.email, widget.tipoUser, _filiadoEmail),
@@ -199,7 +212,8 @@ class AllChartsState extends State<AllCharts> {
                         TotalProdutos(
                             widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(width: 15),
-                        TotalVendas(widget.email, widget.tipoUser, _filiadoEmail),
+                        TotalVendas(
+                            widget.email, widget.tipoUser, _filiadoEmail),
                         const SizedBox(width: 15),
                         TotalVendidos(
                             widget.email, widget.tipoUser, _filiadoEmail),

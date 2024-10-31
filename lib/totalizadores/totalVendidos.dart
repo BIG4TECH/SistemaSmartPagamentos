@@ -5,8 +5,8 @@ import 'package:smart_pagamento/screens/widgets/cores.dart';
 class TotalVendidos extends StatefulWidget {
   final String email;
   final String tipoUser;
-  final String? idFiliado;
-  const TotalVendidos(this.email, this.tipoUser, this.idFiliado);
+  final String? emailFiliado;
+  const TotalVendidos(this.email, this.tipoUser, this.emailFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalVendidosState();
@@ -14,30 +14,59 @@ class TotalVendidos extends StatefulWidget {
 
 class TotalVendidosState extends State<TotalVendidos> {
   Stream<QuerySnapshot> _getVendasStream() {
-    return widget.tipoUser == 'master'
-        ? FirebaseFirestore.instance.collection('vendas').snapshots()
-        : FirebaseFirestore.instance
+    if (widget.tipoUser == 'master') {
+      if (widget.emailFiliado == null) {
+        return FirebaseFirestore.instance.collection('vendas').snapshots();
+      } else {
+        return FirebaseFirestore.instance
             .collection('vendas')
-            .where('email_user', isEqualTo: widget.email)
+            .where('email_user', isEqualTo: widget.emailFiliado)
             .snapshots();
+      }
+    } else {
+      return FirebaseFirestore.instance
+          .collection('vendas')
+          .where('email_user', isEqualTo: widget.email)
+          .snapshots();
+    }
   }
 
   Stream<QuerySnapshot> _getProdutosStream() {
-    return widget.tipoUser == 'master'
-        ? FirebaseFirestore.instance.collection('products').snapshots()
-        : FirebaseFirestore.instance
+    if (widget.tipoUser == 'master') {
+      if (widget.emailFiliado == null) {
+        return FirebaseFirestore.instance.collection('products').snapshots();
+      } else {
+        return FirebaseFirestore.instance
             .collection('products')
-            .where('email_user', isEqualTo: widget.email)
+            .where('email_user', isEqualTo: widget.emailFiliado)
             .snapshots();
+      }
+    } else {
+      return FirebaseFirestore.instance
+          .collection('products')
+          .where('email_user', isEqualTo: widget.email)
+          .snapshots();
+    }
   }
 
   Stream<QuerySnapshot> _getItensVendasStream() {
-    return widget.tipoUser == 'master'
-        ? FirebaseFirestore.instance.collection('itens_vendas').snapshots()
-        : FirebaseFirestore.instance
+    if (widget.tipoUser == 'master') {
+      if (widget.emailFiliado == null) {
+        return FirebaseFirestore.instance
             .collection('itens_vendas')
-            .where('email_user', isEqualTo: widget.email)
             .snapshots();
+      } else {
+        return FirebaseFirestore.instance
+            .collection('itens_vendas')
+            .where('email_user', isEqualTo: widget.emailFiliado)
+            .snapshots();
+      }
+    } else {
+      return FirebaseFirestore.instance
+          .collection('itens_vendas')
+          .where('email_user', isEqualTo: widget.email)
+          .snapshots();
+    }
   }
 
   @override
@@ -129,7 +158,6 @@ class TotalVendidosState extends State<TotalVendidos> {
                           Text('Total Vendidos'),
                         ],
                       ),
-                     
                     ],
                   ),
                 );

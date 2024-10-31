@@ -8,15 +8,15 @@ import 'package:printing/printing.dart';
 class ProdRelatorio extends StatelessWidget {
   final String email;
   final String tipoUser;
-
-  ProdRelatorio(this.email, this.tipoUser);
+  final String? emailFiliado;
+  ProdRelatorio(this.email, this.tipoUser, this.emailFiliado);
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: IconButton(
         onPressed: () async {
-          await generateAndPrintPdf(context, email, tipoUser);
+          await generateAndPrintPdf(context, email, tipoUser, emailFiliado);
         },
         icon: const Icon(Icons.picture_as_pdf_rounded),
         tooltip: 'Gerar Relatório',
@@ -25,8 +25,8 @@ class ProdRelatorio extends StatelessWidget {
   }
 }
 
-Future<void> generateAndPrintPdf(
-    BuildContext context, String email, String tipoUser) async {
+Future<void> generateAndPrintPdf(BuildContext context, String email,
+    String tipoUser, String? emailFiliado) async {
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
@@ -34,27 +34,33 @@ Future<void> generateAndPrintPdf(
 
   final pdf = pw.Document();
 
+  // Buscar produtos do Firestore
   final collection = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('products')
-      //
-      //.where('email_user', isEqualTo: email);
-
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('products')
+          : FirebaseFirestore.instance
+              .collection('products')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('products')
           .where('email_user', isEqualTo: email);
 
   final querySnapshot = await collection.get();
 
-  // Buscar iven do Firestore
+  // Buscar itens_vendas do Firestore
   final iven = tipoUser == 'master'
-      ? FirebaseFirestore.instance.collection('itens_vendas')
-      //.where('email_user', isEqualTo: email)
+      ? (emailFiliado == null
+          ? FirebaseFirestore.instance.collection('itens_vendas')
+          : FirebaseFirestore.instance
+              .collection('itens_vendas')
+              .where('email_user', isEqualTo: emailFiliado))
       : FirebaseFirestore.instance
           .collection('itens_vendas')
           .where('email_user', isEqualTo: email);
 
   final queryIven = await iven.get();
 
+  // Processar dados de produtos e itens vendidos
   for (var dataProducts in querySnapshot.docs) {
     num quantiven = 0;
 
@@ -65,17 +71,18 @@ Future<void> generateAndPrintPdf(
       }
     }
 
+    // Adiciona o produto à lista, evitando duplicatas
     if (products.indexWhere((prod) => prod['name'] == dataProducts['name']) ==
         -1) {
       String recur = '';
       switch (dataProducts['recurrencePeriod']) {
-        case 30:
+        case 1:
           recur = 'Mensal';
           break;
-        case 60:
+        case 2:
           recur = 'Bimestral';
           break;
-        case 90:
+        case 3:
           recur = 'Trimestral';
           break;
         default:
@@ -119,7 +126,7 @@ Future<void> generateAndPrintPdf(
   );
 
   // Adicionar dados ao PDF
-  pw.Widget buildPage(List<Map<String, dynamic>> vendas, showH) {
+  pw.Widget buildPage(List<Map<String, dynamic>> vendas, bool showH) {
     pw.Column showHeader() {
       return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -129,7 +136,6 @@ Future<void> generateAndPrintPdf(
             pw.Text('Quantidade Total de Produtos: ${products.length}',
                 style: titleStyle),
             pw.SizedBox(height: 5),
-
             // Linha horizontal
             pw.Container(
               height: 2,
@@ -152,8 +158,8 @@ Future<void> generateAndPrintPdf(
             'Recorrência',
             'Forma de Pagamento',
             'Quant. Vendidos'
-          ], // Cabeçalhos das colunas
-          data: products.map((item) {
+          ],
+          data: vendas.map((item) {
             return [
               item['name'],
               item['price'],
@@ -193,7 +199,7 @@ Future<void> generateAndPrintPdf(
   int itemsPerPage = 15;
 
   for (int i = 0; i < products.length; i += itemsPerPage) {
-    bool showH = i < itemsPerPage ? true : false;
+    bool showH = i < itemsPerPage;
     var vendasPage = products.sublist(
         i,
         i + itemsPerPage > products.length

@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
+import 'package:smart_pagamento/screens/widgets/exibirLink.dart';
 
 import '../cadastros/telaCadastroProduto.dart';
 
@@ -8,9 +11,11 @@ class ProductListScreen extends StatefulWidget {
   final String? email;
   //final String tipoUser;
 
-  const ProductListScreen({super.key, required this.email,
-   //required this.tipoUser
-   });
+  const ProductListScreen({
+    super.key,
+    required this.email,
+    //required this.tipoUser
+  });
 
   @override
   _ProductListScreenState createState() => _ProductListScreenState();
@@ -36,7 +41,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
         backgroundColor: corPadrao(),
       ),
       body: Container(
-        padding: const EdgeInsets.only(top: 40, left: 50, right: 50),
+        padding: size.width <= 720
+            ? const EdgeInsets.only(top: 40, left: 10, right: 10)
+            : const EdgeInsets.only(top: 40, left: 50, right: 50),
         child: Column(
           children: [
             TextField(
@@ -79,7 +86,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               child: StreamBuilder(
                 stream: FirebaseFirestore.instance
                     .collection('products')
-                    //.where('email_user', isEqualTo: widget.email)
+                    .where('email_user', isEqualTo: widget.email)
                     .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
@@ -111,13 +118,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       final String recurrence;
 
                       switch (product['recurrencePeriod']) {
-                        case 30:
+                        case 1:
                           recurrence = 'Mensal';
                           break;
-                        case 60:
+                        case 2:
                           recurrence = 'Bimestral';
                           break;
-                        case 90:
+                        case 3:
                           recurrence = 'Trimestral';
                           break;
                         default:
@@ -151,7 +158,74 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     MaterialPageRoute(
                                       builder: (context) =>
                                           ProductRegisterScreen(
-                                              productId: product.id),
+                                        productId: product.id,
+                                        email: widget.email,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      //backgroundColor: Colors.black87,
+                                      title: const Text(
+                                        'Deseja excluir o produto?',
+                                        //style:TextStyle(color: Colors.white)
+                                      ),
+
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: Text('Cancelar',
+                                              style: TextStyle(
+                                                  color: Colors.grey.shade400)),
+                                        ),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: gradientBtn(),
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: ElevatedButton(
+                                              onPressed: () async {
+                                                ApiService apiService =
+                                                    ApiService();
+                                                try {
+                                                  await apiService.deletarPlano(
+                                                      product['plan_id']);
+                                                } finally {
+                                                  _deleteProduct(product.id);
+                                                  Navigator.pop(context);
+                                                }
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  fixedSize: Size(
+                                                      size.width * 0.1,
+                                                      size.height * 0.01),
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5))),
+                                              child: Text('Excluir',
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize:
+                                                          size.height * 0.022,
+                                                      fontWeight:
+                                                          FontWeight.bold))),
+                                        ),
+                                      ],
                                     ),
                                   );
                                 },
@@ -166,68 +240,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
-                                  icon: const Icon(Icons.delete,
+                                  icon: const Icon(Icons.link,
                                       color: Colors.white),
                                   onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        //backgroundColor: Colors.black87,
-                                        title: const Text(
-                                          'Deseja excluir o produto?',
-                                          //style:TextStyle(color: Colors.white)
-                                        ),
-
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            child: Text('Cancelar',
-                                                style: TextStyle(
-                                                    color:
-                                                        Colors.grey.shade400)),
-                                          ),
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: gradientBtn(),
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: ElevatedButton(
-                                                onPressed: () {
-                                                  _deleteProduct(product.id);
-                                                  Navigator.pop(context);
-                                                },
-                                                style: ElevatedButton.styleFrom(
-                                                    backgroundColor: Colors
-                                                        .transparent,
-                                                    fixedSize: Size(
-                                                        size.width * 0.1,
-                                                        size.height * 0.01),
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        5))),
-                                                child: Text('Excluir',
-                                                    style:
-                                                        TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize:
-                                                                size.height *
-                                                                    0.022,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold))),
-                                          ),
-                                        ],
-                                      ),
-                                    );
+                                    String valor =
+                                        formatarNumero(product['price']);
+                                    showLinkModal(context,
+                                        "checkoutexemplo.com?{product['plan_id']}&${valor}");
                                   },
                                 ),
                               ),

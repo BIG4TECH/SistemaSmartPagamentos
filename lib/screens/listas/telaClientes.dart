@@ -8,7 +8,8 @@ class ClienteListScreen extends StatefulWidget {
   final String? email;
   final String tipoUser;
 
-  const ClienteListScreen({Key? key, this.email, required this.tipoUser}) : super(key: key);
+  const ClienteListScreen({Key? key, this.email, required this.tipoUser})
+      : super(key: key);
 
   @override
   _ClienteListScreenState createState() => _ClienteListScreenState();
@@ -37,7 +38,9 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
         backgroundColor: corPadrao(),
       ),
       body: Container(
-        padding: const EdgeInsets.only(top: 40, left: 50, right: 50),
+        padding: size.width <= 720
+            ? const EdgeInsets.only(top: 40, left: 10, right: 10)
+            : const EdgeInsets.only(top: 40, left: 50, right: 50),
         child: Column(
           children: [
             TextField(
@@ -78,15 +81,16 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
             const SizedBox(height: 20),
             Expanded(
               child: StreamBuilder(
-                stream: widget.tipoUser == 'master' 
+                stream: /*widget.tipoUser == 'master' 
                 ? FirebaseFirestore.instance
                     .collection('clientes')
                     //.where('email_user', isEqualTo: widget.email)
                     .snapshots() 
-                  : FirebaseFirestore.instance
-                    .collection('clientes')
-                    .where('email_user', isEqualTo: widget.email)
-                    .snapshots(),
+                  : */
+                    FirebaseFirestore.instance
+                        .collection('clientes')
+                        .where('email_user', isEqualTo: widget.email)
+                        .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
@@ -250,8 +254,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
         .collection('itens_vendas')
         .where('email_user', isEqualTo: widget.email)
         .get();
-    
-    
+
     var vendas = await FirebaseFirestore.instance
         .collection('vendas')
         .where('email_user', isEqualTo: widget.email)

@@ -335,7 +335,7 @@ class LineChartSample1State extends State<LineChartSample1> {
   @override
   void didUpdateWidget(LineChartSample1 oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // Se o emailFiliado mudar, buscar os dados novamente
     if (oldWidget.emailFiliado != widget.emailFiliado) {
       _listAllData = [[], [], []]; // Limpa os dados antigos
@@ -344,7 +344,6 @@ class LineChartSample1State extends State<LineChartSample1> {
       getDataClientes();
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -489,20 +488,31 @@ class LineChartSample1State extends State<LineChartSample1> {
       fontSize: 16,
     );
 
-    Widget text;
+    dynamic text;
+    int lastDayOfMonth =
+        DateTime(DateTime.now().year, DateTime.now().month + 1, 0).day;
 
-    value.toInt() != 0
-        ? text = Text(
-            '${value.toInt()}',
-            style: style,
-          )
-        : text = const Text('');
+    if (value.toInt() != 0) {
+      if ((value.toInt() % 5 == 0 || value.toInt() == 1) &&
+          value.toInt() != 30 &&
+          value.toInt() != 31) {
+        return Text(
+          '${value.toInt()}',
+          style: style,
+        );
+      } else if (value.toInt() == lastDayOfMonth) {
+        return Text(
+          '$lastDayOfMonth',
+          style: style,
+        );
+      } else {
+        return const Text('');
+      }
+    } else {
+      return const Text('');
+    }
 
-    return SideTitleWidget(
-      axisSide: meta.axisSide,
-      space: 10,
-      child: text,
-    );
+   
   }
 
   // CONFIGURAÇÃO TÍTULO DE BAIXO

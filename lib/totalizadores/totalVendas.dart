@@ -6,8 +6,8 @@ import 'package:smart_pagamento/screens/widgets/relatorios/venRelatorio.dart';
 class TotalVendas extends StatefulWidget {
   final String email;
   final String tipoUser;
-  final String? idFiliado;
-  const TotalVendas(this.email, this.tipoUser, this.idFiliado);
+  final String? emailFiliado;
+  const TotalVendas(this.email, this.tipoUser, this.emailFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalVendasState();
@@ -16,17 +16,25 @@ class TotalVendas extends StatefulWidget {
 class TotalVendasState extends State<TotalVendas> {
   
   Stream<QuerySnapshot> _getVendasStream() {
-    if (widget.tipoUser == 'master') {
+  if (widget.tipoUser == 'master') {
+    if (widget.emailFiliado == null) {
       return FirebaseFirestore.instance
           .collection('vendas')
           .snapshots();
     } else {
       return FirebaseFirestore.instance
           .collection('vendas')
-          .where('email_user', isEqualTo: widget.email)
+          .where('email_user', isEqualTo: widget.emailFiliado)
           .snapshots();
     }
+  } else {
+    return FirebaseFirestore.instance
+        .collection('vendas')
+        .where('email_user', isEqualTo: widget.email)
+        .snapshots();
   }
+}
+
 
   Widget showLineChart(int quantVendas) {
     return Container(
@@ -72,7 +80,7 @@ class TotalVendasState extends State<TotalVendas> {
             ],
           ),
           const SizedBox(width: 10),
-          VenRelatorio(email: widget.email, tipoUser: widget.tipoUser)
+          VenRelatorio(email: widget.email, tipoUser: widget.tipoUser, emailFiliado: widget.emailFiliado,)
         ],
       ),
     );
