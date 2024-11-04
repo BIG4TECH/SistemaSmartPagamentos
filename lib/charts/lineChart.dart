@@ -8,8 +8,10 @@ import '/presentation/widgets/indicator.dart';
 class LineChartSample1 extends StatefulWidget {
   final String email;
   final String tipoUser;
+  final String idUser;
   final String? emailFiliado;
-  const LineChartSample1(this.email, this.tipoUser, this.emailFiliado);
+  final String? idFiliado;
+  const LineChartSample1(this.email, this.tipoUser, this.idUser, this.emailFiliado, this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => LineChartSample1State();
@@ -34,7 +36,7 @@ class LineChartSample1State extends State<LineChartSample1> {
       print(e);
     }
 
-    getDataProducts();
+    //getDataProducts();
   }
 
   //0 - vendasEfetuadas
@@ -50,7 +52,7 @@ class LineChartSample1State extends State<LineChartSample1> {
     print('VENDAS EFETUADAS ANTES DO LISTEN: $vendasEfetuadas ');
 
     var query = widget.tipoUser == 'master'
-        ? (widget.emailFiliado == null
+        ? (widget.idFiliado == null
             ? FirebaseFirestore.instance.collection('vendas').where('data',
                 isGreaterThanOrEqualTo: firstDayOfMonth,
                 isLessThanOrEqualTo: lastDayOfMonth)
@@ -59,13 +61,13 @@ class LineChartSample1State extends State<LineChartSample1> {
                 .where('data',
                     isGreaterThanOrEqualTo: firstDayOfMonth,
                     isLessThanOrEqualTo: lastDayOfMonth)
-                .where('email_user', isEqualTo: widget.emailFiliado))
+                .where('id_user', isEqualTo: widget.idFiliado))
         : FirebaseFirestore.instance
             .collection('vendas')
             .where('data',
                 isGreaterThanOrEqualTo: firstDayOfMonth,
                 isLessThanOrEqualTo: lastDayOfMonth)
-            .where('email_user', isEqualTo: widget.email);
+            .where('id_user', isEqualTo: widget.idUser);
 
     query.snapshots().listen((vendasSnapshot) async {
       print('INICIO DO LISTEN');
@@ -96,6 +98,7 @@ class LineChartSample1State extends State<LineChartSample1> {
     });
   }
 
+  /*
   //1 - produtosVendidos
   void getDataProducts() {
     DateTime now = DateTime.now();
@@ -167,6 +170,7 @@ class LineChartSample1State extends State<LineChartSample1> {
       });
     });
   }
+  */
 
   //2 - clientesRegistrados
   void getDataClientes() {
@@ -185,13 +189,13 @@ class LineChartSample1State extends State<LineChartSample1> {
                 .where('data_registro',
                     isGreaterThanOrEqualTo: firstDayOfMonth,
                     isLessThanOrEqualTo: lastDayOfMonth)
-                .where('email_user', isEqualTo: widget.emailFiliado))
+                .where('id_user', isEqualTo: widget.idFiliado))
         : FirebaseFirestore.instance
             .collection('clientes')
             .where('data_registro',
                 isGreaterThanOrEqualTo: firstDayOfMonth,
                 isLessThanOrEqualTo: lastDayOfMonth)
-            .where('email_user', isEqualTo: widget.email);
+            .where('id_user', isEqualTo: widget.idUser);
 
     query.snapshots().listen((clientesSnapshot) {
       List<FlSpot> clientesRegistrados = List.generate(
@@ -216,6 +220,7 @@ class LineChartSample1State extends State<LineChartSample1> {
       print('CLIENTES REGISTRADOS ERRO: $error');
     });
   }
+
 
   Widget showLineChart(Size size) {
     DateTime now = DateTime.now();
@@ -262,10 +267,11 @@ class LineChartSample1State extends State<LineChartSample1> {
                   ? const Column(
                       children: [
                         Indicator(
-                          color: AppColors.contentColorGreen,
+                          color: AppColors.contentColorYellow,
                           text: 'Vendas Efetuadas',
                           isSquare: true,
                         ),
+                        /*
                         SizedBox(
                           width: 24,
                         ),
@@ -274,11 +280,12 @@ class LineChartSample1State extends State<LineChartSample1> {
                           text: 'Produtos Vendidos',
                           isSquare: true,
                         ),
+                        */
                         SizedBox(
                           width: 24,
                         ),
                         Indicator(
-                          color: AppColors.contentColorCyan,
+                          color: AppColors.contentColorPurple,
                           text: 'Clientes Registrados',
                           isSquare: true,
                         ),
@@ -288,10 +295,11 @@ class LineChartSample1State extends State<LineChartSample1> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Indicator(
-                          color: AppColors.contentColorGreen,
+                          color: AppColors.contentColorYellow,
                           text: 'Vendas Efetuadas',
                           isSquare: true,
                         ),
+                        /*
                         SizedBox(
                           width: 24,
                         ),
@@ -300,11 +308,12 @@ class LineChartSample1State extends State<LineChartSample1> {
                           text: 'Produtos Vendidos',
                           isSquare: true,
                         ),
+                        */
                         SizedBox(
                           width: 24,
                         ),
                         Indicator(
-                          color: AppColors.contentColorCyan,
+                          color: AppColors.contentColorPurple,
                           text: 'Clientes Registrados',
                           isSquare: true,
                         ),
@@ -340,7 +349,7 @@ class LineChartSample1State extends State<LineChartSample1> {
     if (oldWidget.emailFiliado != widget.emailFiliado) {
       _listAllData = [[], [], []]; // Limpa os dados antigos
       getDataVendas();
-      getDataProducts();
+      //getDataProducts();
       getDataClientes();
     }
   }
@@ -407,7 +416,7 @@ class LineChartSample1State extends State<LineChartSample1> {
   // LISTA DE TODOS OS 3 (TRÊS) CONJUNTOS DE DADOS
   List<LineChartBarData> get lineBarsData1 => [
         lineChartBarData1_1,
-        lineChartBarData1_2,
+        //lineChartBarData1_2,
         lineChartBarData1_3,
       ];
 
@@ -488,7 +497,7 @@ class LineChartSample1State extends State<LineChartSample1> {
       fontSize: 16,
     );
 
-    dynamic text;
+    //dynamic text;
     int lastDayOfMonth =
         DateTime(DateTime.now().year, DateTime.now().month + 1, 0).day;
 
@@ -511,8 +520,6 @@ class LineChartSample1State extends State<LineChartSample1> {
     } else {
       return const Text('');
     }
-
-   
   }
 
   // CONFIGURAÇÃO TÍTULO DE BAIXO
@@ -541,7 +548,7 @@ class LineChartSample1State extends State<LineChartSample1> {
   // quantidade de vendas efetuadas no mês
   LineChartBarData get lineChartBarData1_1 => LineChartBarData(
         isCurved: false,
-        color: AppColors.contentColorGreen,
+        color: AppColors.contentColorYellow,
         barWidth: 5,
         isStrokeCapRound: true,
         dotData: const FlDotData(show: true),
@@ -549,7 +556,7 @@ class LineChartSample1State extends State<LineChartSample1> {
         spots: _listAllData.isNotEmpty ? _listAllData[0] : [],
       );
 
-  // quantidade de produtos vendidos no mês
+  /* quantidade de produtos vendidos no mês
   LineChartBarData get lineChartBarData1_2 => LineChartBarData(
         isCurved: false,
         color: AppColors.contentColorPink,
@@ -562,11 +569,11 @@ class LineChartSample1State extends State<LineChartSample1> {
         ),
         spots: _listAllData.isNotEmpty ? _listAllData[1] : [],
       );
-
+  */
   // quantidade de clientes registrados no mês
   LineChartBarData get lineChartBarData1_3 => LineChartBarData(
         isCurved: false,
-        color: AppColors.contentColorCyan,
+        color: AppColors.contentColorPurple,
         barWidth: 5,
         isStrokeCapRound: true,
         dotData: const FlDotData(show: true),

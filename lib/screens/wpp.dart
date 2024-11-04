@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:pretty_qr_code/pretty_qr_code.dart';
+//import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:smart_pagamento/classes/api_service.dart';
+import 'package:smart_pagamento/screens/widgets/cores.dart';
 
 class ConfiguracaoWhatsApp extends StatefulWidget {
   @override
@@ -9,7 +12,7 @@ class ConfiguracaoWhatsApp extends StatefulWidget {
 
 class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
   final ApiService apiService = ApiService();
-  String? qrCodeData;
+  Uint8List? qrCodeBytes;
   String statusMensagem = "Inicie a sessão para obter o QR Code.";
 
   Future<void> iniciarSessao() async {
@@ -22,8 +25,9 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
       print(base64QrCode);
       if (base64QrCode != null) {
         setState(() {
-          qrCodeData =
-              base64QrCode; // Usando diretamente base64 sem decodificação
+          // Remover o prefixo 'data:image/png;base64,' antes de decodificar
+          final base64String = base64QrCode.split(',')[1];
+          qrCodeBytes = base64Decode(base64String);
           statusMensagem = "Escaneie o QR Code com o WhatsApp.";
         });
       } else {
@@ -41,7 +45,16 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Configuração do WhatsApp")),
+      appBar: AppBar(
+         iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text("Configuração do WhatsApp", style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 38,
+          ),),
+          centerTitle: true,
+        backgroundColor: corPadrao(),
+        ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -52,15 +65,12 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
               child: Text("Iniciar Sessão do WhatsApp"),
             ),
             SizedBox(height: 20),
-            if (qrCodeData != null)
-              PrettyQrView.data(
-                data: qrCodeData!,
-                decoration: const PrettyQrDecoration(
-                  shape: PrettyQrSmoothSymbol(
-                    color: Colors.black,
-                    roundFactor: 0,
-                  ),
-                ),
+            if (qrCodeBytes != null)
+              Image.memory(
+                qrCodeBytes!,
+                width: 200,
+                height: 200,
+                fit: BoxFit.contain,
               )
             else
               Text(statusMensagem),

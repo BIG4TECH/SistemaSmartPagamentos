@@ -1,12 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/screens/cadastros/telaCadastroVenda.dart';
+//import 'package:smart_pagamento/inutilizados/telaCadastroVenda.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 
 class VendasListScreen extends StatefulWidget {
   final String? email;
   final String tipoUser;
-  const VendasListScreen({required this.email, required this.tipoUser});
+  final String idUser;
+
+  const VendasListScreen({required this.email, required this.tipoUser, required this.idUser});
 
   @override
   _VendasListScreenState createState() => _VendasListScreenState();
@@ -35,22 +38,23 @@ class _VendasListScreenState extends State<VendasListScreen> {
         backgroundColor: corPadrao(),
       ),
       body: Container(
+        
         padding: const EdgeInsets.only(top: 40, left: 50, right: 50),
         child: StreamBuilder(
-          stream: widget.tipoUser == 'master'
-              ? FirebaseFirestore.instance
-                  .collection('vendas')
-                  .orderBy('data', descending: true)
-                  .snapshots()
-              : FirebaseFirestore.instance
-                  .collection('vendas')
-                  .where('email_user', isEqualTo: widget.email)
-                  .orderBy('data', descending: true)
-                  .snapshots(),
+          stream: FirebaseFirestore.instance
+              .collection('vendas')
+              .where('id_user', isEqualTo: widget.idUser)
+              .orderBy('first_execution', descending: true)
+              .snapshots(),
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasError) {
               print(snapshot.error);
               return Center(child: Text('Error: ${snapshot.error}'));
+            }
+
+            if (!snapshot.hasData) {
+              print(!snapshot.hasData);
+              return Center(child: Text('Não há vendas realizadas!'));
             }
 
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -61,18 +65,19 @@ class _VendasListScreenState extends State<VendasListScreen> {
 
             if (size.width > 720) {
               // Exibição em forma de tabela para telas maiores
-              return Center(
+              return Align(
+                alignment: Alignment.topCenter,
                 child: SingleChildScrollView(
                   child: DataTable(
                     columnSpacing: size.width * 0.1,
                     columns: [
                       DataColumn(
-                          label: Text('Total Bruto',
+                          label: Text('Cliente',
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: size.height * 0.03))),
                       DataColumn(
-                          label: Text('Total Liq.',
+                          label: Text('Valor',
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: size.height * 0.03))),
@@ -91,16 +96,15 @@ class _VendasListScreenState extends State<VendasListScreen> {
                         .map(
                           (venda) => DataRow(
                             cells: [
-                              DataCell(Text(
-                                  'R\$${venda['total_bruto'].toString()}',
+                              DataCell(Text('${venda['name']}',
                                   style: TextStyle(
                                       fontSize: size.height * 0.025))),
                               DataCell(Text(
-                                  'R\$${venda['total_liq'].toString()}',
+                                  'R\$${formatWithComma(venda['total'])}',
                                   style: TextStyle(
                                       fontSize: size.height * 0.025))),
                               DataCell(
-                                Text(venda['data_hora'],
+                                Text(venda['first_execution'],
                                     style: TextStyle(
                                         fontSize: size.height * 0.025)),
                               ),
@@ -108,6 +112,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
                                 Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
+                                    /*
                                     IconButton(
                                       icon: const Icon(
                                         Icons.edit,
@@ -121,6 +126,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
                                         );
                                       },
                                     ),
+                                    
                                     IconButton(
                                       icon: const Icon(
                                         Icons.delete,
@@ -129,6 +135,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
                                         _confirmDeleteVenda(context, venda.id);
                                       },
                                     ),
+                                    */
                                     Container(
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
@@ -141,9 +148,9 @@ class _VendasListScreenState extends State<VendasListScreen> {
                                       child: IconButton(
                                         icon: const Icon(Icons.list,
                                             color: Colors.white),
-                                        tooltip: 'Itens Vendas',
+                                        tooltip: 'Item',
                                         onPressed: () async {
-                                          await _getDataItensVendas(venda.id);
+                                          await _getDataVenda(venda.id);
                                           _showProducts(context);
                                         },
                                       ),
@@ -157,6 +164,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
                         .toList(),
                   ),
                 ),
+              
               );
             } else {
               // Exibição em forma de lista ou cards para telas menores
@@ -172,15 +180,15 @@ class _VendasListScreenState extends State<VendasListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Total Bruto: \nR\$${venda['total_bruto'].toString()}',
+                            'Cliente: \nR\$${venda['name'].toString()}',
                             style: TextStyle(fontSize: size.height * 0.02),
                           ),
                           Text(
-                            'Total Líquido: \nR\$${venda['total_liq'].toString()}',
+                            'Total: \nR\$${venda['total'].toString()}',
                             style: TextStyle(fontSize: size.height * 0.02),
                           ),
                           Text(
-                            'Data: \n${venda['data_hora']}',
+                            'Data: \n${venda['first_execution']}',
                             style: TextStyle(fontSize: size.height * 0.02),
                           ),
                         ],
@@ -191,7 +199,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
                           IconButton(
                             icon: const Icon(Icons.list, color: Colors.blue),
                             onPressed: () async {
-                              await _getDataItensVendas(venda.id);
+                              await _getDataVenda(venda.id);
                               _showProducts(context);
                             },
                           ),
@@ -208,6 +216,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
     );
   }
 
+  /*
   Future<void> _deleteVenda(String vendaId) async {
     var query = await FirebaseFirestore.instance
         .collection('itens_vendas')
@@ -223,38 +232,38 @@ class _VendasListScreenState extends State<VendasListScreen> {
 
     await FirebaseFirestore.instance.collection('vendas').doc(vendaId).delete();
   }
+  */
 
-  Future<void> _getDataItensVendas(String vendaId) async {
+  Future<void> _getDataVenda(String vendaId) async {
     _listProdutosEscolhidos.clear();
     _listValorBrutoProd.clear();
     _listValorDescontadoProd.clear();
     _listValorLiqProd.clear();
 
-    var query = widget.tipoUser == 'master'
-        ? await FirebaseFirestore.instance.collection('itens_vendas').get()
-        : await FirebaseFirestore.instance
-            .collection('itens_vendas')
-            .where('email_user', isEqualTo: widget.email)
-            .get();
+    var query = await FirebaseFirestore.instance
+        .collection('vendas')
+        .doc(vendaId)
+        .get();
 
-    for (var doc in query.docs) {
-      if (vendaId == doc['idvenda']) {
-        _listProdutosEscolhidos.add(doc['produto']);
-        _listValorBrutoProd.add(doc['total_bruto_prod']);
-        _listValorDescontadoProd.add(doc['valor_descontado']);
-        _listValorLiqProd.add(doc['total_liq_prod']);
-      }
-    }
+    var produto = await FirebaseFirestore.instance
+        .collection('products')
+        .where('plan_id', isEqualTo: query['plan']['id'])
+        .get();
+
+    _listProdutosEscolhidos.add(produto.docs.first['name']);
+    _listValorBrutoProd.add(formatWithComma(query['total']));
+    //_listValorDescontadoProd.add(doc['valor_descontado']);
+    //_listValorLiqProd.add(doc['total_liq_prod']);
   }
 
   void _showProducts(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.black,
+        //backgroundColor: Colors.black,
         title: const Text(
-          'Produtos Escolhidos',
-          style: TextStyle(color: Colors.white),
+          'Produto Escolhido',
+          //style: TextStyle(color: Colors.white),
         ),
         content: Container(
           width: double.maxFinite,
@@ -266,14 +275,14 @@ class _VendasListScreenState extends State<VendasListScreen> {
                     return ListTile(
                       title: Text(
                         _listProdutosEscolhidos[index],
-                        style: const TextStyle(color: Colors.white70),
+                        //style: const TextStyle(color: Colors.white70),
                       ),
                     );
                   },
                 )
               : const Text(
                   'Nenhum produto escolhido.',
-                  style: TextStyle(color: Colors.white70),
+                  //style: TextStyle(color: Colors.white70),
                 ),
         ),
         actions: [
@@ -281,7 +290,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text(
               'Fechar',
-              style: TextStyle(color: Colors.white),
+              //style: TextStyle(color: Colors.white),
             ),
           ),
         ],
@@ -289,6 +298,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
     );
   }
 
+  /*
   void _confirmDeleteVenda(BuildContext context, String vendaId) {
     showDialog(
       context: context,
@@ -327,4 +337,5 @@ class _VendasListScreenState extends State<VendasListScreen> {
       ),
     );
   }
+  */
 }

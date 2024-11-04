@@ -6,8 +6,11 @@ import 'package:smart_pagamento/screens/widgets/relatorios/prodRelatorio.dart';
 class TotalProdutos extends StatefulWidget {
   final String email;
   final String tipoUser;
+  final String idUser;
   final String? emailFiliado;
-  const TotalProdutos(this.email, this.tipoUser, this.emailFiliado);
+  final String? idFiliado;
+  
+  const TotalProdutos(this.email, this.tipoUser, this.idUser, this.emailFiliado, this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalProdutosState();
@@ -80,7 +83,7 @@ class TotalProdutosState extends State<TotalProdutos> {
             ],
           ),
           const SizedBox(width: 10),
-          ProdRelatorio(widget.email, widget.tipoUser, widget.emailFiliado)
+          ProdRelatorio(widget.email, widget.tipoUser, widget.idUser, widget.emailFiliado, widget.idFiliado)
         ],
       ),
     );

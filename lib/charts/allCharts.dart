@@ -2,11 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
-
 import '../totalizadores/totalClientes.dart';
 import '../totalizadores/totalProdutos.dart';
 import '../totalizadores/totalVendas.dart';
-import '../totalizadores/totalVendidos.dart';
+//import '../inutilizados/totalVendidos.dart';
 import 'ProdChart.dart';
 import 'ProdVendChart.dart';
 import 'lineChart.dart';
@@ -14,7 +13,8 @@ import 'lineChart.dart';
 class AllCharts extends StatefulWidget {
   final String email;
   final String tipoUser;
-  AllCharts(this.email, this.tipoUser);
+  final String idUser;
+  AllCharts(this.email, this.tipoUser, this.idUser);
 
   @override
   State<StatefulWidget> createState() => AllChartsState();
@@ -24,6 +24,7 @@ class AllChartsState extends State<AllCharts> {
   int touchedIndex = -1;
   String? _dadosFiliado;
   String? _filiadoEmail;
+  String? _filiadoId;
   List<String> _listFiliadoDrop = [];
 
   // Função para buscar os dados dos filiados
@@ -38,7 +39,7 @@ class AllChartsState extends State<AllCharts> {
   Future<List<String>> _setListFiliado() async {
     var filiados = await FirebaseFirestore.instance
         .collection('users')
-        .where('tipo_user', isEqualTo: 'filiado')
+        //.where('tipo_user', isEqualTo: 'filiado')
         .get();
 
     return filiados.docs.map((doc) {
@@ -56,16 +57,35 @@ class AllChartsState extends State<AllCharts> {
     for (var filiado in filiados.docs) {
       if (filiSelecionado == '${filiado['name']} | ${filiado['email']}') {
         filiadoEmail = filiado['email'];
+
         break;
       }
     }
     return filiadoEmail;
   }
 
+  Future<String?> fetchAndSetFiliadoId(String? filiSelecionado) async {
+    String? filiadoId;
+
+    var filiados = await FirebaseFirestore.instance
+        .collection('users')
+        .where('tipo_user', isEqualTo: 'filiado')
+        .get();
+
+    for (var filiado in filiados.docs) {
+      if (filiSelecionado == '${filiado['name']} | ${filiado['email']}') {
+        filiadoId = filiado.id;
+
+        break;
+      }
+    }
+    return filiadoId;
+  }
+
   @override
   void initState() {
     super.initState();
-    _fetchFiliadoData(); 
+    _fetchFiliadoData();
   }
 
   @override
@@ -99,8 +119,7 @@ class AllChartsState extends State<AllCharts> {
                               showSelectedItems: true,
                               showSearchBox: true,
                             ),
-                            items:
-                                _listFiliadoDrop, 
+                            items: _listFiliadoDrop,
                             dropdownDecoratorProps:
                                 const DropDownDecoratorProps(
                               dropdownSearchDecoration: InputDecoration(
@@ -118,6 +137,8 @@ class AllChartsState extends State<AllCharts> {
                               });
                               _filiadoEmail =
                                   await fetchAndSetFiliadoEmail(cliSelecionado);
+                              _filiadoId =
+                                  await fetchAndSetFiliadoId(cliSelecionado);
                               setState(() {});
                             },
                             selectedItem: _dadosFiliado,
@@ -141,6 +162,7 @@ class AllChartsState extends State<AllCharts> {
                             onPressed: () {
                               setState(() {
                                 _filiadoEmail = null;
+                                _filiadoId = null;
                                 _dadosFiliado = null;
                               });
                             },
@@ -168,55 +190,54 @@ class AllChartsState extends State<AllCharts> {
                   ? Column(
                       children: [
                         PieChartProd(
-                            widget.email, widget.tipoUser, _filiadoEmail),
+                            widget.email, widget.tipoUser, widget.idUser, _filiadoEmail, _filiadoId),
                         const SizedBox(height: 20),
-                        Prodchart(widget.email, widget.tipoUser, _filiadoEmail),
+                        Prodchart(widget.email, widget.tipoUser, widget.idUser, _filiadoEmail, _filiadoId),
                       ],
                     )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         PieChartProd(
-                            widget.email, widget.tipoUser, _filiadoEmail),
+                            widget.email, widget.tipoUser, widget.idUser, _filiadoEmail, _filiadoId),
                         const SizedBox(width: 20),
-                        Prodchart(widget.email, widget.tipoUser, _filiadoEmail),
+                        Prodchart(widget.email, widget.tipoUser, widget.idUser, _filiadoEmail, _filiadoId),
                       ],
                     ),
               const SizedBox(height: 20), // Espaçamento entre os gráficos
-              LineChartSample1(widget.email, widget.tipoUser, _filiadoEmail),
+              LineChartSample1(widget.email, widget.tipoUser, widget.idUser,
+                  _filiadoEmail, _filiadoId),
               const SizedBox(height: 20),
               size.width <= 720
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        TotalClientes(
-                            widget.email, widget.tipoUser, _filiadoEmail),
+                        TotalClientes(widget.email, widget.tipoUser,
+                            widget.idUser, _filiadoEmail, _filiadoId),
                         const SizedBox(height: 15),
-                        TotalProdutos(
-                            widget.email, widget.tipoUser, _filiadoEmail),
+                        TotalProdutos(widget.email, widget.tipoUser,
+                            widget.idUser, _filiadoEmail, _filiadoId),
                         const SizedBox(height: 15),
-                        TotalVendas(
-                            widget.email, widget.tipoUser, _filiadoEmail),
+                        TotalVendas(widget.email, widget.tipoUser,
+                            widget.idUser, _filiadoEmail, _filiadoId),
                         const SizedBox(height: 15),
-                        TotalVendidos(
-                            widget.email, widget.tipoUser, _filiadoEmail),
+                        //TotalVendidos( widget.email, widget.tipoUser, widget.idUser, _filiadoEmail, _filiadoId),
                       ],
                     )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        TotalClientes(
-                            widget.email, widget.tipoUser, _filiadoEmail),
+                        TotalClientes(widget.email, widget.tipoUser,
+                            widget.idUser, _filiadoEmail, _filiadoId),
                         const SizedBox(width: 15),
-                        TotalProdutos(
-                            widget.email, widget.tipoUser, _filiadoEmail),
+                        TotalProdutos(widget.email, widget.tipoUser,
+                            widget.idUser, _filiadoEmail, _filiadoId),
                         const SizedBox(width: 15),
-                        TotalVendas(
-                            widget.email, widget.tipoUser, _filiadoEmail),
+                        TotalVendas(widget.email, widget.tipoUser,
+                            widget.idUser, _filiadoEmail, _filiadoId),
                         const SizedBox(width: 15),
-                        TotalVendidos(
-                            widget.email, widget.tipoUser, _filiadoEmail),
+                        //TotalVendidos(widget.email, widget.tipoUser, widget.idUser, _filiadoEmail, _filiadoId),
                       ],
                     ),
               const SizedBox(height: 20),

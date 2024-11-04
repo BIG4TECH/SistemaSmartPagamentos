@@ -4,18 +4,18 @@ import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 import 'package:smart_pagamento/screens/widgets/exibirLink.dart';
+import 'package:smart_pagamento/screens/widgets/showdialog.dart';
 
 import '../cadastros/telaCadastroProduto.dart';
 
 class ProductListScreen extends StatefulWidget {
   final String? email;
   //final String tipoUser;
+  final String idUser;
 
-  const ProductListScreen({
-    super.key,
-    required this.email,
-    //required this.tipoUser
-  });
+  const ProductListScreen({super.key, required this.email, required this.idUser
+      //required this.tipoUser
+      });
 
   @override
   _ProductListScreenState createState() => _ProductListScreenState();
@@ -145,7 +145,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            'Preço: R\$${product['price']}\nRecorrência: $recurrence\nDesconto: ${product['desconto']}%',
+                            'Preço: R\$${product['price']}\nRecorrência: $recurrence',
                             //style: const TextStyle(color: Colors.white70),
                           ),
                           trailing: Row(
@@ -199,12 +199,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                               onPressed: () async {
                                                 ApiService apiService =
                                                     ApiService();
-                                                try {
-                                                  await apiService.deletarPlano(
-                                                      product['plan_id']);
-                                                } finally {
+
+                                                var responseDelete =
+                                                    await apiService
+                                                        .deletarPlano(
+                                                            product['plan_id']);
+
+                                                if (responseDelete['status'] ==
+                                                    200) {
                                                   _deleteProduct(product.id);
                                                   Navigator.pop(context);
+                                                } else {
+                                                  showDialogApi(context);
                                                 }
                                               },
                                               style: ElevatedButton.styleFrom(
@@ -246,7 +252,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     String valor =
                                         formatarNumero(product['price']);
                                     showLinkModal(context,
-                                        "checkoutexemplo.com?{product['plan_id']}&${valor}");
+                                        "http://checkoutexemplo.com/checkout/index.html?plan=${product['plan_id']}&v=${valor}&id=${widget.idUser}");
                                   },
                                 ),
                               ),

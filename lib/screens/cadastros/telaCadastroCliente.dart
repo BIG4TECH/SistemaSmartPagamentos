@@ -8,8 +8,9 @@ import 'package:smart_pagamento/screens/widgets/textfield.dart';
 class RegistraCliente extends StatefulWidget {
   final String? clienteId;
   final String? email;
+  final String idUser;
 
-  RegistraCliente({super.key, this.clienteId, this.email});
+  RegistraCliente({super.key, this.clienteId, this.email, required this.idUser});
 
   @override
   _RegistraClienteState createState() => _RegistraClienteState();
@@ -39,7 +40,7 @@ class _RegistraClienteState extends State<RegistraCliente> {
 
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection('clientes')
-        .where('email_user', isEqualTo: widget.email)
+        .where('id_user', isEqualTo: widget.idUser)
         .get();
 
     // Verificar se há documentos retornados pela consulta
@@ -68,9 +69,9 @@ class _RegistraClienteState extends State<RegistraCliente> {
         await FirebaseFirestore.instance.collection('clientes').add({
           'name': _nameController.text,
           'email': _emailController.text,
-          'whatsapp': _wppController.text.replaceAll(RegExp(r'\D'), ''),
+          'phone_number': _wppController.text.replaceAll(RegExp(r'\D'), ''),
           'data_registro': DateTime.now(),
-          'email_user': widget.email,
+          'id_user': widget.idUser,
           'cpf': _cpfController.text
         });
       } else {
@@ -80,8 +81,8 @@ class _RegistraClienteState extends State<RegistraCliente> {
             .update({
           'name': _nameController.text,
           'email': _emailController.text,
-          'whatsapp': _wppController.text.replaceAll(RegExp(r'\D'), ''),
-          'email_user': widget.email,
+          'phone_number': _wppController.text.replaceAll(RegExp(r'\D'), ''),
+          'id_user': widget.idUser,
           'cpf': _cpfController.text.replaceAll(RegExp(r'\D'), '')
         });
       }
@@ -211,7 +212,7 @@ class _RegistraClienteState extends State<RegistraCliente> {
                                           //const SizedBox(height: 20),
 
                                           //CPF
-                                          /*
+                                          
                                           TextFormField(
                                             keyboardType: TextInputType.number,
                                             //maxLength: 14,
@@ -233,7 +234,7 @@ class _RegistraClienteState extends State<RegistraCliente> {
                                               return null;
                                             },
                                           ),
-                                          */
+                                          
                                         ],
                                       )
                                     : Row(

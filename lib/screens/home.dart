@@ -10,8 +10,7 @@ import 'package:smart_pagamento/charts/allCharts.dart';
 
 class Home extends StatefulWidget {
   final String email;
-  
-  
+
   const Home({required this.email});
 
   @override
@@ -20,18 +19,20 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   String tipoUser = '';
-  
+  String idUser = '';
+
   void _tipoUser(String email) async {
     var user = await FirebaseFirestore.instance
         .collection('users')
         .where('email', isEqualTo: email)
         .get();
-    
+
     setState(() {
       tipoUser = user.docs.first['tipo_user'];
+      idUser = user.docs.first.id;
+
       print('USER NO HOME: ${user.docs.first['tipo_user']}');
     });
-    
   }
 
   @override
@@ -39,10 +40,9 @@ class _HomeState extends State<Home> {
     //print('USER NO HOME: ${widget.tipoUser}');
     // TODO: implement initState
     super.initState();
-    
-      _tipoUser(widget.email);
-    
-    
+
+    _tipoUser(widget.email);
+
     print('USER NO HOME: $tipoUser');
   }
 
@@ -81,8 +81,8 @@ class _HomeState extends State<Home> {
                                 Navigator.of(context).pop();
                                 Navigator.pushReplacement(
                                   context,
-                                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                                      
+                                  MaterialPageRoute(
+                                      builder: (context) => LoginScreen()),
                                 );
                               },
                               child: Text('Confirmar')),
@@ -92,8 +92,8 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-      drawer: menuDrawer(context, widget.email, tipoUser),
-      body: AllCharts(widget.email, tipoUser),
+      drawer: menuDrawer(context, widget.email, tipoUser, idUser),
+      body: AllCharts(widget.email, tipoUser, idUser),
     );
   }
 }

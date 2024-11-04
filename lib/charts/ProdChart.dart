@@ -7,8 +7,12 @@ import '/presentation/widgets/indicator.dart';
 class Prodchart extends StatefulWidget {
   final String email;
   final String tipoUser;
+  final String idUser;
   final String? emailFiliado;
-  const Prodchart(this.email, this.tipoUser, this.emailFiliado);
+  final String? idFiliado;
+
+  const Prodchart(this.email, this.tipoUser, this.idUser, this.emailFiliado,
+      this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => PieChartProdState();
@@ -146,17 +150,18 @@ class PieChartProdState extends State<Prodchart> {
     _quantidadeTotal = 0;
 
     var vendas = widget.tipoUser == 'master'
-        ? (widget.emailFiliado == null
+        ? (widget.idFiliado == null
             ? await FirebaseFirestore.instance.collection('vendas').get()
             : await FirebaseFirestore.instance
                 .collection('vendas')
-                .where('email_user', isEqualTo: widget.emailFiliado)
+                .where('id_user', isEqualTo: widget.idFiliado)
                 .get())
         : await FirebaseFirestore.instance
             .collection('vendas')
-            .where('email_user', isEqualTo: widget.email)
+            .where('id_user', isEqualTo: widget.idUser)
             .get();
 
+    /*
     var itensVendas = widget.tipoUser == 'master'
         ? (widget.emailFiliado == null
             ? await FirebaseFirestore.instance.collection('itens_vendas').get()
@@ -168,6 +173,7 @@ class PieChartProdState extends State<Prodchart> {
             .collection('itens_vendas')
             .where('email_user', isEqualTo: widget.email)
             .get();
+    */
 
     var produtos = widget.tipoUser == 'master'
         ? (widget.emailFiliado == null
@@ -181,16 +187,13 @@ class PieChartProdState extends State<Prodchart> {
             .where('email_user', isEqualTo: widget.email)
             .get();
 
-    // Processamento das vendas, produtos e itens de vendas
+    // Processamento das vendas, produtos
     for (var docvenda in vendas.docs) {
       for (var docprod in produtos.docs) {
         int quantidade = 0;
 
-        for (var dociven in itensVendas.docs) {
-          if (dociven['idproduto'] == docprod.id &&
-              docvenda.id == dociven['idvenda']) {
-            quantidade += int.parse(dociven['quantidade'].toString());
-          }
+        if (docvenda['plan']['id'] == docprod['plan_id']) {
+          quantidade++;
         }
 
         if (quantidade > 0) {

@@ -13,7 +13,7 @@ import 'package:smart_pagamento/screens/wpp.dart';
 import '../cadastros/telaCadastroProduto.dart';
 import '../listas/telaProdutos.dart';
 
-Widget menuDrawer(BuildContext context, String email, String tipoUser) {
+Widget menuDrawer(BuildContext context, String email, String tipoUser, String idUser) {
   return Drawer(
     child: Column(
       children: [
@@ -89,6 +89,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
                 context,
                 MaterialPageRoute(
                     builder: (context) => ProductListScreen(
+                          idUser: idUser,
                           email: email,
                           //tipoUser: tipoUser
                         )));
@@ -105,7 +106,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => RegistraCliente(email: email)));
+                    builder: (context) => RegistraCliente(email: email, idUser: idUser,)));
           },
         ),
         ListTile(
@@ -120,7 +121,8 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
                 context,
                 MaterialPageRoute(
                     builder: (context) => ClienteListScreen(email: email, 
-                    tipoUser: tipoUser
+                    tipoUser: tipoUser,
+                    idUser: idUser,
                     )));
           },
         ),
@@ -182,6 +184,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
                 context,
                 MaterialPageRoute(
                     builder: (context) => VendasListScreen(email: email, 
+                    idUser: idUser,
                     tipoUser: tipoUser
                     )));
           },
@@ -203,7 +206,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
         ) : SizedBox(),
         ListTile(
           leading:
-              Icon(Icons.qr_code, color: corPadrao()),
+              Icon(Icons.monetization_on, color: corPadrao()),
           title: Text(
             "Recebimentos",
             style: TextStyle(fontSize: 16),
@@ -213,7 +216,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser) {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => RecebimentosRelatorio(email)));
+                    builder: (context) => RecebimentosRelatorio(email, idUser)));
           },
         ),
       ],

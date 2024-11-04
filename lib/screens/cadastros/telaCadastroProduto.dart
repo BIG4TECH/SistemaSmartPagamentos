@@ -1,9 +1,9 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/screens/widgets/showdialog.dart';
 import 'package:smart_pagamento/screens/widgets/textfield.dart';
 
 class ProductRegisterScreen extends StatefulWidget {
@@ -20,7 +20,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _descontoController = TextEditingController();
+  //final TextEditingController _descontoController = TextEditingController();
   int _recurrencePeriod = 1;
   String _paymentOption = 'Cartão de crédito/débito';
   bool _isLoading = false;
@@ -47,27 +47,6 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
         return AlertDialog(
           title: Text('Nome existente!'),
           content: Text('Por favor, escolha outro nome para o produto.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Fechar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showDialogApi(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Atenção!'),
-          content: Text(
-              'Não foi possível concluir a operação. Por favor, tente novamente.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -110,7 +89,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
 
           _nameController.text = productData['name'];
           _priceController.text = productData['price'].toString();
-          _descontoController.text = productData['desconto'].toString();
+          //_descontoController.text = productData['desconto'].toString();
           _recurrencePeriod = productData['recurrencePeriod'];
           _paymentOption = productData['paymentOption'];
           _planId = productData['plan_id'];
@@ -153,45 +132,61 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
           var responsePlanoPosted = await apiService.criarPlano(
               _nameController.text, 2, _recurrencePeriod);
 
-          if (responsePlanoPosted['message'] == "Plano criado com sucesso!") {
+          if (responsePlanoPosted['status'] == 200) {
             await FirebaseFirestore.instance.collection('products').add({
               'name': _nameController.text,
-              'plan_id': responsePlanoPosted['data']['plan_id'],
+              'plan_id': responsePlanoPosted['body']['data']['plan_id'],
               'price': double.parse(_priceController.text),
-              'desconto': int.parse(_descontoController.text),
+              //'desconto': int.parse(_descontoController.text),
               'recurrencePeriod': _recurrencePeriod,
               'paymentOption': _paymentOption,
               'email_user': widget.email
             });
           } else {
-            _showDialogApi(context);
+            showDialogApi(context);
             return;
           }
         } else {
           var responseDelete = await apiService.deletarPlano(_planId);
 
-          if (responseDelete['message'] == 'Plano deletado com sucesso!') {
+          if (responseDelete['status'] == 200) {
             var responsePlanoPosted = await apiService.criarPlano(
                 _nameController.text, 2, _recurrencePeriod);
 
-            if (responsePlanoPosted['message'] == "Plano criado com sucesso!") {
+            if (responsePlanoPosted['status'] == 200) {
+              var novoPlanId = responsePlanoPosted['body']['data']['plan_id'];
+              var antigoPlanId = await FirebaseFirestore.instance
+                  .collection('products')
+                  .doc(widget.productId)
+                  .get()
+                  .then((doc) => doc['plan_id']);
+
               await FirebaseFirestore.instance
                   .collection('products')
                   .doc(widget.productId)
                   .update({
                 'name': _nameController.text,
-                'plan_id': responsePlanoPosted['data']['plan_id'],
+                'plan_id': responsePlanoPosted['body']['data']['plan_id'],
                 'price': double.parse(_priceController.text),
-                'desconto': int.parse(_descontoController.text),
+                //'desconto': int.parse(_descontoController.text),
                 'recurrencePeriod': _recurrencePeriod,
                 'paymentOption': _paymentOption,
               });
+
+              var vendas =
+                  await FirebaseFirestore.instance.collection('vendas').get();
+
+                  for (var venda in vendas.docs) {
+                    if (venda['plan']['id'] == antigoPlanId) {
+                      await FirebaseFirestore.instance.collection('vendas').doc(venda.id).update({'plan': {'id': novoPlanId}});
+                    }
+                  }
             } else {
-              _showDialogApi(context);
+              showDialogApi(context);
               return;
             }
           } else {
-            _showDialogApi(context);
+            showDialogApi(context);
             return;
           }
         }
@@ -201,7 +196,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                 'Produto ${widget.productId == null ? 'registrado' : 'atualizado'} com sucesso!')));
         _nameController.clear();
         _priceController.clear();
-        _descontoController.clear();
+        //_descontoController.clear();
         Navigator.of(context).pop();
       }
     }
@@ -226,135 +221,134 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
         centerTitle: true,
         backgroundColor: corPadrao(),
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Container(
-              margin: size.width <= 720
-                  ? EdgeInsets.symmetric(
-                      horizontal: size.width * 0.07,
-                      vertical: size.width * 0.07)
-                  : EdgeInsets.symmetric(
-                      horizontal: size.width * 0.05,
-                      vertical: size.width * 0.05),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 5,
-                    offset: Offset(0, 0),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      // NOME DO PRODUTO
-                      TextFormField(
-                        style: TextStyle(
-                            color: Colors.black87, fontWeight: FontWeight.bold),
-                        controller: _nameController,
-                        decoration: inputDec('Nome do Produto'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor digite o nome do produto';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 20),
+      body: Container(
+        margin: size.width <= 720
+            ? EdgeInsets.symmetric(
+                horizontal: size.width * 0.07, vertical: size.width * 0.07)
+            : EdgeInsets.symmetric(
+                horizontal: size.width * 0.05, vertical: size.width * 0.05),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: Offset(0, 0),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // NOME DO PRODUTO
+                TextFormField(
+                  style: TextStyle(
+                      color: Colors.black87, fontWeight: FontWeight.bold),
+                  controller: _nameController,
+                  decoration: inputDec('Nome do Produto'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor digite o nome do produto';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
 
-                      // PREÇO
-                      TextFormField(
-                        style: TextStyle(
-                            color: Colors.black87, fontWeight: FontWeight.bold),
-                        controller: _priceController,
-                        decoration: inputDec('Preço'),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d+\.?\d{0,2}')),
-                        ],
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor digite o preço';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 20),
+                // PREÇO
+                TextFormField(
+                  style: TextStyle(
+                      color: Colors.black87, fontWeight: FontWeight.bold),
+                  controller: _priceController,
+                  decoration: inputDec('Preço'),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}')),
+                  ],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor digite o preço';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
 
-                      // VALOR DE DESCONTO
-                      TextFormField(
-                        style: TextStyle(
-                            color: Colors.black87, fontWeight: FontWeight.bold),
-                        controller: _descontoController,
-                        decoration: inputDec('Desconto (%)'),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor digite o valor de desconto!';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 20),
+                // VALOR DE DESCONTO
+                /*
+                TextFormField(
+                  style: TextStyle(
+                      color: Colors.black87, fontWeight: FontWeight.bold),
+                  controller: _descontoController,
+                  decoration: inputDec('Desconto (%)'),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor digite o valor de desconto!';
+                    }
+                    return null;
+                  },
+                ),
+                
+                SizedBox(height: 20),
+*/
+                // PERÍODO DE RECORRÊNCIA
+                DropdownButtonFormField<int>(
+                  style: TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15),
+                  value: _recurrencePeriod,
+                  dropdownColor: Colors.white,
+                  decoration: inputDec('Período de Recorrência'),
+                  items: recurrencePeriods.map((RecurrencePeriod periodo) {
+                    return DropdownMenuItem<int>(
+                      value: periodo.value,
+                      child: Text(periodo.text),
+                    );
+                  }).toList(),
+                  onChanged: (int? newValue) {
+                    setState(() {
+                      _recurrencePeriod = newValue!;
+                    });
+                  },
+                ),
+                SizedBox(height: 20),
 
-                      // PERÍODO DE RECORRÊNCIA
-                      DropdownButtonFormField<int>(
-                        style: TextStyle(
-                            color: Colors.black87,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15),
-                        value: _recurrencePeriod,
-                        dropdownColor: Colors.white,
-                        decoration: inputDec('Período de Recorrência'),
-                        items:
-                            recurrencePeriods.map((RecurrencePeriod periodo) {
-                          return DropdownMenuItem<int>(
-                            value: periodo.value,
-                            child: Text(periodo.text),
-                          );
-                        }).toList(),
-                        onChanged: (int? newValue) {
-                          setState(() {
-                            _recurrencePeriod = newValue!;
-                          });
-                        },
-                      ),
-                      SizedBox(height: 20),
-
-                      // OPÇÃO DE PAGAMENTOS
-                      DropdownButtonFormField<String>(
-                        style: TextStyle(
-                            color: Colors.black87, fontWeight: FontWeight.bold),
-                        value: _paymentOption,
-                        dropdownColor: Colors.white,
-                        decoration: inputDec('Forma de Pagamento'),
-                        items: ['Cartão de crédito/débito', 'Pix', 'Boleto']
-                            .map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _paymentOption = newValue!;
-                          });
-                        },
-                      ),
-                      SizedBox(height: 20),
-                      Container(
+                // OPÇÃO DE PAGAMENTOS
+                DropdownButtonFormField<String>(
+                  style: TextStyle(
+                      color: Colors.black87, fontWeight: FontWeight.bold),
+                  value: _paymentOption,
+                  dropdownColor: Colors.white,
+                  decoration: inputDec('Forma de Pagamento'),
+                  items: ['Cartão de crédito/débito', 'Pix', 'Boleto']
+                      .map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _paymentOption = newValue!;
+                    });
+                  },
+                ),
+                SizedBox(height: 20),
+                _isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: gradientBtn(),
@@ -379,12 +373,12 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                                   fontWeight: FontWeight.bold)),
                         ),
                       ),
-                      Spacer(),
-                    ],
-                  ),
-                ),
-              ),
+                Spacer(),
+              ],
             ),
+          ),
+        ),
+      ),
     );
   }
 }

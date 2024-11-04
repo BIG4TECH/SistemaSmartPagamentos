@@ -6,8 +6,10 @@ import 'package:smart_pagamento/screens/widgets/relatorios/cliRelatorio.dart';
 class TotalClientes extends StatefulWidget {
   final String email;
   final String tipoUser;
+  final String idUser;
   final String? emailFiliado;
-  const TotalClientes(this.email, this.tipoUser, this.emailFiliado);
+  final String? idFiliado;
+  const TotalClientes(this.email, this.tipoUser, this.idUser, this.emailFiliado, this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalClientesState();
@@ -22,13 +24,13 @@ class TotalClientesState extends State<TotalClientes> {
       } else {
         return FirebaseFirestore.instance
             .collection('clientes')
-            .where('email_user', isEqualTo: widget.emailFiliado)
+            .where('id_user', isEqualTo: widget.idFiliado)
             .snapshots();
       }
     } else {
       return FirebaseFirestore.instance
           .collection('clientes')
-          .where('email_user', isEqualTo: widget.email)
+          .where('id_user', isEqualTo: widget.idUser)
           .snapshots();
     }
   }
@@ -77,7 +79,7 @@ class TotalClientesState extends State<TotalClientes> {
             ],
           ),
           const SizedBox(width: 10),
-          CliRelatorio(widget.email, widget.tipoUser, widget.emailFiliado)
+          CliRelatorio(widget.email, widget.tipoUser, widget.idUser, widget.emailFiliado, widget.idFiliado)
         ],
       ),
     );

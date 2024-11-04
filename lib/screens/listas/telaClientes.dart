@@ -1,14 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/cadastros/telaCadastroCliente.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
-//import 'package:smart_pagamento/screens/widgets/textfield.dart';
+import 'package:smart_pagamento/screens/widgets/showdialog.dart';
 
 class ClienteListScreen extends StatefulWidget {
   final String? email;
   final String tipoUser;
+  final String idUser;
 
-  const ClienteListScreen({Key? key, this.email, required this.tipoUser})
+  const ClienteListScreen(
+      {Key? key, this.email, required this.tipoUser, required this.idUser})
       : super(key: key);
 
   @override
@@ -17,7 +20,7 @@ class ClienteListScreen extends StatefulWidget {
 
 class _ClienteListScreenState extends State<ClienteListScreen> {
   String searchQuery = "";
-  List _listProdutosEscolhidos = [];
+  //List _listProdutosEscolhidos = [];
 
   @override
   Widget build(BuildContext context) {
@@ -51,27 +54,25 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(15.0)),
                   borderSide: BorderSide(
-                    color: Colors.grey.shade400, // Cor da borda
-                    width: 2.0, // Espessura da borda
+                    color: Colors.grey.shade400,
+                    width: 2.0,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(15.0)),
                   borderSide: BorderSide(
-                    color: Colors.grey.shade400, // Cor da borda
-                    width: 2.0, // Espessura da borda
+                    color: Colors.grey.shade400,
+                    width: 2.0,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(15.0)),
                   borderSide: BorderSide(
-                    color:
-                        corPadrao(), // Cor da borda quando o campo está focado
-                    width: 3.0, // Espessura da borda quando o campo está focado
+                    color: corPadrao(),
+                    width: 3.0,
                   ),
                 ),
               ),
-              //style: const TextStyle(color: Colors.white),
               onChanged: (value) {
                 setState(() {
                   searchQuery = value.toLowerCase();
@@ -81,16 +82,10 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
             const SizedBox(height: 20),
             Expanded(
               child: StreamBuilder(
-                stream: /*widget.tipoUser == 'master' 
-                ? FirebaseFirestore.instance
+                stream: FirebaseFirestore.instance
                     .collection('clientes')
-                    //.where('email_user', isEqualTo: widget.email)
-                    .snapshots() 
-                  : */
-                    FirebaseFirestore.instance
-                        .collection('clientes')
-                        .where('email_user', isEqualTo: widget.email)
-                        .snapshots(),
+                    .where('id_user', isEqualTo: widget.idUser)
+                    .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
@@ -120,7 +115,6 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                       final cliente = clientes[index];
 
                       return Card(
-                        //color: Colors.black.withOpacity(0.1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15.0),
                         ),
@@ -132,8 +126,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                 fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            'Email: ${cliente['email']} \nWhatsApp: ${cliente['whatsapp']}',
-                            // style: const TextStyle(color: Colors.white70),
+                            'Email: ${cliente['email']} \nWhatsApp: ${cliente['phone_number']}',
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -144,25 +137,23 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => RegistraCliente(
-                                          clienteId: cliente.id),
+                                        clienteId: cliente.id,
+                                        idUser: cliente['id_user'],
+                                      ),
                                     ),
                                   );
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                ),
+                                icon: const Icon(Icons.delete),
                                 onPressed: () {
                                   showDialog(
                                     context: context,
                                     builder: (context) => AlertDialog(
-                                      //backgroundColor: Colors.black87,
                                       title: const Text(
-                                        'Deseja excluir o cliente?',
-                                        //style:TextStyle(color: Colors.white)
-                                      ),
-
+                                          'Deseja excluir o cliente?'),
+                                      content: const Text(
+                                          'Todos as assinaturas serão canceladass.'),
                                       actions: [
                                         TextButton(
                                           onPressed: () =>
@@ -171,38 +162,17 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                               style: TextStyle(
                                                   color: Colors.grey.shade400)),
                                         ),
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: gradientBtn(),
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: ElevatedButton(
-                                              onPressed: () {
-                                                _deleteCliente(cliente.id);
-                                                Navigator.pop(context);
-                                              },
-                                              style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.transparent,
-                                                  fixedSize: Size(
-                                                      size.width * 0.1,
-                                                      size.height * 0.01),
-                                                  shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              5))),
-                                              child: Text('Excluir',
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize:
-                                                          size.height * 0.022,
-                                                      fontWeight:
-                                                          FontWeight.bold))),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            _deleteCliente(cliente.id);
+                                            Navigator.pop(context);
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.transparent),
+                                          child: const Text('Excluir',
+                                              style: TextStyle(
+                                                  color: Colors.white)),
                                         ),
                                       ],
                                     ),
@@ -223,8 +193,9 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                       color: Colors.white),
                                   tooltip: 'Itens Vendas',
                                   onPressed: () async {
-                                    await _getDataItensVendas(cliente.id);
-                                    _showProducts(context);
+                                    List<Map<String, dynamic>> assinaturaId =
+                                        await _getAssinaturas(cliente.id);
+                                    _showProducts(context, assinaturaId, cliente.id);
                                   },
                                 ),
                               )
@@ -243,73 +214,191 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
     );
   }
 
-  void _deleteCliente(String clienteId) {
-    FirebaseFirestore.instance.collection('clientes').doc(clienteId).delete();
-  }
-
-  Future<void> _getDataItensVendas(String clienteid) async {
-    _listProdutosEscolhidos.clear();
-
-    var iven = await FirebaseFirestore.instance
-        .collection('itens_vendas')
-        .where('email_user', isEqualTo: widget.email)
+  void _deleteCliente(String clienteId) async {
+    final assinaturasSnapshot = await FirebaseFirestore.instance
+        .collection('clientes')
+        .doc(clienteId)
+        .collection('assinaturas')
         .get();
 
-    var vendas = await FirebaseFirestore.instance
-        .collection('vendas')
-        .where('email_user', isEqualTo: widget.email)
-        .get();
+    bool cancelamentoComSucesso = true;
 
-    for (var docven in vendas.docs) {
-      if (clienteid == docven['idcliente']) {
-        for (var doc in iven.docs) {
-          if (docven.id == doc['idvenda']) {
-            _listProdutosEscolhidos.add(doc['produto']);
-          }
-        }
+    for (var doc in assinaturasSnapshot.docs) {
+      String chargeId = doc['charge']['id'].toString();
+      final response =
+          await ApiService().cancelarAssinatura(int.parse(chargeId));
+
+      if (response['status'] == 200) {
+        await doc.reference.update({'status': 'cancelado'});
+      } else {
+        cancelamentoComSucesso = false;
+        break;
       }
+    }
+
+    if (cancelamentoComSucesso) {
+      await FirebaseFirestore.instance
+          .collection('clientes')
+          .doc(clienteId)
+          .delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Cliente e assinaturas canceladas com sucesso!')),
+      );
+      setState(() {});
+    } else {
+      showDialogApi(context);
     }
   }
 
-  void _showProducts(BuildContext context) {
+  Future<List<Map<String, dynamic>>> _getAssinaturas(String clienteId) async {
+    final assinaturasSnapshot = await FirebaseFirestore.instance
+        .collection('clientes')
+        .doc(clienteId)
+        .collection('assinaturas')
+        .get();
+
+    final products = await FirebaseFirestore.instance
+        .collection('products')
+        .where('email_user', isEqualTo: widget.email!)
+        .get();
+
+    return assinaturasSnapshot.docs.map((doc) {
+      String name = '';
+
+      for (var product in products.docs) {
+        if (product['plan_id'] == doc['plan']['id']) {
+          name = product['name'];
+          break;
+        }
+      }
+
+      return {
+        'id': doc.id,
+        'name': name,
+        'chargeId': doc['charge']['id'].toString(),
+        'status': doc['status'],
+      };
+    }).toList();
+  }
+
+  void _showProducts(
+      BuildContext context, List<Map<String, dynamic>> assinaturas, String clienteId) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.black,
+        //backgroundColor: Colors.black,
         title: const Text(
-          'Produtos Escolhidos',
-          style: TextStyle(color: Colors.white),
+          'Assinaturas',
+          //style: TextStyle(color: Colors.white),
         ),
         content: Container(
           width: double.maxFinite,
-          child: _listProdutosEscolhidos.isNotEmpty
+          child: assinaturas.isNotEmpty
               ? ListView.builder(
                   shrinkWrap: true,
-                  itemCount: _listProdutosEscolhidos.length,
+                  itemCount: assinaturas.length,
                   itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(
-                        _listProdutosEscolhidos[index],
-                        style: const TextStyle(color: Colors.white70),
-                      ),
+                    final assinatura = assinaturas[index];
+                    return Card(
+                      child: ListTile(
+                          title: Text(
+                            assinatura['name'],
+                            //style: const TextStyle(color: Colors.white70),
+                          ),
+                          subtitle: Text(
+                            'Status: ${assinatura['status']}',
+                            //style: const TextStyle(color: Colors.white54),
+                          ),
+                          trailing: Container(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Colors.red, Colors.redAccent],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.cancel_outlined,
+                                  color: Colors.white),
+                              tooltip: 'Cancelar Assinatura',
+                              onPressed: () async {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text(
+                                        'Deseja cancelar essa assinatura?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('Cancelar',
+                                            style: TextStyle(
+                                                color: Colors.grey.shade400)),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          _cancelarAssinatura(
+                                              assinatura['id'], context, clienteId);
+                                          Navigator.pop(context);
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                Colors.transparent),
+                                        child: const Text('Confirmar',
+                                            style:
+                                                TextStyle(color: Colors.white)),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          )),
                     );
                   },
                 )
               : const Text(
-                  'Nenhum produto escolhido.',
+                  'Nenhuma assinatura encontrada.',
                   style: TextStyle(color: Colors.white70),
                 ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Fechar',
-              style: TextStyle(color: Colors.white),
-            ),
+            child: const Text('Fechar', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _cancelarAssinatura(
+      String assinaturaId, BuildContext context, String clienteId) async {
+    final response = await ApiService().cancelarAssinatura(int.parse(assinaturaId));
+
+    if (response['status'] == 200) {
+      await FirebaseFirestore.instance
+          .collection('recebimentos')
+          .doc(assinaturaId)
+          .update({'status': 'cancelado'});
+
+      await FirebaseFirestore.instance
+        .collection('clientes')
+        .doc(clienteId)
+        .collection('assinaturas')
+        .doc(assinaturaId)
+        .delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Assinatura cancelada com sucesso!')),
+      );
+
+      setState(() {});
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao cancelar assinatura.')),
+      );
+    }
   }
 }

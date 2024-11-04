@@ -7,12 +7,11 @@ class ApiService {
   Future<String?> iniciarSessaoWhatsapp() async {
     try {
       final response = await http.post(Uri.parse('$baseUrl/whatsapp'));
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data['qr'] != null) {
-          String base64QR = data['qr'];
-          print('QR Code base64: $base64QR');
-          // Use essa base64 para exibir no app, se necessário
+        if (data['qrCode'] != null) {
+          return data['qrCode']; // Retorna o QR Code em base64
         } else {
           print('QR Code não retornado');
         }
@@ -25,20 +24,38 @@ class ApiService {
     return null;
   }
 
-  // Função para verificar estado do WhatsApp
-  Future<Map<String, dynamic>> verificarEstadoWhatsapp() async {
-    final response = await http.get(Uri.parse('$baseUrl/whatsapp-status'));
-    return _handleResponse(response);
+  Future<Map<String, dynamic>> cancelarAssinatura(int id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/cancelar-assinatura'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"id": id}),
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      print('Erro ao fazer requisição: $e');
+      return {"error": e.toString()};
+    }
   }
 
-  // Função para criar um plano
+  Future<Map<String, dynamic>> verificarEstadoWhatsapp() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/whatsapp-status'));
+      return _handleResponse(response);
+    } catch (e) {
+      print('Erro ao verificar o estado do WhatsApp: $e');
+      return {'error': 'Erro ao verificar o estado'};
+    }
+  }
+
   Future<Map<String, dynamic>> criarPlano(
       String name, int repeats, int interval) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/criar-plano'),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({'name': name, 'repeats': null, 'interval': interval}),
+        body: jsonEncode({'name': name, 'repeats': repeats, 'interval': interval}),
       );
       return _handleResponse(response);
     } catch (e) {
@@ -47,42 +64,47 @@ class ApiService {
     }
   }
 
-  // Função para deletar um plano
-  Future<Map<String, dynamic>> deletarPlano(int id) async {
+Future<Map<String, dynamic>> deletarPlano(int id) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/deletar-plano'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"id": id}), 
+    );
+
+    return _handleResponse(response);
+  } catch (e) {
+    print('Erro ao fazer requisição: $e');
+    return {"error": e.toString()};
+  }
+}
+
+
+  Future<Map<String, dynamic>> listarPlanos({String? name}) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/deletar-plano'),
+        Uri.parse('$baseUrl/listar-planos'),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"id": id}),
+        body: name != null ? jsonEncode({'name': name}) : jsonEncode({}),
       );
-
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Falha ao deletar o plano: ${response.body}');
-      }
+      return _handleResponse(response);
     } catch (e) {
-      print('Erro ao fazer requisição: $e');
-      return {"error": e.toString()};
+      print('Erro ao listar planos: $e');
+      return {'error': 'Erro ao listar planos'};
     }
   }
 
-  // Função para listar planos
-  Future<Map<String, dynamic>> listarPlanos({String? name}) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/listar-planos'),
-      body: name != null ? {'name': name} : {},
-    );
-    return _handleResponse(response);
-  }
-
-  // Função para gerenciar as respostas e erros
   Map<String, dynamic> _handleResponse(http.Response response) {
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      return {
+        'body': json.decode(response.body),
+        'status': response.statusCode
+        };
     } else {
-      throw Exception(
-          'Erro: ${json.decode(response.body)["error"] ?? "Falha desconhecida"}');
+      return {
+        "error": json.decode(response.body)["error"] ?? "Falha desconhecida",
+        "status": response.statusCode
+      };
     }
   }
 }

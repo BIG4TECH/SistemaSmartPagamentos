@@ -4,19 +4,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 
 class ProdRelatorio extends StatelessWidget {
-  final String email;
+   final String email;
   final String tipoUser;
+  final String idUser;
   final String? emailFiliado;
-  ProdRelatorio(this.email, this.tipoUser, this.emailFiliado);
+  final String? idUserFiliado;
+  ProdRelatorio(this.email, this.tipoUser, this.idUser, this.emailFiliado, this.idUserFiliado);
+
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: IconButton(
         onPressed: () async {
-          await generateAndPrintPdf(context, email, tipoUser, emailFiliado);
+          await generateAndPrintPdf(context, email, tipoUser, emailFiliado, idUser, idUserFiliado);
         },
         icon: const Icon(Icons.picture_as_pdf_rounded),
         tooltip: 'Gerar Relatório',
@@ -26,7 +30,7 @@ class ProdRelatorio extends StatelessWidget {
 }
 
 Future<void> generateAndPrintPdf(BuildContext context, String email,
-    String tipoUser, String? emailFiliado) async {
+    String tipoUser, String? emailFiliado, String idUser, String? idUserFiliado) async {
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
@@ -47,29 +51,30 @@ Future<void> generateAndPrintPdf(BuildContext context, String email,
 
   final querySnapshot = await collection.get();
 
-  // Buscar itens_vendas do Firestore
-  final iven = tipoUser == 'master'
+  // Buscar produtos do Firestore
+  final vendas = tipoUser == 'master'
       ? (emailFiliado == null
-          ? FirebaseFirestore.instance.collection('itens_vendas')
+          ? FirebaseFirestore.instance.collection('vendas')
           : FirebaseFirestore.instance
-              .collection('itens_vendas')
-              .where('email_user', isEqualTo: emailFiliado))
+              .collection('vendas')
+              .where('id_user', isEqualTo: idUserFiliado))
       : FirebaseFirestore.instance
-          .collection('itens_vendas')
-          .where('email_user', isEqualTo: email);
+          .collection('vendas')
+          .where('id_user', isEqualTo: idUser);
 
-  final queryIven = await iven.get();
+  final vendasSnapshot = await vendas.get();
 
   // Processar dados de produtos e itens vendidos
   for (var dataProducts in querySnapshot.docs) {
     num quantiven = 0;
 
-    for (var dataiven in queryIven.docs) {
-      if (dataiven['idproduto'] == dataProducts.id) {
-        var aux = dataiven['quantidade'];
-        quantiven += aux;
+      for (var dataVendas in vendasSnapshot.docs) {
+        if (dataProducts['plan_id'] == dataVendas['plan']['id']) {
+          quantiven++;
+        }
       }
-    }
+        
+    
 
     // Adiciona o produto à lista, evitando duplicatas
     if (products.indexWhere((prod) => prod['name'] == dataProducts['name']) ==
@@ -90,8 +95,8 @@ Future<void> generateAndPrintPdf(BuildContext context, String email,
 
       Map<String, dynamic> novoProduto = {
         'name': dataProducts['name'],
-        'price': 'R\$ ${dataProducts['price']}',
-        'desconto': '${dataProducts['desconto']}%',
+        'price': 'R\$ ${formatWithComma(int.parse(formatarNumero(double.parse(dataProducts['price'].toString()))))}',
+        //'desconto': '${dataProducts['desconto']}%',
         'recurrencePeriod': recur,
         'paymentOption': dataProducts['paymentOption'],
         'quantiven': quantiven
@@ -131,10 +136,10 @@ Future<void> generateAndPrintPdf(BuildContext context, String email,
       return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text('Relatório de Produtos', style: titleStyle),
+            pw.Text('Relatório de Produtos', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 5),
             pw.Text('Quantidade Total de Produtos: ${products.length}',
-                style: titleStyle),
+                style: headerStyle),
             pw.SizedBox(height: 5),
             // Linha horizontal
             pw.Container(
@@ -153,8 +158,7 @@ Future<void> generateAndPrintPdf(BuildContext context, String email,
         pw.TableHelper.fromTextArray(
           headers: [
             'Nome',
-            'Preço (U)',
-            'Desconto (%)',
+            'Valor',
             'Recorrência',
             'Forma de Pagamento',
             'Quant. Vendidos'
@@ -163,7 +167,6 @@ Future<void> generateAndPrintPdf(BuildContext context, String email,
             return [
               item['name'],
               item['price'],
-              item['desconto'],
               item['recurrencePeriod'],
               item['paymentOption'],
               item['quantiven']

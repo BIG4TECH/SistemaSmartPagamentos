@@ -6,35 +6,35 @@ import 'package:smart_pagamento/screens/widgets/relatorios/venRelatorio.dart';
 class TotalVendas extends StatefulWidget {
   final String email;
   final String tipoUser;
+  final String idUser;
   final String? emailFiliado;
-  const TotalVendas(this.email, this.tipoUser, this.emailFiliado);
+  final String? idFiliado;
+
+  const TotalVendas(this.email, this.tipoUser, this.idUser, this.emailFiliado,
+      this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalVendasState();
 }
 
 class TotalVendasState extends State<TotalVendas> {
-  
   Stream<QuerySnapshot> _getVendasStream() {
-  if (widget.tipoUser == 'master') {
-    if (widget.emailFiliado == null) {
-      return FirebaseFirestore.instance
-          .collection('vendas')
-          .snapshots();
+    if (widget.tipoUser == 'master') {
+      if (widget.emailFiliado == null) {
+        return FirebaseFirestore.instance.collection('vendas').snapshots();
+      } else {
+        return FirebaseFirestore.instance
+            .collection('vendas')
+            .where('id_user', isEqualTo: widget.idFiliado)
+            .snapshots();
+      }
     } else {
       return FirebaseFirestore.instance
           .collection('vendas')
-          .where('email_user', isEqualTo: widget.emailFiliado)
+          .where('id_user', isEqualTo: widget.idUser)
           .snapshots();
     }
-  } else {
-    return FirebaseFirestore.instance
-        .collection('vendas')
-        .where('email_user', isEqualTo: widget.email)
-        .snapshots();
   }
-}
-
 
   Widget showLineChart(int quantVendas) {
     return Container(
@@ -80,7 +80,13 @@ class TotalVendasState extends State<TotalVendas> {
             ],
           ),
           const SizedBox(width: 10),
-          VenRelatorio(email: widget.email, tipoUser: widget.tipoUser, emailFiliado: widget.emailFiliado,)
+          VenRelatorio(
+            email: widget.email,
+            tipoUser: widget.tipoUser,
+            emailFiliado: widget.emailFiliado,
+            idFiliado: widget.idFiliado,
+            idUser: widget.idUser,
+          )
         ],
       ),
     );
@@ -92,15 +98,15 @@ class TotalVendasState extends State<TotalVendas> {
       stream: _getVendasStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator(); 
+          return CircularProgressIndicator();
         }
         if (snapshot.hasError) {
-          return Text('Erro ao carregar os dados.'); // Mostra uma mensagem de erro
+          return Text(
+              'Erro ao carregar os dados.'); // Mostra uma mensagem de erro
         }
-       
 
         int quantVendas = snapshot.data!.size;
-        return showLineChart(quantVendas); 
+        return showLineChart(quantVendas);
       },
     );
   }

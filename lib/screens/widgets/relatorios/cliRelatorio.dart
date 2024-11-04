@@ -8,8 +8,10 @@ import 'package:printing/printing.dart';
 class CliRelatorio extends StatelessWidget {
   final String email;
   final String tipoUser;
+  final String idUser;
   final String? emailFiliado;
-  CliRelatorio(this.email, this.tipoUser, this.emailFiliado);
+  final String? idUserFiliado;
+  CliRelatorio(this.email, this.tipoUser, this.idUser, this.emailFiliado, this.idUserFiliado);
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +40,10 @@ class CliRelatorio extends StatelessWidget {
             ? FirebaseFirestore.instance.collection('clientes')
             : FirebaseFirestore.instance
                 .collection('clientes')
-                .where('email_user', isEqualTo: emailFiliado))
+                .where('id_user', isEqualTo: idUserFiliado))
         : FirebaseFirestore.instance
             .collection('clientes')
-            .where('email_user', isEqualTo: email);
+            .where('id_user', isEqualTo: idUser);
 
     final querySnapshot = await collection.get();
 
@@ -51,49 +53,27 @@ class CliRelatorio extends StatelessWidget {
             ? FirebaseFirestore.instance.collection('vendas')
             : FirebaseFirestore.instance
                 .collection('vendas')
-                .where('email_user', isEqualTo: emailFiliado))
+                .where('id_user', isEqualTo: idUserFiliado))
         : FirebaseFirestore.instance
             .collection('vendas')
-            .where('email_user', isEqualTo: email);
+            .where('id_user', isEqualTo: idUser);
 
     final queryVendas = await vendas.get();
 
-    // Buscar itens_vendas do Firestore
-    final iven = tipoUser == 'master'
-        ? (emailFiliado == null
-            ? FirebaseFirestore.instance.collection('itens_vendas')
-            : FirebaseFirestore.instance
-                .collection('itens_vendas')
-                .where('email_user', isEqualTo: emailFiliado))
-        : FirebaseFirestore.instance
-            .collection('itens_vendas')
-            .where('email_user', isEqualTo: email);
-
-    final queryIven = await iven.get();
-
     for (var datacliente in querySnapshot.docs) {
       int quantvendas = 0;
-      num quantiven = 0;
 
       for (var datavendas in queryVendas.docs) {
-        if (datavendas['idcliente'] == datacliente.id) {
+        if (datavendas['id_user'] == datacliente['id_user']) {
           quantvendas++;
-
-          for (var dataiven in queryIven.docs) {
-            if (dataiven['idvenda'] == datavendas.id) {
-              var aux = dataiven['quantidade'];
-              quantiven += aux;
-            }
-          }
         }
       }
 
       Map<String, dynamic> novoCliente = {
         'name': datacliente['name'],
-        'whatsapp': datacliente['whatsapp'],
+        'whatsapp': datacliente['phone_number'],
         'email': datacliente['email'],
         'quantvendas': quantvendas,
-        'quantiven': quantiven
       };
 
       // Adicionando o novo cliente à lista
@@ -129,7 +109,7 @@ class CliRelatorio extends StatelessWidget {
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text('Relatório de Clientes', style: titleStyle),
+            pw.Text('Relatório de Clientes', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 5),
             pw.Text('Quantidade Total de Clientes: ${clientes.length}',
                 style: subtitleStyle),
@@ -155,7 +135,6 @@ class CliRelatorio extends StatelessWidget {
               'Whatsapp',
               'Email',
               'Quant. Compras',
-              'Quant. Produtos'
             ],
             data: clientesPage.map((cliente) {
               return [
@@ -163,7 +142,7 @@ class CliRelatorio extends StatelessWidget {
                 cliente['whatsapp'].toString(),
                 cliente['email'],
                 cliente['quantvendas'].toString(),
-                cliente['quantiven'].toString()
+                
               ];
             }).toList(),
             headerStyle: headerStyle,

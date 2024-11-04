@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'package:smart_pagamento/screens/cadastros/telaCadastroFiliado.dart';
+import 'package:smart_pagamento/inutilizados/telaCadastroFiliado.dart';
 
 class FiliadoListScreen extends StatefulWidget {
   final String? email;
