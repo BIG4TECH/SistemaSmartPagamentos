@@ -1,10 +1,14 @@
+import 'dart:io';
+import 'dart:html' as html;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+//import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+//import 'package:share_plus/share_plus.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 
@@ -28,12 +32,13 @@ class VenRelatorio extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
 
     return Center(
       child: IconButton(
         onPressed: () async {
           showDialogCliente(context, dadosCliente, selectedDateRange,
-              email ?? '', tipoUser, idUser, emailFiliado, idFiliado);
+              email ?? '', tipoUser, idUser, emailFiliado, idFiliado, size);
         },
         icon: const Icon(Icons.picture_as_pdf_rounded),
         tooltip: 'Gerar $email',
@@ -50,9 +55,11 @@ void showDialogCliente(
     String tipoUser,
     String idUser,
     String? emailFiliado,
-    String? idFiliado) async {
+    String? idFiliado,
+    Size size) async {
   dadosCliente = '';
   String? cliid = '';
+
   List<String> listCliente =
       await _setListCliente(email, tipoUser, idUser, emailFiliado, idFiliado);
 
@@ -156,16 +163,24 @@ void showDialogCliente(
                       tipoUser,
                       emailFiliado,
                       idFiliado,
-                      idUser);
+                      idUser,
+                      size);
                 } else if (cliid != '') {
-                  await generateAndPrintPdfCliente(
-                      context, cliid.toString(), email, tipoUser, emailFiliado, idFiliado, idUser);
+                  await generateAndPrintPdfCliente(context, cliid.toString(),
+                      email, tipoUser, emailFiliado, idFiliado, idUser, size);
                 } else if (selectedDateRange != null) {
-                  await generateAndPrintPdfDateRange(context,
-                      selectedDateRange!, email, tipoUser, emailFiliado, idFiliado, idUser);
+                  await generateAndPrintPdfDateRange(
+                      context,
+                      selectedDateRange!,
+                      email,
+                      tipoUser,
+                      emailFiliado,
+                      idFiliado,
+                      idUser,
+                      size);
                 } else {
-                  await generateAndPrintPdf(
-                      context, email, tipoUser, emailFiliado, idFiliado, idUser);
+                  await generateAndPrintPdf(context, email, tipoUser,
+                      emailFiliado, idFiliado, idUser, size);
                 }
                 Navigator.of(context).pop();
               },
@@ -237,7 +252,8 @@ Future<void> generateAndPrintPdfClienteDataRange(
     String tipoUser,
     String? emailFiliado,
     String? idFiliado,
-    String idUser) async {
+    String idUser,
+    Size size) async {
   List<Map<String, dynamic>> listVendas = [];
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
@@ -304,9 +320,23 @@ Future<void> generateAndPrintPdfClienteDataRange(
     );
   }));
 
-  await Printing.layoutPdf(
-    onLayout: (PdfPageFormat format) async => pdf.save(),
-  );
+  if (size.width <= 720) {
+    final pdfBytes = await pdf.save();
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    // Cria um link temporário para download
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute("download", "relatorio.pdf")
+      ..click();
+
+    // Revoga o objeto URL após o download
+    html.Url.revokeObjectUrl(url);
+  } else {
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  }
 }
 
 Future<void> generateAndPrintPdfDateRange(
@@ -316,7 +346,8 @@ Future<void> generateAndPrintPdfDateRange(
     String tipoUser,
     String? emailFiliado,
     String? idFiliado,
-    String idUser) async {
+    String idUser,
+    Size size) async {
   List<Map<String, dynamic>> listVendas = [];
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
@@ -389,13 +420,34 @@ Future<void> generateAndPrintPdfDateRange(
     );
   }));
 
-  await Printing.layoutPdf(
-    onLayout: (PdfPageFormat format) async => pdf.save(),
-  );
+  if (size.width <= 720) {
+    final pdfBytes = await pdf.save();
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    // Cria um link temporário para download
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute("download", "relatorio.pdf")
+      ..click();
+
+    // Revoga o objeto URL após o download
+    html.Url.revokeObjectUrl(url);
+  } else {
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  }
 }
 
-Future<void> generateAndPrintPdfCliente(BuildContext context, String nomeCliente,
-    String email, String tipoUser, String? emailFiliado, idFiliado, idUser) async {
+Future<void> generateAndPrintPdfCliente(
+    BuildContext context,
+    String nomeCliente,
+    String email,
+    String tipoUser,
+    String? emailFiliado,
+    idFiliado,
+    idUser,
+    Size size) async {
   List<Map<String, dynamic>> listVendas = [];
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
@@ -453,21 +505,39 @@ Future<void> generateAndPrintPdfCliente(BuildContext context, String nomeCliente
     );
   }));
 
-  await Printing.layoutPdf(
-    onLayout: (PdfPageFormat format) async => pdf.save(),
-  );
+  if (size.width <= 720) {
+    final pdfBytes = await pdf.save();
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    // Cria um link temporário para download
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute("download", "relatorio.pdf")
+      ..click();
+
+    // Revoga o objeto URL após o download
+    html.Url.revokeObjectUrl(url);
+  } else {
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  }
 }
 
-
-Future<void> generateAndPrintPdf(BuildContext context, String email,
-    String tipoUser, String? emailFiliado, String? idFiliado, String idUser) async {
+Future<void> generateAndPrintPdf(
+    BuildContext context,
+    String email,
+    String tipoUser,
+    String? emailFiliado,
+    String? idFiliado,
+    String idUser,
+    Size size) async {
   List<Map<String, dynamic>> listVendas = [];
   DateTime datahora = DateTime.now();
   DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
   final pdf = pw.Document();
 
-  
   final vendas = FirebaseFirestore.instance
       .collection('vendas')
       .where('id_user', isEqualTo: idFiliado ?? idUser);
@@ -497,7 +567,7 @@ Future<void> generateAndPrintPdf(BuildContext context, String email,
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-         pw.Text('Relatório de Vendas',
+        pw.Text('Relatório de Vendas',
             style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
         pw.Divider(),
         pw.Table.fromTextArray(
@@ -526,7 +596,21 @@ Future<void> generateAndPrintPdf(BuildContext context, String email,
     );
   }));
 
-  await Printing.layoutPdf(
-    onLayout: (PdfPageFormat format) async => pdf.save(),
-  );
+  if (size.width <= 720) {
+    final pdfBytes = await pdf.save();
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    // Cria um link temporário para download
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute("download", "relatorio.pdf")
+      ..click();
+
+    // Revoga o objeto URL após o download
+    html.Url.revokeObjectUrl(url);
+  } else {
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  }
 }

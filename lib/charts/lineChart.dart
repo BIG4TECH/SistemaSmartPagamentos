@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '/presentation/resources/app_resources.dart';
 import '/presentation/widgets/indicator.dart';
@@ -11,7 +14,8 @@ class LineChartSample1 extends StatefulWidget {
   final String idUser;
   final String? emailFiliado;
   final String? idFiliado;
-  const LineChartSample1(this.email, this.tipoUser, this.idUser, this.emailFiliado, this.idFiliado);
+  const LineChartSample1(this.email, this.tipoUser, this.idUser,
+      this.emailFiliado, this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => LineChartSample1State();
@@ -19,10 +23,17 @@ class LineChartSample1 extends StatefulWidget {
 
 class LineChartSample1State extends State<LineChartSample1> {
   List<List<FlSpot>> _listAllData = [[], [], []];
+  StreamSubscription? vendasSubscription;
+  StreamSubscription? clientesSubscription;
 
   @override
   void initState() {
     super.initState();
+    print('Email: ' + widget.email.toString());
+    print('Tipo: ' + widget.tipoUser);
+    print('iduser: ' + widget.idUser);
+    print(widget.emailFiliado);
+    print(widget.idFiliado);
 
     try {
       getDataVendas();
@@ -30,13 +41,15 @@ class LineChartSample1State extends State<LineChartSample1> {
       print(e);
     }
 
-    try {
-      getDataClientes();
-    } catch (e) {
-      print(e);
-    }
+    //getDataClientes();
 
     //getDataProducts();
+  }
+
+  void dispose() {
+    vendasSubscription?.cancel();
+    clientesSubscription?.cancel();
+    super.dispose();
   }
 
   //0 - vendasEfetuadas
@@ -50,46 +63,52 @@ class LineChartSample1State extends State<LineChartSample1> {
         lastDayOfMonth.day, (index) => FlSpot((index + 1).toDouble(), 0));
 
     print('VENDAS EFETUADAS ANTES DO LISTEN: $vendasEfetuadas ');
+    print('TIPO USER: ${widget.tipoUser}');
+    print(widget.idUser);
 
     var query = widget.tipoUser == 'master'
         ? (widget.idFiliado == null
-            ? FirebaseFirestore.instance.collection('vendas').where('data',
-                isGreaterThanOrEqualTo: firstDayOfMonth,
-                isLessThanOrEqualTo: lastDayOfMonth)
+            ? FirebaseFirestore.instance.collection('vendas')
             : FirebaseFirestore.instance
                 .collection('vendas')
-                .where('data',
-                    isGreaterThanOrEqualTo: firstDayOfMonth,
-                    isLessThanOrEqualTo: lastDayOfMonth)
                 .where('id_user', isEqualTo: widget.idFiliado))
         : FirebaseFirestore.instance
             .collection('vendas')
-            .where('data',
-                isGreaterThanOrEqualTo: firstDayOfMonth,
-                isLessThanOrEqualTo: lastDayOfMonth)
             .where('id_user', isEqualTo: widget.idUser);
 
     query.snapshots().listen((vendasSnapshot) async {
       print('INICIO DO LISTEN');
-
+      print(vendasSnapshot.docs.length);
       // VENDAS EFETUADAS
       for (var docvenda in vendasSnapshot.docs) {
-        if (docvenda.data().containsKey('data')) {
-          DateTime dataVenda = (docvenda['data'] as Timestamp).toDate();
-          int dia = dataVenda.day;
-          print(dia);
-          vendasEfetuadas[dia - 1] =
-              FlSpot(dia.toDouble(), vendasEfetuadas[dia - 1].y + 1);
+        if (docvenda.data().containsKey('first_execution')) {
+          try {
+            DateTime dataVenda =
+                DateFormat("dd/MM/yyyy").parse(docvenda['first_execution']);
+            print(dataVenda);
+            if (dataVenda.isAfter(
+                    firstDayOfMonth.subtract(const Duration(days: 1))) &&
+                dataVenda
+                    .isBefore(lastDayOfMonth.add(const Duration(days: 1)))) {
+              int dia = dataVenda.day;
+              print(dia);
+              vendasEfetuadas[dia - 1] =
+                  FlSpot(dia.toDouble(), vendasEfetuadas[dia - 1].y + 1);
+            }
+          } catch (e) {
+            print("Erro ao converter a data: $e");
+          }
         }
       }
 
-      print('VENDAS EFETUADAS DEPOIS DO LISTEN: $vendasEfetuadas ');
       try {
         await Future.delayed(const Duration(milliseconds: 100));
-        setState(() {
-          _listAllData[0] = vendasEfetuadas;
-          print('VENDAS EFETUADAS NO SET STATE: ${_listAllData[0]}');
-        });
+        if (mounted) {
+          setState(() {
+            _listAllData[0] = vendasEfetuadas;
+            print('VENDAS EFETUADAS NO SET STATE: ${_listAllData[0]}');
+          });
+        }
       } catch (e) {
         print(e);
       }
@@ -211,16 +230,16 @@ class LineChartSample1State extends State<LineChartSample1> {
               FlSpot(dia.toDouble(), clientesRegistrados[dia - 1].y + 1);
         }
       }
-
-      setState(() {
-        _listAllData[2] = clientesRegistrados;
-        print('CLIENTES REGISTRADOS SET STATE: ${_listAllData[2]}');
-      });
+      if (mounted) {
+        setState(() {
+          _listAllData[2] = clientesRegistrados;
+          print('CLIENTES REGISTRADOS SET STATE: ${_listAllData[2]}');
+        });
+      }
     }, onError: (error) {
       print('CLIENTES REGISTRADOS ERRO: $error');
     });
   }
-
 
   Widget showLineChart(Size size) {
     DateTime now = DateTime.now();
@@ -246,6 +265,7 @@ class LineChartSample1State extends State<LineChartSample1> {
         children: <Widget>[
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               const SizedBox(
                 height: 20,
@@ -264,14 +284,17 @@ class LineChartSample1State extends State<LineChartSample1> {
                 height: 20,
               ),
               size.width <= 720
-                  ? const Column(
-                      children: [
-                        Indicator(
-                          color: AppColors.contentColorYellow,
-                          text: 'Vendas Efetuadas',
-                          isSquare: true,
-                        ),
-                        /*
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Indicator(
+                            color: AppColors.contentColorPurple,
+                            text: 'Vendas Efetuadas',
+                            isSquare: true,
+                          ),
+                          /*
                         SizedBox(
                           width: 24,
                         ),
@@ -280,7 +303,8 @@ class LineChartSample1State extends State<LineChartSample1> {
                           text: 'Produtos Vendidos',
                           isSquare: true,
                         ),
-                        */
+                        
+
                         SizedBox(
                           width: 24,
                         ),
@@ -288,14 +312,15 @@ class LineChartSample1State extends State<LineChartSample1> {
                           color: AppColors.contentColorPurple,
                           text: 'Clientes Registrados',
                           isSquare: true,
-                        ),
-                      ],
+                        ),*/
+                        ],
+                      ),
                     )
                   : const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Indicator(
-                          color: AppColors.contentColorYellow,
+                          color: AppColors.contentColorPurple,
                           text: 'Vendas Efetuadas',
                           isSquare: true,
                         ),
@@ -308,7 +333,7 @@ class LineChartSample1State extends State<LineChartSample1> {
                           text: 'Produtos Vendidos',
                           isSquare: true,
                         ),
-                        */
+                        
                         SizedBox(
                           width: 24,
                         ),
@@ -316,7 +341,7 @@ class LineChartSample1State extends State<LineChartSample1> {
                           color: AppColors.contentColorPurple,
                           text: 'Clientes Registrados',
                           isSquare: true,
-                        ),
+                        ),*/
                       ],
                     ),
               const SizedBox(
@@ -350,7 +375,7 @@ class LineChartSample1State extends State<LineChartSample1> {
       _listAllData = [[], [], []]; // Limpa os dados antigos
       getDataVendas();
       //getDataProducts();
-      getDataClientes();
+      //getDataClientes();
     }
   }
 
@@ -417,7 +442,7 @@ class LineChartSample1State extends State<LineChartSample1> {
   List<LineChartBarData> get lineBarsData1 => [
         lineChartBarData1_1,
         //lineChartBarData1_2,
-        lineChartBarData1_3,
+        //lineChartBarData1_3,
       ];
 
   // DADOS DO TÍTULO DA ESQUERDA
@@ -430,6 +455,18 @@ class LineChartSample1State extends State<LineChartSample1> {
 
     text = '${value.toInt()}';
 
+    //se par
+    if (getMaxValue() % 2 == 0) {
+      return value % getMaxValue() == 0 || value == getMaxValue() / 2
+          ? Text(text.toString(), style: style, textAlign: TextAlign.center)
+          : const Text('');
+    }
+
+    //se impar
+    return value % getMaxValue() == 0 || value == (getMaxValue() / 2).toInt()
+        ? Text(text.toString(), style: style, textAlign: TextAlign.center)
+        : const Text('');
+    /*
     if (getMaxValue() <= 10) {
       //se par
       if (getMaxValue() % 2 == 0) {
@@ -480,6 +517,7 @@ class LineChartSample1State extends State<LineChartSample1> {
           : const Text('');
     }
     return Text(text.toString(), style: style, textAlign: TextAlign.center);
+    */
   }
 
   // CONFIGURAÇÃO DOS TAMANHOS DO TÍTULO DO LADO ESQUERDO
@@ -548,7 +586,7 @@ class LineChartSample1State extends State<LineChartSample1> {
   // quantidade de vendas efetuadas no mês
   LineChartBarData get lineChartBarData1_1 => LineChartBarData(
         isCurved: false,
-        color: AppColors.contentColorYellow,
+        color: AppColors.contentColorPurple,
         barWidth: 5,
         isStrokeCapRound: true,
         dotData: const FlDotData(show: true),
@@ -569,7 +607,7 @@ class LineChartSample1State extends State<LineChartSample1> {
         ),
         spots: _listAllData.isNotEmpty ? _listAllData[1] : [],
       );
-  */
+  
   // quantidade de clientes registrados no mês
   LineChartBarData get lineChartBarData1_3 => LineChartBarData(
         isCurved: false,
@@ -580,4 +618,5 @@ class LineChartSample1State extends State<LineChartSample1> {
         belowBarData: BarAreaData(show: false),
         spots: _listAllData.isNotEmpty ? _listAllData[2] : [],
       );
+*/
 }

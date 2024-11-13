@@ -30,8 +30,6 @@ class _HomeState extends State<Home> {
     setState(() {
       tipoUser = user.docs.first['tipo_user'];
       idUser = user.docs.first.id;
-
-      print('USER NO HOME: ${user.docs.first['tipo_user']}');
     });
   }
 
@@ -48,6 +46,10 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    if (tipoUser == '') {
+      _tipoUser(widget.email);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Home",
@@ -93,7 +95,13 @@ class _HomeState extends State<Home> {
         ],
       ),
       drawer: menuDrawer(context, widget.email, tipoUser, idUser),
-      body: AllCharts(widget.email, tipoUser, idUser),
+      body: tipoUser == ''
+          ? Center(
+              child: CircularProgressIndicator(
+                color: corPadrao(),
+              ),
+            )
+          : AllCharts(widget.email, tipoUser, idUser),
     );
   }
 }

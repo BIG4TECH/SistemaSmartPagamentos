@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '/presentation/resources/app_resources.dart';
 import '/presentation/widgets/indicator.dart';
@@ -11,8 +12,9 @@ class PieChartProd extends StatefulWidget {
   final String idUser;
   final String? emailFiliado;
   final String? idFiliado;
-  
-  const PieChartProd(this.email, this.tipoUser, this.idUser, this.emailFiliado, this.idFiliado);
+
+  const PieChartProd(this.email, this.tipoUser, this.idUser, this.emailFiliado,
+      this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => PieChartProdState();
@@ -25,6 +27,8 @@ class PieChartProdState extends State<PieChartProd> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+
     return FutureBuilder<List<DadosProduto>>(
       future: getDataProductsPie(),
       builder: (context, snapshot) {
@@ -39,12 +43,12 @@ class PieChartProdState extends State<PieChartProd> {
         _quantidadeTotal = _listProdutosEscolhidos.fold(
             0, (sum, item) => sum + (item.quantidade ?? 0));
 
-        return showPieProdutosVendidos();
+        return showPieProdutosVendidos(size);
       },
     );
   }
 
-  Widget showPieProdutosVendidos() {
+  Widget showPieProdutosVendidos(Size size) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(25),
@@ -59,16 +63,18 @@ class PieChartProdState extends State<PieChartProd> {
         ],
       ),
       child: Column(
+       
         children: [
           const SizedBox(
             height: 10,
           ),
-          const Text(
+           Text(
             'Quantidade de produtos mais vendidos no mês',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: size.width <= 720 ? 14 : 18),
           ),
           Container(
             //color: Colors.amber,
+           
             height: 200,
             width: 430,
             child: Row(
@@ -93,7 +99,7 @@ class PieChartProdState extends State<PieChartProd> {
                       ),
                       borderData: FlBorderData(show: false),
                       sectionsSpace: 0,
-                      centerSpaceRadius: 40,
+                      centerSpaceRadius: size.width <= 720 ? 15 : 40,
                       sections: showingSections(),
                     ),
                   ),
@@ -155,39 +161,32 @@ class PieChartProdState extends State<PieChartProd> {
 
     if (widget.tipoUser == 'master') {
       if (widget.emailFiliado == null) {
-        vendas = await FirebaseFirestore.instance
-            .collection('vendas')
-            .where('data',
-                isGreaterThanOrEqualTo: firstDayOfMonth,
-                isLessThanOrEqualTo: lastDayOfMonth)
-            //.where('email_user', isEqualTo: widget.email)
-            .get();
+        vendas = await FirebaseFirestore.instance.collection('vendas').get();
       } else {
         vendas = await FirebaseFirestore.instance
             .collection('vendas')
-            .where('data',
-                isGreaterThanOrEqualTo: firstDayOfMonth,
-                isLessThanOrEqualTo: lastDayOfMonth)
             .where('id_user', isEqualTo: widget.idFiliado)
             .get();
       }
     } else {
       vendas = await FirebaseFirestore.instance
           .collection('vendas')
-          .where('data',
-              isGreaterThanOrEqualTo: firstDayOfMonth,
-              isLessThanOrEqualTo: lastDayOfMonth)
           .where('id_user', isEqualTo: widget.idUser)
           .get();
     }
 
+    vendas = vendas.docs.where((doc) {
+      DateTime dataVenda =
+          DateFormat("dd/MM/yyyy").parse(doc['first_execution']);
+      return dataVenda.isAfter(firstDayOfMonth.subtract(Duration(days: 1))) &&
+          dataVenda.isBefore(lastDayOfMonth.add(Duration(days: 1)));
+    }).toList();
+
     var produtos;
     if (widget.tipoUser == 'master') {
       if (widget.emailFiliado == null) {
-        produtos = await FirebaseFirestore.instance
-            .collection('products')
-            //.where('email_user', isEqualTo: widget.email)
-            .get();
+        produtos =
+            await FirebaseFirestore.instance.collection('products').get();
       } else {
         produtos = await FirebaseFirestore.instance
             .collection('products')
@@ -204,15 +203,13 @@ class PieChartProdState extends State<PieChartProd> {
     Map<String, DadosProduto> produtosEscolhidosMap = {};
     _quantidadeTotal = 0;
 
-    for (var docvenda in vendas.docs) {
+    for (var docvenda in vendas) {
       for (var docprod in produtos.docs) {
         int quantidade = 0;
 
-       
         if (docvenda['plan']['id'] == docprod['plan_id']) {
           quantidade++;
         }
-        
 
         if (quantidade > 0) {
           _quantidadeTotal += quantidade;

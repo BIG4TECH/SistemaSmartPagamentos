@@ -20,24 +20,50 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-  //final TextEditingController _descontoController = TextEditingController();
+
   int _recurrencePeriod = 1;
-  String _paymentOption = 'Cartão de crédito/débito';
   bool _isLoading = false;
   late int _planId;
+  bool _isDollar = false;
+
+  bool _isCreditCardSelected = false;
+  bool _isPixSelected = false;
+  bool _isBoletoSelected = false;
 
   final List<RecurrencePeriod> recurrencePeriods = [
     RecurrencePeriod(1, 'Mensal'),
     RecurrencePeriod(2, 'Bimestral'),
     RecurrencePeriod(3, 'Trimestral'),
+    RecurrencePeriod(6, 'Semestral'),
+    RecurrencePeriod(12, 'Anual'),
   ];
 
   @override
   void initState() {
     super.initState();
+
     if (widget.productId != null) {
       _loadProduct();
     }
+  }
+
+  String _getPaymentOption() {
+    if (_isCreditCardSelected && _isPixSelected && _isBoletoSelected) {
+      return 'Ambos';
+    } else if (_isCreditCardSelected) {
+      return 'Cartão';
+    } else if (_isPixSelected) {
+      return 'Pix';
+    } else if (_isBoletoSelected) {
+      return 'Boleto';
+    } else if (_isCreditCardSelected && _isPixSelected) {
+      return 'Cartão/Pix';
+    } else if (_isCreditCardSelected && _isBoletoSelected) {
+      return 'Cartão/Boleto';
+    } else if (_isBoletoSelected && _isPixSelected) {
+      return 'Pix/Boleto';
+    }
+    return '';
   }
 
   void _showDialog(BuildContext context) {
@@ -89,15 +115,20 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
 
           _nameController.text = productData['name'];
           _priceController.text = productData['price'].toString();
-          //_descontoController.text = productData['desconto'].toString();
           _recurrencePeriod = productData['recurrencePeriod'];
-          _paymentOption = productData['paymentOption'];
+          _isDollar = productData['is_dollar'];
+
+          String paymentOption = productData['paymentOption'];
+          _isCreditCardSelected =
+              paymentOption == 'Cartão' || paymentOption == 'Ambos';
+          _isPixSelected = paymentOption == 'Pix' || paymentOption == 'Ambos';
+          _isBoletoSelected =
+              paymentOption == 'Boleto' || paymentOption == 'Ambos';
           _planId = productData['plan_id'];
           break;
         }
       }
     } else {
-      // Tratar o caso onde nenhum documento foi encontrado
       print('Nenhum produto encontrado para este usuário.');
     }
 
@@ -108,42 +139,59 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
 
   void _registerOrEditProduct() async {
     if (_formKey.currentState!.validate()) {
-      print(_nameController.text);
-      print(widget.email);
-
+      setState(() {
+        _isLoading = true;
+      });
       if (widget.email == null) {
-        // Exibe um erro se o email for nulo e não permita o registro
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Email do usuário não encontrado.')),
         );
+        setState(() {
+          _isLoading = false;
+        });
         return;
       }
-      bool nameExists = await _nameExist(_nameController.text, widget.email);
 
+      if (!_isCreditCardSelected && !_isPixSelected && !_isBoletoSelected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Selecione pelo menos uma forma de pagamento.')),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      bool nameExists = await _nameExist(_nameController.text, widget.email);
       ApiService apiService = ApiService();
 
       if (widget.productId == null && nameExists) {
         _showDialog(context);
+        setState(() {
+          _isLoading = false;
+        });
         return;
       } else {
         if (widget.productId == null) {
-          print('CHEGOU');
-
           var responsePlanoPosted = await apiService.criarPlano(
               _nameController.text, 2, _recurrencePeriod);
 
           if (responsePlanoPosted['status'] == 200) {
             await FirebaseFirestore.instance.collection('products').add({
               'name': _nameController.text,
-              'plan_id': responsePlanoPosted['body']['data']['plan_id'],
+              'plan_id': responsePlanoPosted['body']['data'],
               'price': double.parse(_priceController.text),
-              //'desconto': int.parse(_descontoController.text),
+              'is_dollar': _isDollar,
               'recurrencePeriod': _recurrencePeriod,
-              'paymentOption': _paymentOption,
+              'paymentOption': _getPaymentOption(),
               'email_user': widget.email
             });
           } else {
             showDialogApi(context);
+            setState(() {
+              _isLoading = false;
+            });
             return;
           }
         } else {
@@ -154,7 +202,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                 _nameController.text, 2, _recurrencePeriod);
 
             if (responsePlanoPosted['status'] == 200) {
-              var novoPlanId = responsePlanoPosted['body']['data']['plan_id'];
+              var novoPlanId = responsePlanoPosted['body']['data'];
               var antigoPlanId = await FirebaseFirestore.instance
                   .collection('products')
                   .doc(widget.productId)
@@ -166,27 +214,38 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                   .doc(widget.productId)
                   .update({
                 'name': _nameController.text,
-                'plan_id': responsePlanoPosted['body']['data']['plan_id'],
+                'plan_id': novoPlanId,
                 'price': double.parse(_priceController.text),
-                //'desconto': int.parse(_descontoController.text),
+                'is_dollar': _isDollar,
                 'recurrencePeriod': _recurrencePeriod,
-                'paymentOption': _paymentOption,
+                'paymentOption': _getPaymentOption(),
               });
 
               var vendas =
                   await FirebaseFirestore.instance.collection('vendas').get();
 
-                  for (var venda in vendas.docs) {
-                    if (venda['plan']['id'] == antigoPlanId) {
-                      await FirebaseFirestore.instance.collection('vendas').doc(venda.id).update({'plan': {'id': novoPlanId}});
-                    }
-                  }
+              for (var venda in vendas.docs) {
+                if (venda['plan']['id'] == antigoPlanId) {
+                  await FirebaseFirestore.instance
+                      .collection('vendas')
+                      .doc(venda.id)
+                      .update({
+                    'plan': {'id': novoPlanId}
+                  });
+                }
+              }
             } else {
               showDialogApi(context);
+              setState(() {
+                _isLoading = false;
+              });
               return;
             }
           } else {
             showDialogApi(context);
+            setState(() {
+              _isLoading = false;
+            });
             return;
           }
         }
@@ -196,7 +255,6 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                 'Produto ${widget.productId == null ? 'registrado' : 'atualizado'} com sucesso!')));
         _nameController.clear();
         _priceController.clear();
-        //_descontoController.clear();
         Navigator.of(context).pop();
       }
     }
@@ -207,179 +265,290 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-            widget.productId == null
-                ? 'Cadastro de Produtos'
-                : 'Edição de Produtos',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 38,
-            )),
-        iconTheme: IconThemeData(color: Colors.white),
-        centerTitle: true,
-        backgroundColor: corPadrao(),
-      ),
-      body: Container(
-        margin: size.width <= 720
-            ? EdgeInsets.symmetric(
-                horizontal: size.width * 0.07, vertical: size.width * 0.07)
-            : EdgeInsets.symmetric(
-                horizontal: size.width * 0.05, vertical: size.width * 0.05),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: Offset(0, 0),
-            ),
-          ],
+        appBar: AppBar(
+          title: Text(
+              widget.productId == null
+                  ? 'Cadastro de Produtos'
+                  : 'Edição de Produtos',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 38,
+              )),
+          iconTheme: IconThemeData(color: Colors.white),
+          centerTitle: true,
+          backgroundColor: corPadrao(),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // NOME DO PRODUTO
-                TextFormField(
-                  style: TextStyle(
-                      color: Colors.black87, fontWeight: FontWeight.bold),
-                  controller: _nameController,
-                  decoration: inputDec('Nome do Produto'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor digite o nome do produto';
-                    }
-                    return null;
-                  },
+        body: SingleChildScrollView(
+          child: Container(
+            margin: size.width <= 720
+                ? EdgeInsets.symmetric(
+                    horizontal: size.width * 0.07, vertical: size.width * 0.07)
+                : EdgeInsets.symmetric(
+                    horizontal: size.width * 0.05, vertical: size.width * 0.05),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                  offset: Offset(0, 0),
                 ),
-                SizedBox(height: 20),
-
-                // PREÇO
-                TextFormField(
-                  style: TextStyle(
-                      color: Colors.black87, fontWeight: FontWeight.bold),
-                  controller: _priceController,
-                  decoration: inputDec('Preço'),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d+\.?\d{0,2}')),
-                  ],
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor digite o preço';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 20),
-
-                // VALOR DE DESCONTO
-                /*
-                TextFormField(
-                  style: TextStyle(
-                      color: Colors.black87, fontWeight: FontWeight.bold),
-                  controller: _descontoController,
-                  decoration: inputDec('Desconto (%)'),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor digite o valor de desconto!';
-                    }
-                    return null;
-                  },
-                ),
-                
-                SizedBox(height: 20),
-*/
-                // PERÍODO DE RECORRÊNCIA
-                DropdownButtonFormField<int>(
-                  style: TextStyle(
-                      color: Colors.black87,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15),
-                  value: _recurrencePeriod,
-                  dropdownColor: Colors.white,
-                  decoration: inputDec('Período de Recorrência'),
-                  items: recurrencePeriods.map((RecurrencePeriod periodo) {
-                    return DropdownMenuItem<int>(
-                      value: periodo.value,
-                      child: Text(periodo.text),
-                    );
-                  }).toList(),
-                  onChanged: (int? newValue) {
-                    setState(() {
-                      _recurrencePeriod = newValue!;
-                    });
-                  },
-                ),
-                SizedBox(height: 20),
-
-                // OPÇÃO DE PAGAMENTOS
-                DropdownButtonFormField<String>(
-                  style: TextStyle(
-                      color: Colors.black87, fontWeight: FontWeight.bold),
-                  value: _paymentOption,
-                  dropdownColor: Colors.white,
-                  decoration: inputDec('Forma de Pagamento'),
-                  items: ['Cartão de crédito/débito', 'Pix', 'Boleto']
-                      .map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _paymentOption = newValue!;
-                    });
-                  },
-                ),
-                SizedBox(height: 20),
-                _isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: gradientBtn(),
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ElevatedButton(
-                          onPressed: _registerOrEditProduct,
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              fixedSize:
-                                  Size(size.width * 0.35, size.height * 0.01),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5))),
-                          child: Text(
-                              widget.productId != null ? 'Editar' : 'Cadastrar',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: size.height * 0.022,
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                Spacer(),
               ],
             ),
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // NOME DO PRODUTO
+                    TextFormField(
+                      style: TextStyle(
+                          color: Colors.black87, fontWeight: FontWeight.bold),
+                      controller: _nameController,
+                      decoration: inputDec('Nome do Produto'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, digite o nome do produto';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 20),
+
+                    // PREÇO
+                    size.width <= 720
+                        ? Column(
+                            children: [
+                              TextFormField(
+                                style: TextStyle(
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.bold),
+                                controller: _priceController,
+                                decoration: inputDec('Valor'),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d+\.?\d{0,2}')),
+                                ],
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Por favor, digite o valor';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              Card(
+                                child: CheckboxListTile(
+                                  title: Text('Valor em Dólar'),
+                                  value: _isDollar,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      _isDollar = value!;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  style: TextStyle(
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.bold),
+                                  controller: _priceController,
+                                  decoration: inputDec('Valor'),
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.allow(
+                                        RegExp(r'^\d+\.?\d{0,2}')),
+                                  ],
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Por favor, digite o valor';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              Expanded(
+                                child: Card(
+                                  child: CheckboxListTile(
+                                    title: Text('Valor em Dólar'),
+                                    value: _isDollar,
+                                    onChanged: (bool? value) {
+                                      setState(() {
+                                        _isDollar = value!;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                    SizedBox(height: 20),
+
+                    // PERÍODO DE RECORRÊNCIA
+                    DropdownButtonFormField<int>(
+                      style: TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15),
+                      value: _recurrencePeriod,
+                      dropdownColor: Colors.white,
+                      decoration: inputDec('Período de Recorrência'),
+                      items: recurrencePeriods.map((RecurrencePeriod periodo) {
+                        return DropdownMenuItem<int>(
+                          value: periodo.value,
+                          child: Text(periodo.text),
+                        );
+                      }).toList(),
+                      onChanged: (int? newValue) {
+                        setState(() {
+                          _recurrencePeriod = newValue!;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 20),
+
+                    // CHECKBOXES PARA OPÇÕES DE PAGAMENTO
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Forma de Pagamento',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        size.width <= 720
+                            ? Column(
+                                children: [
+                                  Card(
+                                    child: CheckboxListTile(
+                                      title: Text('Cartão'),
+                                      value: _isCreditCardSelected,
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          _isCreditCardSelected = value!;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  Card(
+                                    child: CheckboxListTile(
+                                      title: Text('Pix'),
+                                      value: _isPixSelected,
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          _isPixSelected = value!;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  Card(
+                                    child: CheckboxListTile(
+                                      title: Text('Boleto'),
+                                      value: _isBoletoSelected,
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          _isBoletoSelected = value!;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(
+                                      child: Card(
+                                    child: CheckboxListTile(
+                                      title: Text('Cartão'),
+                                      value: _isCreditCardSelected,
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          _isCreditCardSelected = value!;
+                                        });
+                                      },
+                                    ),
+                                  )),
+                                  Expanded(
+                                      child: Card(
+                                    child: CheckboxListTile(
+                                      title: Text('Pix'),
+                                      value: _isPixSelected,
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          _isPixSelected = value!;
+                                        });
+                                      },
+                                    ),
+                                  )),
+                                  Expanded(
+                                    child: Card(
+                                      child: CheckboxListTile(
+                                        title: Text('Boleto'),
+                                        value: _isBoletoSelected,
+                                        onChanged: (bool? value) {
+                                          setState(() {
+                                            _isBoletoSelected = value!;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                      ],
+                    ),
+
+                    SizedBox(height: 20),
+
+                    _isLoading
+                        ? Center(child: CircularProgressIndicator())
+                        : Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: gradientBtn(),
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _registerOrEditProduct,
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  fixedSize: Size(
+                                      size.width * 0.35, size.height * 0.01),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5))),
+                              child: Text(
+                                  widget.productId != null
+                                      ? 'Editar'
+                                      : 'Cadastrar',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: size.height * 0.022,
+                                      fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 }
 

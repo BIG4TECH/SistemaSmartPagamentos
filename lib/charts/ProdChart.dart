@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+
 import '/presentation/resources/app_resources.dart';
 import '/presentation/widgets/indicator.dart';
 
@@ -25,6 +26,8 @@ class PieChartProdState extends State<Prodchart> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+
     return FutureBuilder<List<DadosProduto>>(
       future: getDataProductsPie(),
       builder: (context, snapshot) {
@@ -39,12 +42,12 @@ class PieChartProdState extends State<Prodchart> {
         _quantidadeTotal = _listProdutosEscolhidos.fold(
             0, (sum, item) => sum + (item.quantidade ?? 0));
 
-        return showPieProdutosVendidos();
+        return showPieProdutosVendidos(size);
       },
     );
   }
 
-  Widget showPieProdutosVendidos() {
+  Widget showPieProdutosVendidos(Size size) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(25),
@@ -63,9 +66,11 @@ class PieChartProdState extends State<Prodchart> {
           const SizedBox(
             height: 10,
           ),
-          const Text(
+          Text(
             'Quantidade Total de produtos mais vendidos',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: size.width <= 720 ? 14 : 18),
           ),
           Container(
             //color: Colors.amber,
@@ -75,6 +80,7 @@ class PieChartProdState extends State<Prodchart> {
               children: <Widget>[
                 const SizedBox(height: 18),
                 Expanded(
+                 
                   child: PieChart(
                     PieChartData(
                       pieTouchData: PieTouchData(
@@ -93,7 +99,7 @@ class PieChartProdState extends State<Prodchart> {
                       ),
                       borderData: FlBorderData(show: false),
                       sectionsSpace: 0,
-                      centerSpaceRadius: 40,
+                      centerSpaceRadius: size.width <= 720 ? 15 : 40,
                       sections: showingSections(),
                     ),
                   ),
@@ -160,20 +166,6 @@ class PieChartProdState extends State<Prodchart> {
             .collection('vendas')
             .where('id_user', isEqualTo: widget.idUser)
             .get();
-
-    /*
-    var itensVendas = widget.tipoUser == 'master'
-        ? (widget.emailFiliado == null
-            ? await FirebaseFirestore.instance.collection('itens_vendas').get()
-            : await FirebaseFirestore.instance
-                .collection('itens_vendas')
-                .where('email_user', isEqualTo: widget.emailFiliado)
-                .get())
-        : await FirebaseFirestore.instance
-            .collection('itens_vendas')
-            .where('email_user', isEqualTo: widget.email)
-            .get();
-    */
 
     var produtos = widget.tipoUser == 'master'
         ? (widget.emailFiliado == null

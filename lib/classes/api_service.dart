@@ -2,16 +2,20 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = "http://localhost:3000";
+  final String baseUrl = "http://131.0.245.253:3030";
 
-  Future<String?> iniciarSessaoWhatsapp() async {
+  Future<String?> iniciarSessaoWhatsapp(String emailUser) async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/whatsapp'));
+      final response = await http.post(
+        Uri.parse('$baseUrl/whatsapp'),
+        headers: {"Content-Type": "application/json", "x-api-key": "4202@back"},
+        body: jsonEncode({'email_user': emailUser}),
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['qrCode'] != null) {
-          return data['qrCode']; // Retorna o QR Code em base64
+          return data['qrCode'];
         } else {
           print('QR Code não retornado');
         }
@@ -24,11 +28,25 @@ class ApiService {
     return null;
   }
 
+  Future<Map<String, dynamic>> verificarStatusWhatsApp(String emailUser) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/whatsapp/status'),
+        headers: {"Content-Type": "application/json", "x-api-key": "4202@back"},
+        body: jsonEncode({'email_user': emailUser}),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      print('Erro ao verificar o status do WhatsApp: $e');
+      return {'error': 'Erro ao verificar o status do WhatsApp'};
+    }
+  }
+
   Future<Map<String, dynamic>> cancelarAssinatura(int id) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/cancelar-assinatura'),
-        headers: {"Content-Type": "application/json"},
+        headers: {"Content-Type": "application/json", "x-api-key": "4202@back"},
         body: jsonEncode({"id": id}),
       );
 
@@ -39,23 +57,13 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> verificarEstadoWhatsapp() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/whatsapp-status'));
-      return _handleResponse(response);
-    } catch (e) {
-      print('Erro ao verificar o estado do WhatsApp: $e');
-      return {'error': 'Erro ao verificar o estado'};
-    }
-  }
-
   Future<Map<String, dynamic>> criarPlano(
       String name, int repeats, int interval) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/criar-plano'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({'name': name, 'repeats': repeats, 'interval': interval}),
+        headers: {"Content-Type": "application/json", "x-api-key": "4202@back"},
+        body: jsonEncode({'name': name, 'repeats': null, 'interval': interval}),
       );
       return _handleResponse(response);
     } catch (e) {
@@ -64,42 +72,28 @@ class ApiService {
     }
   }
 
-Future<Map<String, dynamic>> deletarPlano(int id) async {
-  try {
-    final response = await http.post(
-      Uri.parse('$baseUrl/deletar-plano'),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"id": id}), 
-    );
-
-    return _handleResponse(response);
-  } catch (e) {
-    print('Erro ao fazer requisição: $e');
-    return {"error": e.toString()};
-  }
-}
-
-
-  Future<Map<String, dynamic>> listarPlanos({String? name}) async {
+  Future<Map<String, dynamic>> deletarPlano(int id) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/listar-planos'),
-        headers: {"Content-Type": "application/json"},
-        body: name != null ? jsonEncode({'name': name}) : jsonEncode({}),
+        Uri.parse('$baseUrl/deletar-plano'),
+        headers: {"Content-Type": "application/json", "x-api-key": "4202@back"},
+        body: jsonEncode({"id": id}),
       );
+
       return _handleResponse(response);
     } catch (e) {
-      print('Erro ao listar planos: $e');
-      return {'error': 'Erro ao listar planos'};
+      print('Erro ao fazer requisição: $e');
+      return {"error": e.toString()};
     }
   }
 
   Map<String, dynamic> _handleResponse(http.Response response) {
     if (response.statusCode == 200) {
+      print(json.decode(response.body));
       return {
         'body': json.decode(response.body),
         'status': response.statusCode
-        };
+      };
     } else {
       return {
         "error": json.decode(response.body)["error"] ?? "Falha desconhecida",

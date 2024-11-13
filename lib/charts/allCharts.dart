@@ -27,7 +27,7 @@ class AllChartsState extends State<AllCharts> {
   String? _filiadoId;
   List<String> _listFiliadoDrop = [];
 
-  // Função para buscar os dados dos filiados
+
   Future<void> _fetchFiliadoData() async {
     List<String> filiados = await _setListFiliado();
     setState(() {
@@ -35,7 +35,6 @@ class AllChartsState extends State<AllCharts> {
     });
   }
 
-  // Função para obter a lista de filiados
   Future<List<String>> _setListFiliado() async {
     var filiados = await FirebaseFirestore.instance
         .collection('users')
@@ -91,7 +90,8 @@ class AllChartsState extends State<AllCharts> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-
+    print('tipoUser allchart: ${widget.tipoUser}');
+    print('iduser allchart: ${widget.idUser}');
     return Container(
       //color: Colors.amber,
       width: double.infinity,
@@ -189,22 +189,25 @@ class AllChartsState extends State<AllCharts> {
               size.width <= 720
                   ? Column(
                       children: [
-                        PieChartProd(
-                            widget.email, widget.tipoUser, widget.idUser, _filiadoEmail, _filiadoId),
+                        PieChartProd(widget.email, widget.tipoUser,
+                            widget.idUser, _filiadoEmail, _filiadoId),
                         const SizedBox(height: 20),
-                        Prodchart(widget.email, widget.tipoUser, widget.idUser, _filiadoEmail, _filiadoId),
+                        Prodchart(widget.email, widget.tipoUser, widget.idUser,
+                            _filiadoEmail, _filiadoId),
                       ],
                     )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        PieChartProd(
-                            widget.email, widget.tipoUser, widget.idUser, _filiadoEmail, _filiadoId),
+                        PieChartProd(widget.email, widget.tipoUser,
+                            widget.idUser, _filiadoEmail, _filiadoId),
                         const SizedBox(width: 20),
-                        Prodchart(widget.email, widget.tipoUser, widget.idUser, _filiadoEmail, _filiadoId),
+                        Prodchart(widget.email, widget.tipoUser, widget.idUser,
+                            _filiadoEmail, _filiadoId),
                       ],
                     ),
               const SizedBox(height: 20), // Espaçamento entre os gráficos
+
               LineChartSample1(widget.email, widget.tipoUser, widget.idUser,
                   _filiadoEmail, _filiadoId),
               const SizedBox(height: 20),

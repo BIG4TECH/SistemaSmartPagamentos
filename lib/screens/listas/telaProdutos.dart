@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
-import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
+//import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 import 'package:smart_pagamento/screens/widgets/exibirLink.dart';
 import 'package:smart_pagamento/screens/widgets/showdialog.dart';
 
@@ -127,6 +127,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         case 3:
                           recurrence = 'Trimestral';
                           break;
+                        case 6:
+                          recurrence = 'Semestral';
+                          break;
+                        case 12:
+                          recurrence = 'Anual';
+                          break;
                         default:
                           recurrence = 'nada';
                           break;
@@ -249,10 +255,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   icon: const Icon(Icons.link,
                                       color: Colors.white),
                                   onPressed: () {
-                                    String valor =
-                                        formatarNumero(product['price']);
+                                    //String valor =formatarNumero(product['price']);
+                                        
                                     showLinkModal(context,
-                                        "http://checkoutexemplo.com/checkout/index.html?plan=${product['plan_id']}&v=${valor}&id=${widget.idUser}");
+                                        "http://131.0.245.253:3030/checkout/index.html?i=${product.id}");
+                                        
                                   },
                                 ),
                               ),

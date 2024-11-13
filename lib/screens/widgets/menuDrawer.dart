@@ -1,10 +1,11 @@
 // ignore_for_file: prefer_const_constructors, file_names
-
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/screens/cadastros/telaCadastroCliente.dart';
+//import 'package:smart_pagamento/inutilizados/telaFiliados.dart';
+//import 'package:smart_pagamento/inutilizados/telaCadastroCliente.dart';
 //import 'package:smart_pagamento/screens/cadastros/telaCadastroFiliado.dart';
 //import 'package:smart_pagamento/screens/cadastros/telaCadastroVenda.dart';
 import 'package:smart_pagamento/screens/listas/telaClientes.dart';
+import 'package:smart_pagamento/screens/listas/telaFiliados.dart';
 //import 'package:smart_pagamento/screens/listas/telaFiliados.dart';
 import 'package:smart_pagamento/screens/listas/telaVendas.dart';
 import 'package:smart_pagamento/screens/recebimentos.dart';
@@ -95,6 +96,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
                         )));
           },
         ),
+        /*
         ListTile(
           leading: Icon(Icons.person_add_alt_1_rounded, color: corPadrao()),
           title: Text(
@@ -109,6 +111,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
                     builder: (context) => RegistraCliente(email: email, idUser: idUser,)));
           },
         ),
+        */
         ListTile(
           leading: Icon(Icons.people_alt_rounded, color: corPadrao()),
           title: Text(
@@ -126,6 +129,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
                     )));
           },
         ),
+        
         /*
         ListTile(
           leading: Icon(Icons.supervised_user_circle, color: corPadrao()),
@@ -171,6 +175,25 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
           },
         ),
         */
+        tipoUser == 'master' ? 
+        ListTile(
+          leading: Icon(Icons.how_to_reg, color: corPadrao()),
+          title: Text(
+            "Meus Filiados",
+            style: TextStyle(fontSize: 16),
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => FiliadosScreen(email: email, 
+                    tipoUser: tipoUser,
+                    idUser: idUser,
+                    )));
+          },
+        )
+        : SizedBox(),
         ListTile(
           leading:
               Icon(Icons.shopping_cart_checkout_rounded, color: corPadrao()),
@@ -189,7 +212,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
                     )));
           },
         ),
-        tipoUser == 'master' ? ListTile(
+        ListTile(
           leading:
               Icon(Icons.qr_code, color: corPadrao()),
           title: Text(
@@ -201,9 +224,9 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => ConfiguracaoWhatsApp()));
+                    builder: (context) => ConfiguracaoWhatsApp(email)));
           },
-        ) : SizedBox(),
+        ),
         ListTile(
           leading:
               Icon(Icons.monetization_on, color: corPadrao()),

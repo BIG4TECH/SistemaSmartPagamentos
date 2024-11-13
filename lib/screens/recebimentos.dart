@@ -5,7 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
-
+import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 
 class RecebimentosRelatorio extends StatefulWidget {
   final String email;
@@ -21,7 +21,8 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
   List<Map<String, dynamic>> recebimentos = [];
   double totalValor = 0.0;
 
-  final NumberFormat currencyFormat = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+  final NumberFormat currencyFormat =
+      NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy', 'pt_BR');
 
   Future<void> _pickDateRange(BuildContext context) async {
@@ -29,7 +30,7 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
       context: context,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-       locale: const Locale('pt'), 
+      locale: const Locale('pt'),
     );
     if (picked != null && picked != selectedDateRange) {
       setState(() {
@@ -43,18 +44,77 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
     if (selectedDateRange == null) return;
 
     DateTime start = selectedDateRange!.start;
-    DateTime end = selectedDateRange!.end.add(Duration(hours: 23, minutes: 59, seconds: 59));
+    DateTime end = selectedDateRange!.end
+        .add(Duration(hours: 23, minutes: 59, seconds: 59));
 
-    final query = FirebaseFirestore.instance
+    final recebimentosSnapshot = await FirebaseFirestore.instance
         .collection('recebimentos')
         .where('id_user', isEqualTo: widget.idUser)
         .where('status', isEqualTo: 'ativo')
-        .where('data_recebimento', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-        .where('data_recebimento', isLessThanOrEqualTo: Timestamp.fromDate(end));
+        .get();
 
-    final snapshot = await query.get();
+    final vendasSnapshot = await FirebaseFirestore.instance
+        .collection('vendas')
+        .where('id_user', isEqualTo: widget.idUser)
+        .where('status', isEqualTo: 'ativo')
+        .get();
+
+    for (var venda in vendasSnapshot.docs) {
+      for (var recebimento in recebimentosSnapshot.docs) {
+        if (venda.id == recebimento.id) {
+          var periodoRecorrencia = venda['plan']['interval'];
+          DateTime dataUltimoPagamento =
+              recebimento['data_recebimento'].toDate();
+
+          DateTime? dataRecebimento;
+
+          switch (periodoRecorrencia) {
+            case 1:
+              dataRecebimento = DateTime(dataUltimoPagamento.year,
+                  dataUltimoPagamento.month + 1, dataUltimoPagamento.day);
+              break;
+            case 2:
+              dataRecebimento = DateTime(dataUltimoPagamento.year,
+                  dataUltimoPagamento.month + 2, dataUltimoPagamento.day);
+              break;
+            case 3:
+              dataRecebimento = DateTime(dataUltimoPagamento.year,
+                  dataUltimoPagamento.month + 3, dataUltimoPagamento.day);
+              break;
+            case 6:
+              dataRecebimento = DateTime(dataUltimoPagamento.year,
+                  dataUltimoPagamento.month + 6, dataUltimoPagamento.day);
+              break;
+            case 12:
+              dataRecebimento = DateTime(dataUltimoPagamento.year,
+                  dataUltimoPagamento.month + 12, dataUltimoPagamento.day);
+              break;
+            default:
+              break;
+          }
+
+          if (dataRecebimento!.isAtSameMomentAs(start) ||
+              dataRecebimento.isAtSameMomentAs(end) ||
+              (dataRecebimento.isAfter(start) &&
+                  dataRecebimento.isBefore(end))) {
+            recebimentos.add(recebimento.data());
+
+            totalValor = recebimentos.fold(0.0, (sum, item) {
+              double valor = item['valor'] is String
+                  ? double.tryParse(item['valor']) ?? 0.0
+                  : (item['valor'] as num).toDouble();
+              return sum + valor;
+            });
+          }
+        }
+      }
+    }
+
+    setState(() {});
+
+    /*
     setState(() {
-      recebimentos = snapshot.docs
+      recebimentos = recebimentosSnapshot.docs
           .map((doc) => doc.data() as Map<String, dynamic>)
           .toList();
       totalValor = recebimentos.fold(0.0, (sum, item) {
@@ -64,6 +124,7 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
         return sum + valor;
       });
     });
+    */
   }
 
   Future<void> _generatePDF() async {
@@ -89,7 +150,9 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
                   currencyFormat.format(valor),
                   recebimento['name'],
                   recebimento['nome_produto'],
-                  recebimento['tipo_pagamento'] == 'banking_billet' ? 'Bolix' : 'Cartão',
+                  recebimento['tipo_pagamento'] == 'banking_billet'
+                      ? 'Boleto'
+                      : (recebimento['tipo_pagamento'] == 'credit_card') ? 'Cartão' : 'Pix',
                 ];
               }).toList(),
             ),
@@ -150,10 +213,14 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
                     double valor = recebimento['valor'] is String
                         ? double.tryParse(recebimento['valor']) ?? 0.0
                         : (recebimento['valor'] as num).toDouble();
-                    String formaPagamento = recebimento['tipo_pagamento'] == 'banking_billet' ? 'Bolix' : 'Cartão';
+                    String formaPagamento =
+                        recebimento['tipo_pagamento'] == 'banking_billet'
+                            ? 'Bolix'
+                            : 'Cartão';
                     return Card(
                       child: ListTile(
-                        title: Text("Valor: ${currencyFormat.format(valor)}"),
+                        title: Text(
+                            "Valor: R\$ ${formatWithComma(int.parse(valor.toString()))}"),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -174,8 +241,9 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        "Total: ${currencyFormat.format(totalValor)}",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        "Total: R\$ ${formatWithComma(int.parse(totalValor.toString()))}",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),

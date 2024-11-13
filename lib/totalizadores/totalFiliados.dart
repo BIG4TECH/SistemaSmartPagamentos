@@ -97,8 +97,6 @@ class TotalClientesState extends State<TotalClientes> {
         }
         if (snapshot.hasError) {
           return Text('Erro.');
-
-          
         }
 
         int quantClientes = snapshot.data!.size;

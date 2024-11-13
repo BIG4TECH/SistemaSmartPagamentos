@@ -1,9 +1,13 @@
+//import 'dart:io';
+import 'dart:html' as html;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+//import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+//import 'package:share_plus/share_plus.dart';
 
 class CliRelatorio extends StatelessWidget {
   final String email;
@@ -11,14 +15,17 @@ class CliRelatorio extends StatelessWidget {
   final String idUser;
   final String? emailFiliado;
   final String? idUserFiliado;
-  CliRelatorio(this.email, this.tipoUser, this.idUser, this.emailFiliado, this.idUserFiliado);
+  CliRelatorio(this.email, this.tipoUser, this.idUser, this.emailFiliado,
+      this.idUserFiliado);
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+
     return Center(
       child: IconButton(
         onPressed: () async {
-          await generateAndPrintPdf(context);
+          await generateAndPrintPdf(context, size);
         },
         icon: const Icon(Icons.picture_as_pdf_rounded),
         tooltip: 'Gerar Relatório',
@@ -26,7 +33,7 @@ class CliRelatorio extends StatelessWidget {
     );
   }
 
-  Future<void> generateAndPrintPdf(BuildContext context) async {
+  Future<void> generateAndPrintPdf(BuildContext context, Size size) async {
     DateTime datahora = DateTime.now();
     DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
 
@@ -64,7 +71,8 @@ class CliRelatorio extends StatelessWidget {
       int quantvendas = 0;
 
       for (var datavendas in queryVendas.docs) {
-        if (datavendas['id_user'] == datacliente['id_user']) {
+        if (datavendas['id_user'] == datacliente['id_user'] &&
+            datavendas['id_cliente'] == datacliente.id) {
           quantvendas++;
         }
       }
@@ -109,7 +117,9 @@ class CliRelatorio extends StatelessWidget {
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text('Relatório de Clientes', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+            pw.Text('Relatório de Clientes',
+                style:
+                    pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 5),
             pw.Text('Quantidade Total de Clientes: ${clientes.length}',
                 style: subtitleStyle),
@@ -142,7 +152,6 @@ class CliRelatorio extends StatelessWidget {
                 cliente['whatsapp'].toString(),
                 cliente['email'],
                 cliente['quantvendas'].toString(),
-                
               ];
             }).toList(),
             headerStyle: headerStyle,
@@ -188,9 +197,22 @@ class CliRelatorio extends StatelessWidget {
       );
     }
 
-    // Exibir e imprimir o PDF na web
+   if (size.width <= 720) {
+    final pdfBytes = await pdf.save();
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    // Cria um link temporário para download
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute("download", "relatorio.pdf")
+      ..click();
+
+    // Revoga o objeto URL após o download
+    html.Url.revokeObjectUrl(url);
+  } else {
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
     );
+  }
   }
 }

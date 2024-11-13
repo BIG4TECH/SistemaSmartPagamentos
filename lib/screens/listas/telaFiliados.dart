@@ -2,24 +2,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/classes/api_service.dart';
-import 'package:smart_pagamento/inutilizados/telaCadastroCliente.dart';
+//import 'package:smart_pagamento/inutilizados/telaCadastroCliente.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/showdialog.dart';
 
-class ClienteListScreen extends StatefulWidget {
+class FiliadosScreen extends StatefulWidget {
   final String? email;
   final String tipoUser;
   final String idUser;
 
-  const ClienteListScreen(
+  const FiliadosScreen(
       {Key? key, this.email, required this.tipoUser, required this.idUser})
       : super(key: key);
 
   @override
-  _ClienteListScreenState createState() => _ClienteListScreenState();
+  _FiliadosScreenState createState() => _FiliadosScreenState();
 }
 
-class _ClienteListScreenState extends State<ClienteListScreen> {
+class _FiliadosScreenState extends State<FiliadosScreen> {
   String searchQuery = "";
   //List _listProdutosEscolhidos = [];
 
@@ -31,7 +31,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
-          'Meus Clientes',
+          'Meus Filiados',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -50,7 +50,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
             TextField(
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
-                labelText: 'Pesquisar Cliente',
+                labelText: 'Pesquisar Filiado',
                 labelStyle: TextStyle(color: Colors.grey.shade400),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(15.0)),
@@ -84,8 +84,8 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
             Expanded(
               child: StreamBuilder(
                 stream: FirebaseFirestore.instance
-                    .collection('clientes')
-                    .where('id_user', isEqualTo: widget.idUser)
+                    .collection('users')
+                    .where('tipo_user', isEqualTo: 'filiado')
                     .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
@@ -96,24 +96,24 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  final clientes = snapshot.data!.docs.where((cliente) {
+                  final filiados = snapshot.data!.docs.where((cliente) {
                     return cliente['name']
                         .toString()
                         .toLowerCase()
                         .contains(searchQuery);
                   }).toList();
 
-                  if (clientes.isEmpty) {
+                  if (filiados.isEmpty) {
                     return const Center(
-                        child: Text('Nenhum cliente encontrado',
+                        child: Text('Nenhum filiado encontrado',
                             style: TextStyle(color: Colors.white)));
                   }
 
                   return ListView.builder(
                     padding: const EdgeInsets.all(16.0),
-                    itemCount: clientes.length,
+                    itemCount: filiados.length,
                     itemBuilder: (context, index) {
-                      final cliente = clientes[index];
+                      final filiado = filiados[index];
 
                       return Card(
                         shape: RoundedRectangleBorder(
@@ -121,105 +121,17 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                         ),
                         child: ListTile(
                           title: Text(
-                            cliente['name'],
+                            filiado['name'],
                             style: const TextStyle(
                                 color: Colors.black87,
                                 fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            'Email: ${cliente['email']} \nWhatsApp: ${cliente['phone_number']}',
+                            'Email: ${filiado['email']} \nWhatsApp: ${filiado['whatsapp']}',
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => RegistraCliente(
-                                        clienteId: cliente.id,
-                                        idUser: cliente['id_user'],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  final TextEditingController
-                                      passwordController =
-                                      TextEditingController();
-
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text(
-                                          'Deseja excluir o cliente?'),
-                                      content: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Text(
-                                              'Todos as assinaturas serão canceladas.'),
-                                          const SizedBox(height: 10),
-                                          TextFormField(
-                                            controller: passwordController,
-                                            obscureText: true,
-                                            decoration: const InputDecoration(
-                                              labelText: 'Senha',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: Text('Cancelar',
-                                              style: TextStyle(
-                                                  color: Colors.grey.shade400)),
-                                        ),
-                                        ElevatedButton(
-                                          onPressed: () async {
-                                            final password =
-                                                passwordController.text;
-                                            bool isAuthenticated =
-                                                await _reauthenticateUser(
-                                                    password);
-
-                                            if (isAuthenticated) {
-                                              _deleteCliente(cliente.id);
-                                              Navigator.pop(
-                                                  context); // Fecha o dialog de senha
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                const SnackBar(
-                                                    content: Text(
-                                                        'Cliente excluído com sucesso!')),
-                                              );
-                                            } else {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                const SnackBar(
-                                                    content: Text(
-                                                        'Senha incorreta. Tente novamente.')),
-                                              );
-                                            }
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: corPadrao(),
-                                          ),
-                                          child: const Text('Excluir',
-                                              style: TextStyle(
-                                                  color: Colors.white)),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
                               Container(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
@@ -230,14 +142,89 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
-                                  icon: const Icon(Icons.list,
+                                  icon: const Icon(Icons.delete,
                                       color: Colors.white),
-                                  tooltip: 'Itens Vendas',
+                                  tooltip: 'Excluir',
                                   onPressed: () async {
-                                    List<Map<String, dynamic>> assinaturaId =
-                                        await _getAssinaturas(cliente.id);
-                                    _showProducts(
-                                        context, assinaturaId, cliente.id);
+                                    
+                                        final TextEditingController
+                                            passwordController =
+                                            TextEditingController();
+
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text(
+                                                'Deseja excluir o filiado?'),
+                                            content: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Text(
+                                                    'Todas as assinaturas, planos, produtos e clientes vinculados serão deletados.'),
+                                                const SizedBox(height: 10),
+                                                TextFormField(
+                                                  controller:
+                                                      passwordController,
+                                                  obscureText: true,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                    labelText: 'Senha',
+                                                    border:
+                                                        OutlineInputBorder(),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.pop(context),
+                                                child: Text('Cancelar',
+                                                    style: TextStyle(
+                                                        color: Colors
+                                                            .grey.shade400)),
+                                              ),
+                                              ElevatedButton(
+                                                onPressed: () async {
+                                                  final password =
+                                                      passwordController.text;
+                                                  bool isAuthenticated =
+                                                      await _reauthenticateUser(
+                                                          password);
+
+                                                  if (isAuthenticated) {
+                                                    _deleteFiliado(filiado.id, filiado['email']);
+                                                    Navigator.pop(
+                                                        context); // Fecha o dialog de senha
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      const SnackBar(
+                                                          content: Text(
+                                                              'Filiado excluído com sucesso!')),
+                                                    );
+                                                  } else {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      const SnackBar(
+                                                          content: Text(
+                                                              'Senha incorreta. Tente novamente.')),
+                                                    );
+                                                  }
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: corPadrao(),
+                                                ),
+                                                child: const Text('Excluir',
+                                                    style: TextStyle(
+                                                        color: Colors.white)),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      
+                                    
                                   },
                                 ),
                               )
@@ -256,22 +243,57 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
     );
   }
 
-  void _deleteCliente(String clienteId) async {
-    final assinaturasSnapshot = await FirebaseFirestore.instance
+  void _deleteFiliado(String filiadoId, String emailFiliado) async {
+    final clientesSnapshot = await FirebaseFirestore.instance
         .collection('clientes')
-        .doc(clienteId)
-        .collection('assinaturas')
+        .where('id_user', isEqualTo: filiadoId)
+        .get();
+
+    final produtosSnapshot = await FirebaseFirestore.instance
+        .collection('products')
+        .where('email_user', isEqualTo: emailFiliado)
         .get();
 
     bool cancelamentoComSucesso = true;
 
-    for (var doc in assinaturasSnapshot.docs) {
-      String chargeId = doc['charge']['id'].toString();
-      final response =
-          await ApiService().cancelarAssinatura(int.parse(chargeId));
+    for (var cliente in clientesSnapshot.docs) {
+      final assinaturasSnapshot = await FirebaseFirestore.instance
+          .collection('clientes')
+          .doc(cliente.id)
+          .collection('assinaturas')
+          .get();
 
-      if (response['status'] == 200) {
-        await doc.reference.update({'status': 'cancelado'});
+      for (var doc in assinaturasSnapshot.docs) {
+        String chargeId = doc['charge']['id'].toString();
+        final response =
+            await ApiService().cancelarAssinatura(int.parse(chargeId));
+
+        if (response['status'] == 200) {
+          await doc.reference.update({'status': 'cancelado'});
+        } else {
+          cancelamentoComSucesso = false;
+          break;
+        }
+      }
+
+      if (cancelamentoComSucesso) {
+        await FirebaseFirestore.instance
+            .collection('clientes')
+            .doc(cliente.id)
+            .delete();
+      }
+    }
+
+    for (var produto in produtosSnapshot.docs) {
+      ApiService apiService = ApiService();
+
+      var responseDelete = await apiService.deletarPlano(produto['plan_id']);
+
+      if (responseDelete['status'] == 200) {
+        await FirebaseFirestore.instance
+            .collection('products')
+            .doc(produto.id)
+            .delete();
       } else {
         cancelamentoComSucesso = false;
         break;
@@ -280,12 +302,13 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
 
     if (cancelamentoComSucesso) {
       await FirebaseFirestore.instance
-          .collection('clientes')
-          .doc(clienteId)
+          .collection('users')
+          .doc(filiadoId)
           .delete();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Cliente e assinaturas canceladas com sucesso!')),
+            content: Text(
+                'Filiado, clientes, produtos e assinaturas relacionadas foram canceladas com sucesso!')),
       );
       setState(() {});
     } else {
@@ -293,6 +316,23 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
     }
   }
 
+  Future<bool> _reauthenticateUser(String password) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      final authCredential = EmailAuthProvider.credential(
+        email: user!.email!,
+        password: password,
+      );
+
+      await user.reauthenticateWithCredential(authCredential);
+      return true;
+    } catch (e) {
+      print('Erro na reautenticação: $e');
+      return false;
+    }
+  }
+
+/*
   Future<List<Map<String, dynamic>>> _getAssinaturas(String clienteId) async {
     final assinaturasSnapshot = await FirebaseFirestore.instance
         .collection('clientes')
@@ -323,6 +363,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
       };
     }).toList();
   }
+
 
   void _showProducts(BuildContext context,
       List<Map<String, dynamic>> assinaturas, String clienteId) {
@@ -443,21 +484,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
     );
   }
 
-  Future<bool> _reauthenticateUser(String password) async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      final authCredential = EmailAuthProvider.credential(
-        email: user!.email!,
-        password: password,
-      );
-
-      await user.reauthenticateWithCredential(authCredential);
-      return true;
-    } catch (e) {
-      print('Erro na reautenticação: $e');
-      return false;
-    }
-  }
+ 
 
   Future<void> _cancelarAssinatura(
       String assinaturaId, BuildContext context, String clienteId) async {
@@ -488,4 +515,9 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
       );
     }
   }
+*/
 }
+
+/*
+
+*/
