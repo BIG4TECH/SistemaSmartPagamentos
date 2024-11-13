@@ -18,21 +18,9 @@ class TotalClientes extends StatefulWidget {
 class TotalClientesState extends State<TotalClientes> {
   
   Stream<QuerySnapshot> _getClientesStream() {
-    if (widget.tipoUser == 'master') {
-      if (widget.emailFiliado == null) {
-        return FirebaseFirestore.instance.collection('clientes').snapshots();
-      } else {
-        return FirebaseFirestore.instance
-            .collection('clientes')
-            .where('id_user', isEqualTo: widget.idFiliado)
-            .snapshots();
-      }
-    } else {
-      return FirebaseFirestore.instance
-          .collection('clientes')
-          .where('id_user', isEqualTo: widget.idUser)
-          .snapshots();
-    }
+    
+        return FirebaseFirestore.instance.collection('users').where('tipo_user', isEqualTo: 'filiado').snapshots();
+    
   }
 
   Widget showLineChart(int quantClientes) {
@@ -74,7 +62,7 @@ class TotalClientesState extends State<TotalClientes> {
           const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Clientes', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Filiados', style: TextStyle(fontWeight: FontWeight.bold)),
               Text('Quant. Total'),
             ],
           ),

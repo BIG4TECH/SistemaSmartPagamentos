@@ -275,7 +275,7 @@ Future<void> generateAndPrintPdfClienteDataRange(
 
   final produtos = FirebaseFirestore.instance
       .collection('products')
-      .where('email_user', isEqualTo: emailFiliado ?? email);
+      .where('email_user', isEqualTo: idFiliado ?? idUser);
 
   final queryProdutos = await produtos.get();
 
@@ -368,7 +368,7 @@ Future<void> generateAndPrintPdfDateRange(
 
   final produtos = FirebaseFirestore.instance
       .collection('products')
-      .where('email_user', isEqualTo: emailFiliado ?? email);
+      .where('email_user', isEqualTo: idFiliado ?? idUser);
 
   final queryProdutos = await produtos.get();
 
@@ -463,7 +463,7 @@ Future<void> generateAndPrintPdfCliente(
 
   final produtos = FirebaseFirestore.instance
       .collection('products')
-      .where('email_user', isEqualTo: emailFiliado ?? email);
+      .where('email_user', isEqualTo: idFiliado ?? idUser);
 
   final queryProdutos = await produtos.get();
 
@@ -546,7 +546,7 @@ Future<void> generateAndPrintPdf(
 
   final produtos = FirebaseFirestore.instance
       .collection('products')
-      .where('email_user', isEqualTo: emailFiliado ?? email);
+      .where('email_user', isEqualTo: idFiliado ?? idUser);
 
   final queryProdutos = await produtos.get();
 

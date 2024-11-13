@@ -11,10 +11,12 @@ import 'package:smart_pagamento/screens/listas/telaVendas.dart';
 import 'package:smart_pagamento/screens/recebimentos.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/wpp.dart';
+
 import '../cadastros/telaCadastroProduto.dart';
 import '../listas/telaProdutos.dart';
 
-Widget menuDrawer(BuildContext context, String email, String tipoUser, String idUser) {
+Widget menuDrawer(
+    BuildContext context, String email, String tipoUser, String idUser) {
   return Drawer(
     child: Column(
       children: [
@@ -75,7 +77,8 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => ProductRegisterScreen(email: email)));
+                    builder: (context) =>
+                        ProductRegisterScreen(idUser: idUser)));
           },
         ),
         ListTile(
@@ -123,13 +126,14 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => ClienteListScreen(email: email, 
-                    tipoUser: tipoUser,
-                    idUser: idUser,
-                    )));
+                    builder: (context) => ClienteListScreen(
+                          email: email,
+                          tipoUser: tipoUser,
+                          idUser: idUser,
+                        )));
           },
         ),
-        
+
         /*
         ListTile(
           leading: Icon(Icons.supervised_user_circle, color: corPadrao()),
@@ -175,25 +179,26 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
           },
         ),
         */
-        tipoUser == 'master' ? 
-        ListTile(
-          leading: Icon(Icons.how_to_reg, color: corPadrao()),
-          title: Text(
-            "Meus Filiados",
-            style: TextStyle(fontSize: 16),
-          ),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => FiliadosScreen(email: email, 
-                    tipoUser: tipoUser,
-                    idUser: idUser,
-                    )));
-          },
-        )
-        : SizedBox(),
+        tipoUser == 'master'
+            ? ListTile(
+                leading: Icon(Icons.how_to_reg, color: corPadrao()),
+                title: Text(
+                  "Meus Filiados",
+                  style: TextStyle(fontSize: 16),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => FiliadosScreen(
+                                email: email,
+                                tipoUser: tipoUser,
+                                idUser: idUser,
+                              )));
+                },
+              )
+            : SizedBox(),
         ListTile(
           leading:
               Icon(Icons.shopping_cart_checkout_rounded, color: corPadrao()),
@@ -206,15 +211,12 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => VendasListScreen(email: email, 
-                    idUser: idUser,
-                    tipoUser: tipoUser
-                    )));
+                    builder: (context) => VendasListScreen(
+                        email: email, idUser: idUser, tipoUser: tipoUser)));
           },
         ),
         ListTile(
-          leading:
-              Icon(Icons.qr_code, color: corPadrao()),
+          leading: Icon(Icons.qr_code, color: corPadrao()),
           title: Text(
             "Configurar",
             style: TextStyle(fontSize: 16),
@@ -228,8 +230,7 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
           },
         ),
         ListTile(
-          leading:
-              Icon(Icons.monetization_on, color: corPadrao()),
+          leading: Icon(Icons.monetization_on, color: corPadrao()),
           title: Text(
             "Recebimentos",
             style: TextStyle(fontSize: 16),
@@ -239,7 +240,8 @@ Widget menuDrawer(BuildContext context, String email, String tipoUser, String id
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => RecebimentosRelatorio(email, idUser)));
+                    builder: (context) =>
+                        RecebimentosRelatorio(email, idUser)));
           },
         ),
       ],

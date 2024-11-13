@@ -47,12 +47,6 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
     DateTime end = selectedDateRange!.end
         .add(Duration(hours: 23, minutes: 59, seconds: 59));
 
-    final recebimentosSnapshot = await FirebaseFirestore.instance
-        .collection('recebimentos')
-        .where('id_user', isEqualTo: widget.idUser)
-        .where('status', isEqualTo: 'ativo')
-        .get();
-
     final vendasSnapshot = await FirebaseFirestore.instance
         .collection('vendas')
         .where('id_user', isEqualTo: widget.idUser)
@@ -60,53 +54,53 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
         .get();
 
     for (var venda in vendasSnapshot.docs) {
-      for (var recebimento in recebimentosSnapshot.docs) {
-        if (venda.id == recebimento.id) {
-          var periodoRecorrencia = venda['plan']['interval'];
-          DateTime dataUltimoPagamento =
-              recebimento['data_recebimento'].toDate();
+      var periodoRecorrencia = venda['plan']['interval'];
 
-          DateTime? dataRecebimento;
+      String dataUltimoPagamentoString = venda['first_execution'];
 
-          switch (periodoRecorrencia) {
-            case 1:
-              dataRecebimento = DateTime(dataUltimoPagamento.year,
-                  dataUltimoPagamento.month + 1, dataUltimoPagamento.day);
-              break;
-            case 2:
-              dataRecebimento = DateTime(dataUltimoPagamento.year,
-                  dataUltimoPagamento.month + 2, dataUltimoPagamento.day);
-              break;
-            case 3:
-              dataRecebimento = DateTime(dataUltimoPagamento.year,
-                  dataUltimoPagamento.month + 3, dataUltimoPagamento.day);
-              break;
-            case 6:
-              dataRecebimento = DateTime(dataUltimoPagamento.year,
-                  dataUltimoPagamento.month + 6, dataUltimoPagamento.day);
-              break;
-            case 12:
-              dataRecebimento = DateTime(dataUltimoPagamento.year,
-                  dataUltimoPagamento.month + 12, dataUltimoPagamento.day);
-              break;
-            default:
-              break;
-          }
+      DateTime dataUltimoPagamento =
+          DateFormat("dd/MM/yyyy").parse(dataUltimoPagamentoString);
 
-          if (dataRecebimento!.isAtSameMomentAs(start) ||
-              dataRecebimento.isAtSameMomentAs(end) ||
-              (dataRecebimento.isAfter(start) &&
-                  dataRecebimento.isBefore(end))) {
-            recebimentos.add(recebimento.data());
+      print('DATA ULTIMO PAGAMENTO $dataUltimoPagamento');
 
-            totalValor = recebimentos.fold(0.0, (sum, item) {
-              double valor = item['valor'] is String
-                  ? double.tryParse(item['valor']) ?? 0.0
-                  : (item['valor'] as num).toDouble();
-              return sum + valor;
-            });
-          }
-        }
+      DateTime? dataRecebimento;
+
+      switch (periodoRecorrencia) {
+        case 1:
+          dataRecebimento = DateTime(dataUltimoPagamento.year,
+              dataUltimoPagamento.month + 1, dataUltimoPagamento.day);
+          break;
+        case 2:
+          dataRecebimento = DateTime(dataUltimoPagamento.year,
+              dataUltimoPagamento.month + 2, dataUltimoPagamento.day);
+          break;
+        case 3:
+          dataRecebimento = DateTime(dataUltimoPagamento.year,
+              dataUltimoPagamento.month + 3, dataUltimoPagamento.day);
+          break;
+        case 6:
+          dataRecebimento = DateTime(dataUltimoPagamento.year,
+              dataUltimoPagamento.month + 6, dataUltimoPagamento.day);
+          break;
+        case 12:
+          dataRecebimento = DateTime(dataUltimoPagamento.year,
+              dataUltimoPagamento.month + 12, dataUltimoPagamento.day);
+          break;
+        default:
+          break;
+      }
+
+      if (dataRecebimento!.isAtSameMomentAs(start) ||
+          dataRecebimento.isAtSameMomentAs(end) ||
+          (dataRecebimento.isAfter(start) && dataRecebimento.isBefore(end))) {
+        recebimentos.add(venda.data());
+
+        totalValor = recebimentos.fold(0.0, (sum, item) {
+          double valor = item['total'] is String
+              ? double.tryParse(item['total']) ?? 0.0
+              : (item['total'] as num).toDouble();
+          return sum + valor;
+        });
       }
     }
 
@@ -141,18 +135,20 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
             pw.Text("Soma Total: ${currencyFormat.format(totalValor)}"),
             pw.SizedBox(height: 10),
             pw.Table.fromTextArray(
-              headers: ['Valor', 'Cliente', 'Produto', 'Tipo de Pagamento'],
+              headers: ['Valor', 'Cliente', 'Tipo de Pagamento'],
               data: recebimentos.map((recebimento) {
-                double valor = recebimento['valor'] is String
-                    ? double.tryParse(recebimento['valor']) ?? 0.0
-                    : (recebimento['valor'] as num).toDouble();
+                double valor = recebimento['total'] is String
+                    ? double.tryParse(recebimento['total']) ?? 0.0
+                    : (recebimento['total'] as num).toDouble();
                 return [
                   currencyFormat.format(valor),
                   recebimento['name'],
-                  recebimento['nome_produto'],
-                  recebimento['tipo_pagamento'] == 'banking_billet'
+                  //recebimento['nome_produto'],
+                  recebimento['payment'] == 'banking_billet'
                       ? 'Boleto'
-                      : (recebimento['tipo_pagamento'] == 'credit_card') ? 'Cartão' : 'Pix',
+                      : (recebimento['payment'] == 'credit_card')
+                          ? 'Cartão'
+                          : 'Pix',
                 ];
               }).toList(),
             ),
@@ -210,11 +206,11 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
                   itemCount: recebimentos.length,
                   itemBuilder: (context, index) {
                     final recebimento = recebimentos[index];
-                    double valor = recebimento['valor'] is String
-                        ? double.tryParse(recebimento['valor']) ?? 0.0
-                        : (recebimento['valor'] as num).toDouble();
+                    double valor = recebimento['total'] is String
+                        ? double.tryParse(recebimento['total']) ?? 0.0
+                        : (recebimento['total'] as num).toDouble();
                     String formaPagamento =
-                        recebimento['tipo_pagamento'] == 'banking_billet'
+                        recebimento['payment'] == 'banking_billet'
                             ? 'Bolix'
                             : 'Cartão';
                     return Card(
@@ -225,7 +221,7 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text("Cliente: ${recebimento['name']}"),
-                            Text("Produto: ${recebimento['nome_produto']}"),
+                            //Text("Produto: ${recebimento['nome_produto']}"),
                             Text("Pagamento: $formaPagamento"),
                           ],
                         ),

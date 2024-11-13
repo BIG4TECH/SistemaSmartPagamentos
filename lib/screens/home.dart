@@ -24,7 +24,7 @@ class _HomeState extends State<Home> {
   void _tipoUser(String email) async {
     var user = await FirebaseFirestore.instance
         .collection('users')
-        .where('email', isEqualTo: email)
+        .where('email', isEqualTo: email )
         .get();
 
     setState(() {
@@ -36,7 +36,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     //print('USER NO HOME: ${widget.tipoUser}');
-    // TODO: implement initState
+
     super.initState();
 
     _tipoUser(widget.email);

@@ -33,9 +33,10 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
 
     try {
       final status = await apiService.verificarStatusWhatsApp(widget.emailUser);
-      if (status['connected'] == true) {
+      print('STATUS: $status');
+      if (status['body']['connected'] == true) {
         setState(() {
-          statusMensagem = "Dispositivo conectado: ${status['phoneNumber']}";
+          statusMensagem = "Número conectado: ${status['body']['phoneNumber']}";
         });
       } else {
         setState(() {
@@ -55,7 +56,8 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
     });
 
     try {
-      final base64QrCode = await apiService.iniciarSessaoWhatsapp(widget.emailUser);
+      final base64QrCode =
+          await apiService.iniciarSessaoWhatsapp(widget.emailUser);
       if (base64QrCode != null) {
         setState(() {
           final base64String = base64QrCode.split(',')[1];

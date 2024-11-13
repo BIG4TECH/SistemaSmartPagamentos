@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 //import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 import 'package:smart_pagamento/screens/widgets/exibirLink.dart';
 import 'package:smart_pagamento/screens/widgets/showdialog.dart';
@@ -86,7 +87,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               child: StreamBuilder(
                 stream: FirebaseFirestore.instance
                     .collection('products')
-                    .where('email_user', isEqualTo: widget.email)
+                    .where('email_user', isEqualTo: widget.idUser)
                     .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
@@ -150,8 +151,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 color: Colors.black87,
                                 fontWeight: FontWeight.bold),
                           ),
-                          subtitle: Text(
-                            'Preço: R\$${product['price']}\nRecorrência: $recurrence',
+                          subtitle: product['is_dollar'] ? Text(
+                             'Preço: \$${formatWithComma(product['price'])}\nRecorrência: $recurrence',
+                            //style: const TextStyle(color: Colors.white70),
+                          ) : Text(
+                             'Preço: R\$${formatWithComma(product['price'])}\nRecorrência: $recurrence',
                             //style: const TextStyle(color: Colors.white70),
                           ),
                           trailing: Row(
@@ -165,7 +169,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                       builder: (context) =>
                                           ProductRegisterScreen(
                                         productId: product.id,
-                                        email: widget.email,
+                                        idUser: widget.idUser,
                                       ),
                                     ),
                                   );
@@ -256,10 +260,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                       color: Colors.white),
                                   onPressed: () {
                                     //String valor =formatarNumero(product['price']);
-                                        
+
                                     showLinkModal(context,
                                         "http://131.0.245.253:3030/checkout/index.html?i=${product.id}");
-                                        
                                   },
                                 ),
                               ),

@@ -57,10 +57,10 @@ Future<void> generateAndPrintPdf(
           ? FirebaseFirestore.instance.collection('products')
           : FirebaseFirestore.instance
               .collection('products')
-              .where('email_user', isEqualTo: emailFiliado))
+              .where('email_user', isEqualTo: idUserFiliado))
       : FirebaseFirestore.instance
           .collection('products')
-          .where('email_user', isEqualTo: email);
+          .where('email_user', isEqualTo: idUser);
 
   final querySnapshot = await collection.get();
 

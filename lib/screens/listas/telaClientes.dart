@@ -106,7 +106,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                   if (clientes.isEmpty) {
                     return const Center(
                         child: Text('Nenhum cliente encontrado',
-                            style: TextStyle(color: Colors.white)));
+                            ));
                   }
 
                   return ListView.builder(
@@ -302,7 +302,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
 
     final products = await FirebaseFirestore.instance
         .collection('products')
-        .where('email_user', isEqualTo: widget.email!)
+        .where('email_user', isEqualTo: widget.idUser)
         .get();
 
     return assinaturasSnapshot.docs.map((doc) {
@@ -465,11 +465,12 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
         await ApiService().cancelarAssinatura(int.parse(assinaturaId));
 
     if (response['status'] == 200) {
+      /*
       await FirebaseFirestore.instance
           .collection('recebimentos')
           .doc(assinaturaId)
           .update({'status': 'cancelado'});
-
+      */
       await FirebaseFirestore.instance
           .collection('clientes')
           .doc(clienteId)

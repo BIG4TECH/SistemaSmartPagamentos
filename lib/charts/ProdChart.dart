@@ -172,11 +172,11 @@ class PieChartProdState extends State<Prodchart> {
             ? await FirebaseFirestore.instance.collection('products').get()
             : await FirebaseFirestore.instance
                 .collection('products')
-                .where('email_user', isEqualTo: widget.emailFiliado)
+                .where('email_user', isEqualTo: widget.idFiliado)
                 .get())
         : await FirebaseFirestore.instance
             .collection('products')
-            .where('email_user', isEqualTo: widget.email)
+            .where('email_user', isEqualTo: widget.idUser)
             .get();
 
     // Processamento das vendas, produtos

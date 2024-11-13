@@ -251,7 +251,7 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
 
     final produtosSnapshot = await FirebaseFirestore.instance
         .collection('products')
-        .where('email_user', isEqualTo: emailFiliado)
+        .where('email_user', isEqualTo: filiadoId)
         .get();
 
     bool cancelamentoComSucesso = true;

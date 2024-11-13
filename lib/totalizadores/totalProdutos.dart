@@ -9,35 +9,32 @@ class TotalProdutos extends StatefulWidget {
   final String idUser;
   final String? emailFiliado;
   final String? idFiliado;
-  
-  const TotalProdutos(this.email, this.tipoUser, this.idUser, this.emailFiliado, this.idFiliado);
+
+  const TotalProdutos(this.email, this.tipoUser, this.idUser, this.emailFiliado,
+      this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalProdutosState();
 }
 
 class TotalProdutosState extends State<TotalProdutos> {
-  
   Stream<QuerySnapshot> _getProdutosStream() {
-  if (widget.tipoUser == 'master') {
-    if (widget.emailFiliado == null) {
-      return FirebaseFirestore.instance
-          .collection('products')
-          .snapshots();
+    if (widget.tipoUser == 'master') {
+      if (widget.emailFiliado == null) {
+        return FirebaseFirestore.instance.collection('products').snapshots();
+      } else {
+        return FirebaseFirestore.instance
+            .collection('products')
+            .where('email_user', isEqualTo: widget.idFiliado)
+            .snapshots();
+      }
     } else {
       return FirebaseFirestore.instance
           .collection('products')
-          .where('email_user', isEqualTo: widget.emailFiliado)
+          .where('email_user', isEqualTo: widget.idUser)
           .snapshots();
     }
-  } else {
-    return FirebaseFirestore.instance
-        .collection('products')
-        .where('email_user', isEqualTo: widget.email)
-        .snapshots();
   }
-}
-
 
   Widget showLineChart(int quantProdutos) {
     return Container(
@@ -83,7 +80,8 @@ class TotalProdutosState extends State<TotalProdutos> {
             ],
           ),
           const SizedBox(width: 10),
-          ProdRelatorio(widget.email, widget.tipoUser, widget.idUser, widget.emailFiliado, widget.idFiliado)
+          ProdRelatorio(widget.email, widget.tipoUser, widget.idUser,
+              widget.emailFiliado, widget.idFiliado)
         ],
       ),
     );
@@ -95,15 +93,16 @@ class TotalProdutosState extends State<TotalProdutos> {
       stream: _getProdutosStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator(color: corPadrao(),); 
+          return CircularProgressIndicator(
+            color: corPadrao(),
+          );
         }
         if (snapshot.hasError) {
-          return Text('Erro ao carregar os dados.'); 
+          return Text('Erro ao carregar os dados.');
         }
-    
 
-        int quantProdutos = snapshot.data!.size; 
-        return showLineChart(quantProdutos); 
+        int quantProdutos = snapshot.data!.size;
+        return showLineChart(quantProdutos);
       },
     );
   }

@@ -28,19 +28,22 @@ class ApiService {
     return null;
   }
 
-  Future<Map<String, dynamic>> verificarStatusWhatsApp(String emailUser) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/whatsapp/status'),
-        headers: {"Content-Type": "application/json", "x-api-key": "4202@back"},
-        body: jsonEncode({'email_user': emailUser}),
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      print('Erro ao verificar o status do WhatsApp: $e');
-      return {'error': 'Erro ao verificar o status do WhatsApp'};
-    }
+Future<Map<String, dynamic>> verificarStatusWhatsApp(String emailUser) async {
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/whatsapp/status?email_user=$emailUser'),
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": "4202@back"
+      },
+    );
+    return _handleResponse(response);
+  } catch (e) {
+    print('Erro ao verificar o status do WhatsApp: $e');
+    return {'error': 'Erro ao verificar o status do WhatsApp'};
   }
+}
+
 
   Future<Map<String, dynamic>> cancelarAssinatura(int id) async {
     try {

@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 import 'package:smart_pagamento/screens/widgets/showdialog.dart';
 import 'package:smart_pagamento/screens/widgets/textfield.dart';
 
 class ProductRegisterScreen extends StatefulWidget {
   final String? productId;
-  final String? email;
+  final String? idUser;
 
-  ProductRegisterScreen({super.key, this.productId, required this.email});
+  ProductRegisterScreen({super.key, this.productId, required this.idUser});
 
   @override
   _ProductRegisterScreenState createState() => _ProductRegisterScreenState();
@@ -86,10 +87,10 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
     );
   }
 
-  Future<bool> _nameExist(String nome, String? email) async {
+  Future<bool> _nameExist(String nome, String? idUser) async {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection('products')
-        .where('email_user', isEqualTo: email)
+        .where('email_user', isEqualTo: idUser)
         .where('name', isEqualTo: nome)
         .get();
     if (querySnapshot.docs.isEmpty) {
@@ -105,7 +106,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
 
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection('products')
-        .where('email_user', isEqualTo: widget.email)
+        .where('email_user', isEqualTo: widget.idUser)
         .get();
 
     if (querySnapshot.docs.isNotEmpty) {
@@ -142,7 +143,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
       setState(() {
         _isLoading = true;
       });
-      if (widget.email == null) {
+      if (widget.idUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Email do usuário não encontrado.')),
         );
@@ -163,7 +164,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
         return;
       }
 
-      bool nameExists = await _nameExist(_nameController.text, widget.email);
+      bool nameExists = await _nameExist(_nameController.text, widget.idUser);
       ApiService apiService = ApiService();
 
       if (widget.productId == null && nameExists) {
@@ -181,11 +182,11 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
             await FirebaseFirestore.instance.collection('products').add({
               'name': _nameController.text,
               'plan_id': responsePlanoPosted['body']['data'],
-              'price': double.parse(_priceController.text),
+              'price': double.parse(formatarNumero(double.parse(_priceController.text))),
               'is_dollar': _isDollar,
               'recurrencePeriod': _recurrencePeriod,
               'paymentOption': _getPaymentOption(),
-              'email_user': widget.email
+              'email_user': widget.idUser
             });
           } else {
             showDialogApi(context);
@@ -215,7 +216,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                   .update({
                 'name': _nameController.text,
                 'plan_id': novoPlanId,
-                'price': double.parse(_priceController.text),
+                'price': double.parse(formatarNumero(double.parse(_priceController.text))),
                 'is_dollar': _isDollar,
                 'recurrencePeriod': _recurrencePeriod,
                 'paymentOption': _getPaymentOption(),
