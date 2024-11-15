@@ -45,7 +45,8 @@ class _SignupScreenState extends State<SignupScreen> {
             'name': _nome,
             'email': _email,
             'whatsapp': _whatsapp,
-            'tipo_user': 'filiado'
+            'tipo_user': 'filiado',
+            'is_valid': true
           });
 
           final snackBar = SnackBar(

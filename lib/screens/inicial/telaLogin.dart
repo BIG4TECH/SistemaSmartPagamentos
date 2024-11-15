@@ -308,18 +308,51 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text,
-        );
+        var userrs = await FirebaseFirestore.instance.collection('users').get();
 
+        bool isValid = false;
+
+        for (var user in userrs.docs) {
+          if (user['email'] == _emailController.text) {
+            isValid = user['is_valid'];
+            print(user['is_valid']);
+            break;
+          }
+        }
+        print(isValid);
+
+        setState(() {});
         //String tipoUser = await _tipoUser(_emailController.text);
         //print(tipoUser);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => Home(email: _emailController.text)),
-        );
+
+        if (isValid) {
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+            email: _emailController.text,
+            password: _passwordController.text,
+          );
+
+          await Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Home(email: _emailController.text)),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Falha no login'),
+              content: Text('Login inválido'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
       } on FirebaseAuthException catch (e) {
         print(e);
         showDialog(

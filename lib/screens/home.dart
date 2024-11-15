@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors, use_build_context_synchronously
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
@@ -20,34 +18,52 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   String tipoUser = '';
   String idUser = '';
+  bool isValid = false;
+  bool isLoading = true;
 
   void _tipoUser(String email) async {
-    var user = await FirebaseFirestore.instance
-        .collection('users')
-        .where('email', isEqualTo: email )
-        .get();
+    try {
+      var user = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .get();
 
-    setState(() {
-      tipoUser = user.docs.first['tipo_user'];
-      idUser = user.docs.first.id;
-    });
+      setState(() {
+        tipoUser = user.docs.first['tipo_user'];
+        idUser = user.docs.first.id;
+        isValid = user.docs.first['is_valid'];
+        isLoading = false;
+      });
+
+      if (!isValid) {
+        // Redireciona para tela de login se o usuário não for válido
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+      }
+    } catch (e) {
+      print("Erro ao obter tipo de usuário: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
   void initState() {
-    //print('USER NO HOME: ${widget.tipoUser}');
-
     super.initState();
-
     _tipoUser(widget.email);
-
-    print('USER NO HOME: $tipoUser');
   }
 
   @override
   Widget build(BuildContext context) {
-    if (tipoUser == '') {
-      _tipoUser(widget.email);
+    if (isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: corPadrao()),
+        ),
+      );
     }
 
     return Scaffold(
@@ -70,7 +86,6 @@ class _HomeState extends State<Home> {
                   context: context,
                   builder: (context) => AlertDialog(
                         title: Text('Deseja realmente sair?'),
-                        //content: Text('Deseja realmente sair?'),
                         actions: [
                           TextButton(
                               onPressed: () async {
@@ -95,13 +110,7 @@ class _HomeState extends State<Home> {
         ],
       ),
       drawer: menuDrawer(context, widget.email, tipoUser, idUser),
-      body: tipoUser == ''
-          ? Center(
-              child: CircularProgressIndicator(
-                color: corPadrao(),
-              ),
-            )
-          : AllCharts(widget.email, tipoUser, idUser),
+      body: AllCharts(widget.email, tipoUser, idUser),
     );
   }
 }

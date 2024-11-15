@@ -146,85 +146,78 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
                                       color: Colors.white),
                                   tooltip: 'Excluir',
                                   onPressed: () async {
-                                    
-                                        final TextEditingController
-                                            passwordController =
-                                            TextEditingController();
+                                    final TextEditingController
+                                        passwordController =
+                                        TextEditingController();
 
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text(
-                                                'Deseja excluir o filiado?'),
-                                            content: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Text(
-                                                    'Todas as assinaturas, planos, produtos e clientes vinculados serão deletados.'),
-                                                const SizedBox(height: 10),
-                                                TextFormField(
-                                                  controller:
-                                                      passwordController,
-                                                  obscureText: true,
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    labelText: 'Senha',
-                                                    border:
-                                                        OutlineInputBorder(),
-                                                  ),
-                                                ),
-                                              ],
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text(
+                                            'Deseja excluir o filiado?'),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Text(
+                                                'Todas as assinaturas, planos, produtos e clientes vinculados serão deletados.'),
+                                            const SizedBox(height: 10),
+                                            TextFormField(
+                                              controller: passwordController,
+                                              obscureText: true,
+                                              decoration: const InputDecoration(
+                                                labelText: 'Senha',
+                                                border: OutlineInputBorder(),
+                                              ),
                                             ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.pop(context),
-                                                child: Text('Cancelar',
-                                                    style: TextStyle(
-                                                        color: Colors
-                                                            .grey.shade400)),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () async {
-                                                  final password =
-                                                      passwordController.text;
-                                                  bool isAuthenticated =
-                                                      await _reauthenticateUser(
-                                                          password);
-
-                                                  if (isAuthenticated) {
-                                                    _deleteFiliado(filiado.id, filiado['email']);
-                                                    Navigator.pop(
-                                                        context); // Fecha o dialog de senha
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .showSnackBar(
-                                                      const SnackBar(
-                                                          content: Text(
-                                                              'Filiado excluído com sucesso!')),
-                                                    );
-                                                  } else {
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .showSnackBar(
-                                                      const SnackBar(
-                                                          content: Text(
-                                                              'Senha incorreta. Tente novamente.')),
-                                                    );
-                                                  }
-                                                },
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: corPadrao(),
-                                                ),
-                                                child: const Text('Excluir',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                              ),
-                                            ],
+                                          ],
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: Text('Cancelar',
+                                                style: TextStyle(
+                                                    color:
+                                                        Colors.grey.shade400)),
                                           ),
-                                        );
-                                      
-                                    
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              final password =
+                                                  passwordController.text;
+                                              bool isAuthenticated =
+                                                  await _reauthenticateUser(
+                                                      password);
+
+                                              if (isAuthenticated) {
+                                                _deleteFiliado(filiado.id,
+                                                    filiado['email']);
+                                                Navigator.pop(
+                                                    context); // Fecha o dialog de senha
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                      content: Text(
+                                                          'Filiado excluído com sucesso!')),
+                                                );
+                                              } else {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                      content: Text(
+                                                          'Senha incorreta. Tente novamente.')),
+                                                );
+                                              }
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: corPadrao(),
+                                            ),
+                                            child: const Text('Excluir',
+                                                style: TextStyle(
+                                                    color: Colors.white)),
+                                          ),
+                                        ],
+                                      ),
+                                    );
                                   },
                                 ),
                               )
@@ -264,9 +257,8 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
           .get();
 
       for (var doc in assinaturasSnapshot.docs) {
-        String chargeId = doc['charge']['id'].toString();
         final response =
-            await ApiService().cancelarAssinatura(int.parse(chargeId));
+            await ApiService().cancelarAssinatura(int.parse(doc.id));
 
         if (response['status'] == 200) {
           await doc.reference.update({'status': 'cancelado'});
@@ -301,10 +293,15 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
     }
 
     if (cancelamentoComSucesso) {
+      await FirebaseAuth.instance.currentUser!.delete();
+
       await FirebaseFirestore.instance
           .collection('users')
           .doc(filiadoId)
-          .delete();
+          .update({
+            'is_valid': false
+          });
+          
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text(

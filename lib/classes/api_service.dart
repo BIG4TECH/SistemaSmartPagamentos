@@ -1,19 +1,23 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 class ApiService {
-  final String baseUrl = "http://131.0.245.253:3030";
+  final String baseUrl = "https://7d59-131-0-245-253.ngrok-free.app";
+  final Dio dio = Dio();
 
   Future<String?> iniciarSessaoWhatsapp(String emailUser) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/whatsapp'),
-        headers: {"Content-Type": "application/json", "x-api-key": "4202@back"},
-        body: jsonEncode({'email_user': emailUser}),
+      final response = await dio.post(
+        '$baseUrl/whatsapp',
+        options: Options(headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "4202@back",
+          "ngrok-skip-browser-warning": true
+        }),
+        data: {'email_user': emailUser},
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = response.data;
         if (data['qrCode'] != null) {
           return data['qrCode'];
         } else {
@@ -28,29 +32,34 @@ class ApiService {
     return null;
   }
 
-Future<Map<String, dynamic>> verificarStatusWhatsApp(String emailUser) async {
-  try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/whatsapp/status?email_user=$emailUser'),
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": "4202@back"
-      },
-    );
-    return _handleResponse(response);
-  } catch (e) {
-    print('Erro ao verificar o status do WhatsApp: $e');
-    return {'error': 'Erro ao verificar o status do WhatsApp'};
+  Future<Map<String, dynamic>> verificarStatusWhatsApp(String emailUser) async {
+    try {
+      final response = await dio.get(
+        '$baseUrl/whatsapp/status',
+        queryParameters: {'email_user': emailUser},
+        options: Options(headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "4202@back",
+          "ngrok-skip-browser-warning": true
+        }),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      print('Erro ao verificar o status do WhatsApp: $e');
+      return {'error': 'Erro ao verificar o status do WhatsApp'};
+    }
   }
-}
-
 
   Future<Map<String, dynamic>> cancelarAssinatura(int id) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/cancelar-assinatura'),
-        headers: {"Content-Type": "application/json", "x-api-key": "4202@back"},
-        body: jsonEncode({"id": id}),
+      final response = await dio.post(
+        '$baseUrl/cancelar-assinatura',
+        options: Options(headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "4202@back",
+          "ngrok-skip-browser-warning": true
+        }),
+        data: {"id": id},
       );
 
       return _handleResponse(response);
@@ -63,10 +72,14 @@ Future<Map<String, dynamic>> verificarStatusWhatsApp(String emailUser) async {
   Future<Map<String, dynamic>> criarPlano(
       String name, int repeats, int interval) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/criar-plano'),
-        headers: {"Content-Type": "application/json", "x-api-key": "4202@back"},
-        body: jsonEncode({'name': name, 'repeats': null, 'interval': interval}),
+      final response = await dio.post(
+        '$baseUrl/criar-plano',
+        options: Options(headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "4202@back",
+          "ngrok-skip-browser-warning": true
+        }),
+        data: {'name': name, 'repeats': null, 'interval': interval},
       );
       return _handleResponse(response);
     } catch (e) {
@@ -77,10 +90,14 @@ Future<Map<String, dynamic>> verificarStatusWhatsApp(String emailUser) async {
 
   Future<Map<String, dynamic>> deletarPlano(int id) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/deletar-plano'),
-        headers: {"Content-Type": "application/json", "x-api-key": "4202@back"},
-        body: jsonEncode({"id": id}),
+      final response = await dio.post(
+        '$baseUrl/deletar-plano',
+        options: Options(headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "4202@back",
+          "ngrok-skip-browser-warning": true
+        }),
+        data: {"id": id},
       );
 
       return _handleResponse(response);
@@ -90,17 +107,17 @@ Future<Map<String, dynamic>> verificarStatusWhatsApp(String emailUser) async {
     }
   }
 
-  Map<String, dynamic> _handleResponse(http.Response response) {
+  Map<String, dynamic> _handleResponse(Response response) {
     if (response.statusCode == 200) {
-      print(json.decode(response.body));
+      print(response.data);
       return {
-        'body': json.decode(response.body),
-        'status': response.statusCode
+        'body': response.data,
+        'status': response.statusCode,
       };
     } else {
       return {
-        "error": json.decode(response.body)["error"] ?? "Falha desconhecida",
-        "status": response.statusCode
+        "error": response.data["error"] ?? "Falha desconhecida",
+        "status": response.statusCode,
       };
     }
   }

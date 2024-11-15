@@ -57,6 +57,9 @@ dependencies:
   qr_flutter: ^4.1.0
   pretty_qr_code: ^3.3.0
   cross_file: ^0.3.4+2
+  dio: ^5.7.0
+  mockito: ^5.4.4
+  build_runner: ^2.4.13
 
 dev_dependencies:
   flutter_test:

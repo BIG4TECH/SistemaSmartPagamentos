@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 //import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
@@ -19,6 +20,8 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
   final ApiService apiService = ApiService();
   Uint8List? qrCodeBytes;
   String statusMensagem = "Inicie a sessão para obter o QR Code.";
+  MaskedTextController numeroCtrl =
+      MaskedTextController(mask: '+00 (00) 00000-0000');
 
   @override
   void initState() {
@@ -36,7 +39,9 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
       print('STATUS: $status');
       if (status['body']['connected'] == true) {
         setState(() {
-          statusMensagem = "Número conectado: ${status['body']['phoneNumber']}";
+          numeroCtrl.text = status['body']['phoneNumber'];
+
+          statusMensagem = "Número conectado: ${numeroCtrl.text}";
         });
       } else {
         setState(() {
@@ -100,6 +105,16 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                if (qrCodeBytes != null)
+                  Image.memory(
+                    qrCodeBytes!,
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.contain,
+                  )
+                else
+                  Text(statusMensagem),
+                SizedBox(height: 20),
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -122,16 +137,9 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
                             fontWeight: FontWeight.bold)),
                   ),
                 ),
-                SizedBox(height: 20),
-                if (qrCodeBytes != null)
-                  Image.memory(
-                    qrCodeBytes!,
-                    width: 200,
-                    height: 200,
-                    fit: BoxFit.contain,
-                  )
-                else
-                  Text(statusMensagem),
+                
+                
+                
               ],
             ),
           ),

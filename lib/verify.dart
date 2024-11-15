@@ -9,36 +9,20 @@ class VerifyState extends StatefulWidget {
 }
 
 class _verifyState extends State<VerifyState> {
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      
       stream: FirebaseAuth.instance.userChanges(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           User? user = snapshot.data;
-
-          return FutureBuilder<void>(
-            future: Future.wait([]),
-            builder: (context, futureSnapshot) {
-              
-              return Home(email: user!.email.toString());
-            },
-          );
+          return Home(email: user!.email.toString());
         } else if (snapshot.hasError) {
-          
-          return Text('Error: ${snapshot.error}');
-        } 
-          return snapshot.connectionState == ConnectionState.waiting
-              ? const Center(child: CircularProgressIndicator())
-              : LoginScreen();
-        
+          return Text('Erro: ${snapshot.error}');
+        }
+        return snapshot.connectionState == ConnectionState.waiting
+            ? const Center(child: CircularProgressIndicator())
+            : LoginScreen();
       },
     );
   }

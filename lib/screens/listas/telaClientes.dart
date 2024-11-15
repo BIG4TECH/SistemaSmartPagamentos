@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/classes/api_service.dart';
-import 'package:smart_pagamento/inutilizados/telaCadastroCliente.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/showdialog.dart';
 
@@ -105,8 +104,9 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
 
                   if (clientes.isEmpty) {
                     return const Center(
-                        child: Text('Nenhum cliente encontrado',
-                            ));
+                        child: Text(
+                      'Nenhum cliente encontrado',
+                    ));
                   }
 
                   return ListView.builder(
@@ -132,6 +132,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              /*
                               IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () {
@@ -144,7 +145,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                     ),
                                   );
                                 },
-                              ),
+                              ),*/
                               IconButton(
                                 icon: const Icon(Icons.delete),
                                 onPressed: () {
@@ -266,9 +267,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
     bool cancelamentoComSucesso = true;
 
     for (var doc in assinaturasSnapshot.docs) {
-      String chargeId = doc['charge']['id'].toString();
-      final response =
-          await ApiService().cancelarAssinatura(int.parse(chargeId));
+      final response = await ApiService().cancelarAssinatura(int.parse(doc.id));
 
       if (response['status'] == 200) {
         await doc.reference.update({'status': 'cancelado'});
@@ -305,23 +304,38 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
         .where('email_user', isEqualTo: widget.idUser)
         .get();
 
-    return assinaturasSnapshot.docs.map((doc) {
+    List<Map<String, dynamic>> result = [];
+
+    for (var assinatura in assinaturasSnapshot.docs) {
       String name = '';
+      List? charges;
 
       for (var product in products.docs) {
-        if (product['plan_id'] == doc['plan']['id']) {
+        if (product['plan_id'] == assinatura['plan']['id']) {
+          final snapshotCharges = await FirebaseFirestore.instance
+              .collection('clientes')
+              .doc(clienteId)
+              .collection('assinaturas')
+              .doc(assinatura.id)
+              .collection('charge')
+              .get();
+
           name = product['name'];
+          charges =
+              snapshotCharges.docs.map((charge) => charge.data()).toList();
           break;
         }
       }
 
-      return {
-        'id': doc.id,
+      result.add({
+        'id': assinatura.id,
         'name': name,
-        'chargeId': doc['charge']['id'].toString(),
-        'status': doc['status'],
-      };
-    }).toList();
+        'charges': charges,
+        'status': assinatura['status'],
+      });
+    }
+
+    return result;
   }
 
   void _showProducts(BuildContext context,
@@ -340,8 +354,11 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                   itemCount: assinaturas.length,
                   itemBuilder: (context, index) {
                     final assinatura = assinaturas[index];
+                    final charges =
+                        assinatura['charge'] as List<Map<String, dynamic>>?;
+
                     return Card(
-                      child: ListTile(
+                      child: ExpansionTile(
                         title: Text(assinatura['name']),
                         subtitle: Text('Status: ${assinatura['status']}'),
                         trailing: Container(
@@ -424,6 +441,36 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                             },
                           ),
                         ),
+                        children: [
+                          if (charges != null && charges.isNotEmpty)
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: charges.length,
+                              itemBuilder: (context, chargeIndex) {
+                                final charge = charges[chargeIndex];
+                                return ListTile(
+                                  title: Text('Parcela: ${charge['parcel']}'),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Status: ${charge['status']}'),
+                                      Text('Total: ${charge['total']}'),
+                                    ],
+                                  ),
+                                );
+                              },
+                            )
+                          else
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'Nenhuma cobrança encontrada.',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ),
+                        ],
                       ),
                     );
                   },

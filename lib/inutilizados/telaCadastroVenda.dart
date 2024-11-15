@@ -455,7 +455,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
     DateTime datahora = DateTime.now();
     DateFormat formatoData = DateFormat('dd/MM/yyyy | HH:mm');
     String nomeCliente = '';
-    String telefone = '';
+    //String telefone = '';
     
     if (_formKey.currentState!.validate()) {
       var query = await FirebaseFirestore.instance
@@ -465,7 +465,7 @@ class _RegistraVendaState extends State<RegistraVenda> {
       for (var doc in query.docs) {
         if (_dadosCliente == '${doc['name']} | Email: ${doc['email']} | Whatsapp: ${doc['whatsapp']}') {
           nomeCliente = doc['name'];
-          telefone = doc['whatsapp'];
+          //telefone = doc['whatsapp'];
         }
       }
       if (widget.vendaId == null) {
