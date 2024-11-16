@@ -52,34 +52,40 @@ class TotalProdutosState extends State<TotalProdutos> {
         ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                colors: gradientBtn(),
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                '$quantProdutos',
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text('Produtos', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Quant. Total'),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    colors: gradientBtn(),
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    '$quantProdutos',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Produtos',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Quant. Total'),
+                ],
+              ),
+              const SizedBox(width: 10),
             ],
           ),
-          const SizedBox(width: 10),
           ProdRelatorio(widget.email, widget.tipoUser, widget.idUser,
               widget.emailFiliado, widget.idFiliado)
         ],

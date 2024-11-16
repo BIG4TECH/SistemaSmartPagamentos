@@ -28,7 +28,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Minhas Vendas',
+        title: const Text('Histórico de Vendas',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -180,15 +180,15 @@ class _VendasListScreenState extends State<VendasListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Cliente: \nR\$${venda['name'].toString()}',
+                            'Cliente: ${venda['name'].toString()}',
                             style: TextStyle(fontSize: size.height * 0.02),
                           ),
                           Text(
-                            'Total: \nR\$${venda['total'].toString()}',
+                            'Total: ${venda['total'].toString()}',
                             style: TextStyle(fontSize: size.height * 0.02),
                           ),
                           Text(
-                            'Data: \n${venda['first_execution']}',
+                            'Data: ${venda['first_execution']}',
                             style: TextStyle(fontSize: size.height * 0.02),
                           ),
                         ],

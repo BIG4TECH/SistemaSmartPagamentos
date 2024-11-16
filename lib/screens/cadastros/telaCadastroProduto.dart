@@ -182,7 +182,8 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
             await FirebaseFirestore.instance.collection('products').add({
               'name': _nameController.text,
               'plan_id': responsePlanoPosted['body']['data'],
-              'price': double.parse(formatarNumero(double.parse(_priceController.text))),
+              'price': double.parse(
+                  formatarNumero(double.parse(_priceController.text))),
               'is_dollar': _isDollar,
               'recurrencePeriod': _recurrencePeriod,
               'paymentOption': _getPaymentOption(),
@@ -216,7 +217,8 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                   .update({
                 'name': _nameController.text,
                 'plan_id': novoPlanId,
-                'price': double.parse(formatarNumero(double.parse(_priceController.text))),
+                'price': double.parse(
+                    formatarNumero(double.parse(_priceController.text))),
                 'is_dollar': _isDollar,
                 'recurrencePeriod': _recurrencePeriod,
                 'paymentOption': _getPaymentOption(),
@@ -343,16 +345,14 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                                   return null;
                                 },
                               ),
-                              Card(
-                                child: CheckboxListTile(
-                                  title: Text('Valor em Dólar'),
-                                  value: _isDollar,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      _isDollar = value!;
-                                    });
-                                  },
-                                ),
+                              CheckboxListTile(
+                                title: Text('Valor em Dólar'),
+                                value: _isDollar,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    _isDollar = value!;
+                                  });
+                                },
                               ),
                             ],
                           )
@@ -379,7 +379,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                                 ),
                               ),
                               Expanded(
-                                child: Card(
+                               
                                   child: CheckboxListTile(
                                     title: Text('Valor em Dólar'),
                                     value: _isDollar,
@@ -389,7 +389,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                                       });
                                     },
                                   ),
-                                ),
+                                
                               )
                             ],
                           ),

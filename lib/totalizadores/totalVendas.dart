@@ -52,34 +52,39 @@ class TotalVendasState extends State<TotalVendas> {
         ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                colors: gradientBtn(),
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                '$quantVendas',
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text('Vendas', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Quant. Total'),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    colors: gradientBtn(),
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    '$quantVendas',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Vendas', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Quant. Total'),
+                ],
+              ),
+              const SizedBox(width: 10),
             ],
           ),
-          const SizedBox(width: 10),
           VenRelatorio(
             email: widget.email,
             tipoUser: widget.tipoUser,

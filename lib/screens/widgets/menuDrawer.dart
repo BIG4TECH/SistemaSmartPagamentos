@@ -84,7 +84,7 @@ Widget menuDrawer(
         ListTile(
           leading: Icon(Icons.local_offer, color: corPadrao()),
           title: Text(
-            tipoUser == 'master' ? "Meus Produtos" : 'Produtos',
+            'Produtos',
             style: TextStyle(fontSize: 16),
           ),
           onTap: () {
@@ -118,7 +118,7 @@ Widget menuDrawer(
         ListTile(
           leading: Icon(Icons.people_alt_rounded, color: corPadrao()),
           title: Text(
-            "Meus Clientes",
+            "Clientes",
             style: TextStyle(fontSize: 16),
           ),
           onTap: () {
@@ -203,7 +203,7 @@ Widget menuDrawer(
           leading:
               Icon(Icons.shopping_cart_checkout_rounded, color: corPadrao()),
           title: Text(
-            "Minhas Vendas",
+            "Histórico de Vendas",
             style: TextStyle(fontSize: 16),
           ),
           onTap: () {
@@ -218,7 +218,7 @@ Widget menuDrawer(
         ListTile(
           leading: Icon(Icons.qr_code, color: corPadrao()),
           title: Text(
-            "Configurar",
+            "Conectar Whatsapp",
             style: TextStyle(fontSize: 16),
           ),
           onTap: () {

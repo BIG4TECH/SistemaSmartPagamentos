@@ -1,10 +1,8 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import '/presentation/resources/app_resources.dart';
 import '/presentation/widgets/indicator.dart';
 
@@ -264,7 +262,7 @@ class LineChartSample1State extends State<LineChartSample1> {
       child: Stack(
         children: <Widget>[
           Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               const SizedBox(
@@ -272,9 +270,9 @@ class LineChartSample1State extends State<LineChartSample1> {
               ),
               Text(
                 'Quantidade por Dia (${data.month}/${data.year})',
-                style: const TextStyle(
-                  color: Color.fromARGB(255, 0, 10, 12),
-                  fontSize: 32,
+                style:  TextStyle(
+                  color: const Color.fromARGB(255, 0, 10, 12),
+                  fontSize: size.width <= 720 ? 28 : 32,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2,
                 ),
@@ -284,8 +282,7 @@ class LineChartSample1State extends State<LineChartSample1> {
                 height: 20,
               ),
               size.width <= 720
-                  ? const Center(
-                      child: Column(
+                  ? const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -314,10 +311,11 @@ class LineChartSample1State extends State<LineChartSample1> {
                           isSquare: true,
                         ),*/
                         ],
-                      ),
-                    )
+                      )
+                    
                   : const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      
                       children: [
                         Indicator(
                           color: AppColors.contentColorPurple,
@@ -382,7 +380,7 @@ class LineChartSample1State extends State<LineChartSample1> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return _listAllData.isEmpty
+    return _listAllData.isEmpty && !mounted
         ? const Center(child: CircularProgressIndicator())
         : showLineChart(size);
   }

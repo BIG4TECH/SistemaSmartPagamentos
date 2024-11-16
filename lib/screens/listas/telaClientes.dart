@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 import 'package:smart_pagamento/screens/widgets/showdialog.dart';
 
 class ClienteListScreen extends StatefulWidget {
@@ -321,8 +322,10 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
               .get();
 
           name = product['name'];
+
           charges =
               snapshotCharges.docs.map((charge) => charge.data()).toList();
+          //print(charges);
           break;
         }
       }
@@ -334,6 +337,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
         'status': assinatura['status'],
       });
     }
+    //print(result);
 
     return result;
   }
@@ -355,12 +359,14 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                   itemBuilder: (context, index) {
                     final assinatura = assinaturas[index];
                     final charges =
-                        assinatura['charge'] as List<Map<String, dynamic>>?;
-
+                        assinatura['charges'] as List<Map<String, dynamic>>?;
+                    //print(assinatura);
                     return Card(
                       child: ExpansionTile(
-                        title: Text(assinatura['name']),
-                        subtitle: Text('Status: ${assinatura['status']}'),
+                        title: Text(assinatura['name'],
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(
+                            'Status: ${assinatura['status'] == 'active' ? 'Ativo' : 'Cancelado'}'),
                         trailing: Container(
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
@@ -450,13 +456,39 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                               itemBuilder: (context, chargeIndex) {
                                 final charge = charges[chargeIndex];
                                 return ListTile(
-                                  title: Text('Parcela: ${charge['parcel']}'),
+                                  title: Text(
+                                    'Parcela: ${charge['parcel']}',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
                                   subtitle: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text('Status: ${charge['status']}'),
-                                      Text('Total: ${charge['total']}'),
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Status: '),
+                                          Padding(
+                                              padding: const EdgeInsets.all(1),
+                                              child: Card(
+                                                color: charge['status'] ==
+                                                        'waiting'
+                                                    ? Colors.amber[300]
+                                                    : Colors.green[300],
+                                                child: Text(
+                                                  charge['status'] == 'waiting'
+                                                      ? 'Aguardando Pagamento'
+                                                      : 'Pago',
+                                                  style:
+                                                      TextStyle(fontSize: 10),
+                                                ),
+                                              ))
+                                        ],
+                                      ),
+                                      Text(
+                                          'Total: ${formatWithComma(charge['total'])}'),
                                     ],
                                   ),
                                 );

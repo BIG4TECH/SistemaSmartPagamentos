@@ -9,14 +9,14 @@ class TotalClientes extends StatefulWidget {
   final String idUser;
   final String? emailFiliado;
   final String? idFiliado;
-  const TotalClientes(this.email, this.tipoUser, this.idUser, this.emailFiliado, this.idFiliado);
+  const TotalClientes(this.email, this.tipoUser, this.idUser, this.emailFiliado,
+      this.idFiliado);
 
   @override
   State<StatefulWidget> createState() => TotalClientesState();
 }
 
 class TotalClientesState extends State<TotalClientes> {
-  
   Stream<QuerySnapshot> _getClientesStream() {
     if (widget.tipoUser == 'master') {
       if (widget.emailFiliado == null) {
@@ -51,35 +51,43 @@ class TotalClientesState extends State<TotalClientes> {
         ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                colors: gradientBtn(),
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                '$quantClientes',
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text('Clientes', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Quant. Total'),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    colors: gradientBtn(),
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    '$quantClientes',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Clientes',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Quant. Total'),
+                ],
+              ),
+              const SizedBox(width: 10),
             ],
           ),
-          const SizedBox(width: 10),
-          CliRelatorio(widget.email, widget.tipoUser, widget.idUser, widget.emailFiliado, widget.idFiliado)
+          
+          CliRelatorio(widget.email, widget.tipoUser, widget.idUser,
+              widget.emailFiliado, widget.idFiliado)
         ],
       ),
     );
@@ -97,8 +105,6 @@ class TotalClientesState extends State<TotalClientes> {
         }
         if (snapshot.hasError) {
           return Text('Erro.');
-
-          
         }
 
         int quantClientes = snapshot.data!.size;

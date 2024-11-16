@@ -75,7 +75,7 @@ class PieChartProdState extends State<PieChartProd> {
           Container(
             //color: Colors.amber,
            
-            height: 200,
+            height: size.width <= 720 ? 150 : 200,
             width: 430,
             child: Row(
               children: <Widget>[
@@ -105,10 +105,11 @@ class PieChartProdState extends State<PieChartProd> {
                   ),
                 ),
                 Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: size.width <= 720 ? MainAxisAlignment.center : MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Indicator(
+                      size: size.width <= 720 ? 12 : 16,
                       color: AppColors.contentColorBlue,
                       text: _listProdutosEscolhidos.isNotEmpty
                           ? _listProdutosEscolhidos[0].nome ?? ''
@@ -118,6 +119,7 @@ class PieChartProdState extends State<PieChartProd> {
                     const SizedBox(height: 4),
                     _listProdutosEscolhidos.length > 1
                         ? Indicator(
+                            size: size.width <= 720 ? 12 : 16,
                             color: AppColors.contentColorYellow,
                             text: _listProdutosEscolhidos[1].nome ?? '',
                             isSquare: true,
@@ -126,6 +128,7 @@ class PieChartProdState extends State<PieChartProd> {
                     const SizedBox(height: 4),
                     _listProdutosEscolhidos.length > 2
                         ? Indicator(
+                            size: size.width <= 720 ? 12 : 16,
                             color: AppColors.contentColorPurple,
                             text: _listProdutosEscolhidos[2].nome ?? '',
                             isSquare: true,
@@ -134,12 +137,13 @@ class PieChartProdState extends State<PieChartProd> {
                     const SizedBox(height: 4),
                     _listProdutosEscolhidos.length > 3
                         ? Indicator(
+                            size: size.width <= 720 ? 12 : 16,
                             color: AppColors.contentColorGreen,
                             text: _listProdutosEscolhidos[3].nome ?? '',
                             isSquare: true,
                           )
                         : const SizedBox(),
-                    const SizedBox(height: 18),
+                    size.width <= 720 ? const SizedBox() : const SizedBox(height: 18),
                   ],
                 ),
                 const SizedBox(width: 28),
