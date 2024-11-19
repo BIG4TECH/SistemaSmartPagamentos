@@ -226,7 +226,7 @@ Widget menuDrawer(
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => ConfiguracaoWhatsApp(email)));
+                    builder: (context) => ConfiguracaoWhatsApp(idUser)));
           },
         ),
         ListTile(

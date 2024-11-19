@@ -51,18 +51,18 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
   String _getPaymentOption() {
     if (_isCreditCardSelected && _isPixSelected && _isBoletoSelected) {
       return 'Ambos';
-    } else if (_isCreditCardSelected) {
-      return 'Cartão';
-    } else if (_isPixSelected) {
-      return 'Pix';
-    } else if (_isBoletoSelected) {
-      return 'Boleto';
     } else if (_isCreditCardSelected && _isPixSelected) {
       return 'Cartão/Pix';
     } else if (_isCreditCardSelected && _isBoletoSelected) {
       return 'Cartão/Boleto';
     } else if (_isBoletoSelected && _isPixSelected) {
       return 'Pix/Boleto';
+    } else if (_isCreditCardSelected) {
+      return 'Cartão';
+    } else if (_isPixSelected) {
+      return 'Pix';
+    } else if (_isBoletoSelected) {
+      return 'Boleto';
     }
     return '';
   }
@@ -187,7 +187,8 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
               'is_dollar': _isDollar,
               'recurrencePeriod': _recurrencePeriod,
               'paymentOption': _getPaymentOption(),
-              'email_user': widget.idUser
+              'email_user': widget.idUser,
+              'status': 'ativo',
             });
           } else {
             showDialogApi(context);
@@ -254,6 +255,8 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
         }
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.green,
+
             content: Text(
                 'Produto ${widget.productId == null ? 'registrado' : 'atualizado'} com sucesso!')));
         _nameController.clear();
@@ -379,17 +382,15 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                                 ),
                               ),
                               Expanded(
-                               
-                                  child: CheckboxListTile(
-                                    title: Text('Valor em Dólar'),
-                                    value: _isDollar,
-                                    onChanged: (bool? value) {
-                                      setState(() {
-                                        _isDollar = value!;
-                                      });
-                                    },
-                                  ),
-                                
+                                child: CheckboxListTile(
+                                  title: Text('Valor em Dólar'),
+                                  value: _isDollar,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      _isDollar = value!;
+                                    });
+                                  },
+                                ),
                               )
                             ],
                           ),

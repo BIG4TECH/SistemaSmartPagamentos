@@ -9,7 +9,8 @@ class VendasListScreen extends StatefulWidget {
   final String tipoUser;
   final String idUser;
 
-  const VendasListScreen({required this.email, required this.tipoUser, required this.idUser});
+  const VendasListScreen(
+      {required this.email, required this.tipoUser, required this.idUser});
 
   @override
   _VendasListScreenState createState() => _VendasListScreenState();
@@ -38,7 +39,6 @@ class _VendasListScreenState extends State<VendasListScreen> {
         backgroundColor: corPadrao(),
       ),
       body: Container(
-        
         padding: const EdgeInsets.only(top: 40, left: 50, right: 50),
         child: StreamBuilder(
           stream: FirebaseFirestore.instance
@@ -87,6 +87,11 @@ class _VendasListScreenState extends State<VendasListScreen> {
                                   fontWeight: FontWeight.bold,
                                   fontSize: size.height * 0.03))),
                       DataColumn(
+                          label: Text('Status',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: size.height * 0.03))),
+                      DataColumn(
                           label: Text('Ações',
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -105,6 +110,16 @@ class _VendasListScreenState extends State<VendasListScreen> {
                                       fontSize: size.height * 0.025))),
                               DataCell(
                                 Text(venda['first_execution'],
+                                    style: TextStyle(
+                                        fontSize: size.height * 0.025)),
+                              ),
+                              DataCell(
+                                Text(
+                                    venda['status'] == 'active'
+                                        ? 'Recebido'
+                                        : venda['status'] == 'waiting'
+                                            ? 'Pendente'
+                                            : 'Cancelado',
                                     style: TextStyle(
                                         fontSize: size.height * 0.025)),
                               ),
@@ -164,7 +179,6 @@ class _VendasListScreenState extends State<VendasListScreen> {
                         .toList(),
                   ),
                 ),
-              
               );
             } else {
               // Exibição em forma de lista ou cards para telas menores
@@ -189,6 +203,10 @@ class _VendasListScreenState extends State<VendasListScreen> {
                           ),
                           Text(
                             'Data: ${venda['first_execution']}',
+                            style: TextStyle(fontSize: size.height * 0.02),
+                          ),
+                          Text(
+                            'Status: ${venda['status'] == 'active' ? 'Ativo' : venda['status'] == 'waiting' ? 'Aguardando' : 'Cancelado'}',
                             style: TextStyle(fontSize: size.height * 0.02),
                           ),
                         ],

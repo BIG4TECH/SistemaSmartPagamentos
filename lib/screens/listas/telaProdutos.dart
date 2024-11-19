@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/classes/api_service.dart';
+//import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 //import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 import 'package:smart_pagamento/screens/widgets/exibirLink.dart';
-import 'package:smart_pagamento/screens/widgets/showdialog.dart';
+//import 'package:smart_pagamento/screens/widgets/showdialog.dart';
 
-import '../cadastros/telaCadastroProduto.dart';
+//import '../cadastros/telaCadastroProduto.dart';
 
 class ProductListScreen extends StatefulWidget {
   final String? email;
@@ -161,6 +161,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              /*
                               IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () {
@@ -175,6 +176,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   );
                                 },
                               ),
+                              */
+                              /*
                               IconButton(
                                 icon: const Icon(Icons.delete),
                                 onPressed: () {
@@ -217,7 +220,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
                                                 if (responseDelete['status'] ==
                                                     200) {
-                                                  _deleteProduct(product.id);
+                                                  //_deleteProduct(product.id);
                                                   Navigator.pop(context);
                                                 } else {
                                                   showDialogApi(context);
@@ -246,6 +249,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   );
                                 },
                               ),
+                              */
                               Container(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
@@ -281,7 +285,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
+  /*
   void _deleteProduct(String productId) {
     FirebaseFirestore.instance.collection('products').doc(productId).delete();
   }
+  */
 }

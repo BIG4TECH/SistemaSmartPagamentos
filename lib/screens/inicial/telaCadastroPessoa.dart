@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/textfield.dart';
 
@@ -17,6 +18,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
   final _formKey = GlobalKey<FormState>();
+  MaskedTextController numeroCtrl =
+      MaskedTextController(mask: '(00) 00000-0000');
   String _nome = '';
   String _email = '';
   String _whatsapp = '';
@@ -24,6 +27,7 @@ class _SignupScreenState extends State<SignupScreen> {
   String _confirmPassword = '';
   String erro = '';
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   void _signup() async {
     if (_formKey.currentState!.validate()) {
@@ -136,7 +140,46 @@ class _SignupScreenState extends State<SignupScreen> {
                         SizedBox(height: size.height * 0.02),
                         SizedBox(height: size.height * 0.02),
                         TextFormField(
-                          decoration: inputDec('Nome Completo'),
+                          decoration: InputDecoration(
+                            labelText: 'Nome',
+                            labelStyle: TextStyle(color: Colors.grey.shade400),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade400, // Cor da borda
+                                width: 2.0, // Espessura da borda
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors
+                                    .red, // Cor da borda quando houver erro
+                                width: 3.0, // Espessura da borda de erro
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors
+                                    .red, // Cor da borda quando houver erro
+                                width: 2.0, // Espessura da borda de erro
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color:
+                                    corPadrao(), // Cor da borda quando o campo está focado
+                                width:
+                                    3.0, // Espessura da borda quando o campo está focado
+                              ),
+                            ),
+                          ),
                           keyboardType: TextInputType.name,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -150,7 +193,46 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                         SizedBox(height: size.height * 0.01),
                         TextFormField(
-                          decoration: inputDec('Email'),
+                          decoration: InputDecoration(
+                            labelText: 'Email',
+                            labelStyle: TextStyle(color: Colors.grey.shade400),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade400, // Cor da borda
+                                width: 2.0, // Espessura da borda
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors
+                                    .red, // Cor da borda quando houver erro
+                                width: 3.0, // Espessura da borda de erro
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors
+                                    .red, // Cor da borda quando houver erro
+                                width: 2.0, // Espessura da borda de erro
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color:
+                                    corPadrao(), // Cor da borda quando o campo está focado
+                                width:
+                                    3.0, // Espessura da borda quando o campo está focado
+                              ),
+                            ),
+                          ),
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -164,25 +246,133 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                         SizedBox(height: size.height * 0.01),
                         TextFormField(
-                          decoration: inputDec('Whatsapp'),
+                          decoration: InputDecoration(
+                            labelText: 'WhatsApp',
+                            labelStyle: TextStyle(color: Colors.grey.shade400),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade400, // Cor da borda
+                                width: 2.0, // Espessura da borda
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors
+                                    .red, // Cor da borda quando houver erro
+                                width: 3.0, // Espessura da borda de erro
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors
+                                    .red, // Cor da borda quando houver erro
+                                width: 2.0, // Espessura da borda de erro
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color:
+                                    corPadrao(), // Cor da borda quando o campo está focado
+                                width:
+                                    3.0, // Espessura da borda quando o campo está focado
+                              ),
+                            ),
+                          ),
                           keyboardType: TextInputType.phone,
+                          controller: numeroCtrl,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor, insira um número de WhatsApp';
                             }
+                            if (value.length < 15) {
+                              return 'Por favor, insira um número de WhatsApp completo';
+                            }
                             return null;
                           },
                           onChanged: (value) {
-                            _whatsapp = value;
+                            _whatsapp = numeroCtrl.text;
                           },
                         ),
                         SizedBox(height: size.height * 0.01),
                         TextFormField(
-                          decoration: inputDec('Senha'),
-                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: 'Senha',
+                            labelStyle: TextStyle(color: Colors.grey.shade400),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade400, // Cor da borda
+                                width: 2.0, // Espessura da borda
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors
+                                    .red, // Cor da borda quando houver erro
+                                width: 3.0, // Espessura da borda de erro
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors
+                                    .red, // Cor da borda quando houver erro
+                                width: 2.0, // Espessura da borda de erro
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color:
+                                    corPadrao(), // Cor da borda quando o campo está focado
+                                width:
+                                    3.0, // Espessura da borda quando o campo está focado
+                              ),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
+                          ),
+                          obscureText: !_isPasswordVisible,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor, insira uma senha';
+                            }
+
+                            // Verificação de senha forte
+                            if (value.length < 8) {
+                              return 'A senha deve ter pelo menos 8 caracteres';
+                            }
+                            if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                              return 'A senha deve conter pelo menos uma letra maiúscula';
+                            }
+                            if (!RegExp(r'[0-9]').hasMatch(value)) {
+                              return 'A senha deve conter pelo menos um número';
+                            }
+                            if (!RegExp(r'[!@#\$&*~]').hasMatch(value)) {
+                              return 'A senha deve conter pelo menos um caractere especial (!@#\$&*~)';
                             }
                             return null;
                           },
@@ -192,8 +382,59 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                         SizedBox(height: size.height * 0.01),
                         TextFormField(
-                          decoration: inputDec('Confirmar Senha'),
-                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: 'Confirmar Senha',
+                            labelStyle: TextStyle(color: Colors.grey.shade400),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade400, // Cor da borda
+                                width: 2.0, // Espessura da borda
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors
+                                    .red, // Cor da borda quando houver erro
+                                width: 3.0, // Espessura da borda de erro
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors
+                                    .red, // Cor da borda quando houver erro
+                                width: 2.0, // Espessura da borda de erro
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color:
+                                    corPadrao(), // Cor da borda quando o campo está focado
+                                width:
+                                    3.0, // Espessura da borda quando o campo está focado
+                              ),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
+                          ),
+                          obscureText: !_isPasswordVisible,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Por favor, confirme a senha';
@@ -283,7 +524,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       'Cadastro',
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: size.width * 0.03),
+                          fontSize: size.width * 0.025),
                     ),
                     SizedBox(
                       height: size.height * 0.45,
@@ -331,16 +572,25 @@ class _SignupScreenState extends State<SignupScreen> {
                             //whatsapp
                             SizedBox(
                               width: size.width * 0.2,
-                              child: loginTextFormField(
-                                  null, 'WhatsApp', TextInputType.name,
-                                  (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, insira seu WhatsApp';
-                                }
-                                return null;
-                              }, (value) {
-                                _whatsapp = value;
-                              }),
+                              child: TextFormField(
+                                decoration: const InputDecoration(
+                                    labelText: 'WhatsApp'),
+                                keyboardType: TextInputType.phone,
+                                controller: numeroCtrl,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Por favor, insira um número de WhatsApp';
+                                  }
+
+                                  if (value.length < 15) {
+                                    return 'Por favor, insira um número de WhatsApp completo';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  _whatsapp = numeroCtrl.text;
+                                },
+                              ),
                             ),
                             SizedBox(
                               height: size.height * 0.007,
@@ -348,15 +598,48 @@ class _SignupScreenState extends State<SignupScreen> {
                             //senha
                             SizedBox(
                               width: size.width * 0.2,
-                              child: loginTextFormField(
-                                  null, 'Senha', TextInputType.name, (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, insira uma senha';
-                                }
-                                return null;
-                              }, (value) {
-                                _password = value;
-                              }),
+                              child: TextFormField(
+                                decoration: InputDecoration(
+                                  labelText: 'Senha',
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _isPasswordVisible
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _isPasswordVisible =
+                                            !_isPasswordVisible;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                obscureText: !_isPasswordVisible,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Por favor, insira uma senha';
+                                  }
+
+                                  // Verificação de senha forte
+                                  if (value.length < 8) {
+                                    return 'A senha deve ter pelo menos 8 caracteres';
+                                  }
+                                  if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                                    return 'A senha deve conter pelo menos uma letra maiúscula';
+                                  }
+                                  if (!RegExp(r'[0-9]').hasMatch(value)) {
+                                    return 'A senha deve conter pelo menos um número';
+                                  }
+                                  if (!RegExp(r'[!@#\$&*~]').hasMatch(value)) {
+                                    return 'A senha deve conter pelo menos um caractere especial (!@#\$&*~)';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  _password = value;
+                                },
+                              ),
                             ),
                             SizedBox(
                               height: size.height * 0.007,
@@ -364,16 +647,34 @@ class _SignupScreenState extends State<SignupScreen> {
                             //confirmar senha
                             SizedBox(
                               width: size.width * 0.2,
-                              child: loginTextFormField(
-                                  null, 'Confirmar senha', TextInputType.name,
-                                  (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, insira uma senha';
-                                }
-                                return null;
-                              }, (value) {
-                                _confirmPassword = value;
-                              }),
+                              child: TextFormField(
+                                decoration: InputDecoration(
+                                  labelText: 'Confirmar Senha',
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _isPasswordVisible
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _isPasswordVisible =
+                                            !_isPasswordVisible;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                obscureText: !_isPasswordVisible,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Por favor, insira uma senha';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  _password = value;
+                                },
+                              ),
                             ),
                           ],
                         ),
@@ -436,10 +737,17 @@ class _SignupScreenState extends State<SignupScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Bem-Vindo!',
+                  'Bem-Vindo',
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: size.width * 0.035,
+                      fontSize: size.width * 0.03,
+                      color: Colors.white),
+                ),
+                Text(
+                  'Cadastre-se agora!',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: size.width * 0.025,
                       color: Colors.white),
                 ),
               ],

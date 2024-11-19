@@ -20,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   Widget mobile(Size size) {
     return Column(
@@ -29,14 +30,25 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Padding(
             padding: EdgeInsets.all(size.width * 0.01),
             child: Center(
-              child: Text(
-                'Bem-Vindo!',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: size.width * 0.07,
-                    color: Colors.white),
-              ),
-            ),
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Bem-Vindo',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: size.width * 0.07,
+                      color: Colors.white),
+                ),
+                Text(
+                  'ao Smart-Pay!',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: size.width * 0.06,
+                      color: Colors.white),
+                ),
+              ],
+            )),
           ),
         ),
         Expanded(
@@ -86,8 +98,41 @@ class _LoginScreenState extends State<LoginScreen> {
                         //SENHA
                         TextFormField(
                           controller: _passwordController,
-                          decoration: inputDec('Senha'),
-                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: 'Senha',
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
+                            labelStyle: TextStyle(color: Colors.grey.shade400),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade400, // Cor da borda
+                                width: 2.0, // Espessura da borda
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              borderSide: BorderSide(
+                                color:
+                                    corPadrao(), // Cor da borda quando o campo está focado
+                                width:
+                                    3.0, // Espessura da borda quando o campo está focado
+                              ),
+                            ),
+                          ),
+                          obscureText: !_isPasswordVisible,
                           validator: (value) {
                             if (value?.isEmpty ?? true) {
                               return 'Por favor, insira uma senha';
@@ -168,10 +213,17 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Bem-Vindo!',
+                  'Bem-Vindo',
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: size.width * 0.035,
+                      color: Colors.white),
+                ),
+                Text(
+                  'ao Smart-Pay!',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: size.width * 0.03,
                       color: Colors.white),
                 ),
               ],
@@ -225,8 +277,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _passwordController,
                         decoration: InputDecoration(
                           labelText: 'Senha',
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                          ),
                         ),
-                        obscureText: true,
+                        obscureText: !_isPasswordVisible,
                         validator: (value) {
                           if (value?.isEmpty ?? true) {
                             return 'Por favor, insira uma senha';

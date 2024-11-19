@@ -147,6 +147,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                   );
                                 },
                               ),*/
+                              /*
                               IconButton(
                                 icon: const Icon(Icons.delete),
                                 onPressed: () {
@@ -192,7 +193,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                                     password);
 
                                             if (isAuthenticated) {
-                                              _deleteCliente(cliente.id);
+                                              //_deleteCliente(cliente.id);
                                               Navigator.pop(
                                                   context); // Fecha o dialog de senha
                                               ScaffoldMessenger.of(context)
@@ -222,6 +223,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                   );
                                 },
                               ),
+                              */
                               Container(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
@@ -295,9 +297,8 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
 
   Future<List<Map<String, dynamic>>> _getAssinaturas(String clienteId) async {
     final assinaturasSnapshot = await FirebaseFirestore.instance
-        .collection('clientes')
-        .doc(clienteId)
-        .collection('assinaturas')
+        .collection('vendas')
+        .where('id_cliente', isEqualTo: clienteId)
         .get();
 
     final products = await FirebaseFirestore.instance
@@ -313,10 +314,17 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
 
       for (var product in products.docs) {
         if (product['plan_id'] == assinatura['plan']['id']) {
+          /*
           final snapshotCharges = await FirebaseFirestore.instance
-              .collection('clientes')
+              .collection('vendas')
               .doc(clienteId)
               .collection('assinaturas')
+              .doc(assinatura.id)
+              .collection('charge')
+              .get();
+          */
+          final snapshotCharges = await FirebaseFirestore.instance
+              .collection('vendas')
               .doc(assinatura.id)
               .collection('charge')
               .get();
@@ -325,6 +333,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
 
           charges =
               snapshotCharges.docs.map((charge) => charge.data()).toList();
+
           //print(charges);
           break;
         }
@@ -555,7 +564,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
           .doc(clienteId)
           .collection('assinaturas')
           .doc(assinaturaId)
-          .delete();
+          .update({'status': 'cancelado'});
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Assinatura cancelada com sucesso!')),

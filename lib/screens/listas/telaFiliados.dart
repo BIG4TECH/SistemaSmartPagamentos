@@ -142,9 +142,12 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
-                                  icon: const Icon(Icons.delete,
+                                  icon: Icon(
+                                      filiado['is_valid']
+                                          ? Icons.delete
+                                          : Icons.check,
                                       color: Colors.white),
-                                  tooltip: 'Excluir',
+                                  tooltip: 'Desativar',
                                   onPressed: () async {
                                     final TextEditingController
                                         passwordController =
@@ -153,13 +156,15 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
                                     showDialog(
                                       context: context,
                                       builder: (context) => AlertDialog(
-                                        title: const Text(
-                                            'Deseja excluir o filiado?'),
+                                        title: Text(filiado['is_valid']
+                                            ? 'Deseja desativar o filiado?'
+                                            : 'Deseja ativar o filiado?'),
                                         content: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Text(
-                                                'Todas as assinaturas, planos, produtos e clientes vinculados serão deletados.'),
+                                            Text(filiado['is_valid']
+                                                ? 'O acesso do filiado a plataforma será negado.'
+                                                : 'O acesso do filiado a plataforma será liberado.'),
                                             const SizedBox(height: 10),
                                             TextFormField(
                                               controller: passwordController,
@@ -189,15 +194,20 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
                                                       password);
 
                                               if (isAuthenticated) {
-                                                _deleteFiliado(filiado.id,
-                                                    filiado['email']);
+                                                //_deleteFiliado(filiado.id,  filiado['email']);
+                                                filiado['is_valid']
+                                                    ? _desativaFiliado(
+                                                        filiado.id)
+                                                    : _ativaFiliado(filiado.id);
                                                 Navigator.pop(
                                                     context); // Fecha o dialog de senha
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(
-                                                  const SnackBar(
-                                                      content: Text(
-                                                          'Filiado excluído com sucesso!')),
+                                                   SnackBar(
+                                                      content: Text(filiado[
+                                                              'is_valid']
+                                                          ? 'Filiado desativado com sucesso!'
+                                                          : 'Filiado ativado com sucesso!')),
                                                 );
                                               } else {
                                                 ScaffoldMessenger.of(context)
@@ -293,15 +303,14 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
     }
 
     if (cancelamentoComSucesso) {
-      await FirebaseAuth.instance.currentUser!.delete();
+      //await FirebaseAuth.instance.currentUser!.delete();
+      //deletar usuario especifico
 
       await FirebaseFirestore.instance
           .collection('users')
           .doc(filiadoId)
-          .update({
-            'is_valid': false
-          });
-          
+          .update({'is_valid': false});
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text(
@@ -311,6 +320,20 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
     } else {
       showDialogApi(context);
     }
+  }
+
+  void _desativaFiliado(String filiadoId) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(filiadoId)
+        .update({'is_valid': false});
+  }
+
+  void _ativaFiliado(String filiadoId) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(filiadoId)
+        .update({'is_valid': true});
   }
 
   Future<bool> _reauthenticateUser(String password) async {
