@@ -83,13 +83,13 @@ class LineChartSample1State extends State<LineChartSample1> {
           try {
             DateTime dataVenda =
                 DateFormat("dd/MM/yyyy").parse(docvenda['first_execution']);
-            print(dataVenda);
+            //print(dataVenda);
             if (dataVenda.isAfter(
                     firstDayOfMonth.subtract(const Duration(days: 1))) &&
                 dataVenda
                     .isBefore(lastDayOfMonth.add(const Duration(days: 1)))) {
               int dia = dataVenda.day;
-              print(dia);
+              //print(dia);
               vendasEfetuadas[dia - 1] =
                   FlSpot(dia.toDouble(), vendasEfetuadas[dia - 1].y + 1);
             }

@@ -49,110 +49,137 @@ class PieChartProdState extends State<PieChartProd> {
   }
 
   Widget showPieProdutosVendidos(Size size) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 2,
-            blurRadius: 4,
-            offset: Offset(0, 0), // changes position of shadow
+  return Container(
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(25),
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.5),
+          spreadRadius: 2,
+          blurRadius: 4,
+          offset: Offset(0, 0),
+        ),
+      ],
+    ),
+    child: Column(
+      children: [
+        const SizedBox(height: 10),
+        Text(
+          'Quantidade de produtos mais vendidos no mês',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: size.width <= 720 ? 14 : 18,
           ),
-        ],
-      ),
-      child: Column(
-       
-        children: [
-          const SizedBox(
-            height: 10,
-          ),
-           Text(
-            'Quantidade de produtos mais vendidos no mês',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: size.width <= 720 ? 14 : 18),
-          ),
-          Container(
-            //color: Colors.amber,
-           
-            height: size.width <= 720 ? 150 : 200,
-            width: 430,
-            child: Row(
-              children: <Widget>[
-                const SizedBox(height: 18),
-                Expanded(
-                  child: PieChart(
-                    PieChartData(
-                      pieTouchData: PieTouchData(
-                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                          setState(() {
-                            if (!event.isInterestedForInteractions ||
-                                pieTouchResponse == null ||
-                                pieTouchResponse.touchedSection == null) {
-                              touchedIndex = -1;
-                              return;
-                            }
-                            touchedIndex = pieTouchResponse
-                                .touchedSection!.touchedSectionIndex;
-                          });
-                        },
-                      ),
-                      borderData: FlBorderData(show: false),
-                      sectionsSpace: 0,
-                      centerSpaceRadius: size.width <= 720 ? 15 : 40,
-                      sections: showingSections(),
+        ),
+        Container(
+          height: size.width <= 720 ? 150 : 200,
+          width: 430,
+          child: Row(
+            children: <Widget>[
+              const SizedBox(height: 18),
+              Expanded(
+                child: PieChart(
+                  PieChartData(
+                    pieTouchData: PieTouchData(
+                      touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                        setState(() {
+                          if (!event.isInterestedForInteractions ||
+                              pieTouchResponse == null ||
+                              pieTouchResponse.touchedSection == null) {
+                            touchedIndex = -1;
+                            return;
+                          }
+                          touchedIndex = pieTouchResponse
+                              .touchedSection!.touchedSectionIndex;
+                        });
+                      },
                     ),
+                    borderData: FlBorderData(show: false),
+                    sectionsSpace: 0,
+                    centerSpaceRadius: size.width <= 720 ? 15 : 35,
+                    sections: showingSections(),
                   ),
                 ),
-                Column(
-                  mainAxisAlignment: size.width <= 720 ? MainAxisAlignment.center : MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
+              ),
+              Column(
+                mainAxisAlignment: size.width <= 720
+                    ? MainAxisAlignment.center
+                    : MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  if (_listProdutosEscolhidos.isNotEmpty)
                     Indicator(
-                      size: size.width <= 720 ? 12 : 16,
+                      size: size.width <= 720 ? 12 : 14,
                       color: AppColors.contentColorBlue,
-                      text: _listProdutosEscolhidos.isNotEmpty
-                          ? _listProdutosEscolhidos[0].nome ?? ''
-                          : '',
+                      text: formatarNomeProduto(
+                          _listProdutosEscolhidos[0].nome ?? '',
+                          size.width <= 720 ? 30 : 20),
                       isSquare: true,
                     ),
+                  if (_listProdutosEscolhidos.length > 1)
                     const SizedBox(height: 4),
-                    _listProdutosEscolhidos.length > 1
-                        ? Indicator(
-                            size: size.width <= 720 ? 12 : 16,
-                            color: AppColors.contentColorYellow,
-                            text: _listProdutosEscolhidos[1].nome ?? '',
-                            isSquare: true,
-                          )
-                        : const SizedBox(),
+                  if (_listProdutosEscolhidos.length > 1)
+                    Indicator(
+                      size: size.width <= 720 ? 12 : 14,
+                      color: AppColors.contentColorYellow,
+                      text: formatarNomeProduto(
+                          _listProdutosEscolhidos[1].nome ?? '',
+                          size.width <= 720 ? 30 : 20),
+                      isSquare: true,
+                    ),
+                  if (_listProdutosEscolhidos.length > 2)
                     const SizedBox(height: 4),
-                    _listProdutosEscolhidos.length > 2
-                        ? Indicator(
-                            size: size.width <= 720 ? 12 : 16,
-                            color: AppColors.contentColorPurple,
-                            text: _listProdutosEscolhidos[2].nome ?? '',
-                            isSquare: true,
-                          )
-                        : const SizedBox(),
+                  if (_listProdutosEscolhidos.length > 2)
+                    Indicator(
+                      size: size.width <= 720 ? 12 : 14,
+                      color: AppColors.contentColorPurple,
+                      text: formatarNomeProduto(
+                          _listProdutosEscolhidos[2].nome ?? '',
+                          size.width <= 720 ? 30 : 20),
+                      isSquare: true,
+                    ),
+                  if (_listProdutosEscolhidos.length > 3)
                     const SizedBox(height: 4),
-                    _listProdutosEscolhidos.length > 3
-                        ? Indicator(
-                            size: size.width <= 720 ? 12 : 16,
-                            color: AppColors.contentColorGreen,
-                            text: _listProdutosEscolhidos[3].nome ?? '',
-                            isSquare: true,
-                          )
-                        : const SizedBox(),
-                    size.width <= 720 ? const SizedBox() : const SizedBox(height: 18),
-                  ],
-                ),
-                const SizedBox(width: 28),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
+                  if (_listProdutosEscolhidos.length > 3)
+                    Indicator(
+                      size: size.width <= 720 ? 12 : 14,
+                      color: AppColors.contentColorGreen,
+                      text: formatarNomeProduto(
+                          _listProdutosEscolhidos[3].nome ?? '',
+                          size.width <= 720 ? 30 : 20),
+                      isSquare: true,
+                    ),
+                  const SizedBox(height: 18),
+                ],
+              ),
+              const SizedBox(width: 28),
+            ],
+          ),
+        )
+      ],
+    ),
+  );
+}
+  
+  String formatarNomeProduto(String nome, int limite) {
+    final words = nome.split(' ');
+    StringBuffer buffer = StringBuffer();
+    int comprimentoAtual = 0;
+
+    for (var word in words) {
+      if ((comprimentoAtual + word.length) > limite) {
+        buffer.write('\n');
+        comprimentoAtual = 0;
+      } else if (comprimentoAtual > 0) {
+        buffer.write(' ');
+      }
+
+      buffer.write(word);
+      comprimentoAtual += word.length + 1; // Inclui o espaço
+    }
+
+    return buffer.toString();
   }
 
   Future<List<DadosProduto>> getDataProductsPie() async {
@@ -167,6 +194,7 @@ class PieChartProdState extends State<PieChartProd> {
       if (widget.emailFiliado == null) {
         vendas = await FirebaseFirestore.instance.collection('vendas').get();
       } else {
+        print('CHEGOU AQUI');
         vendas = await FirebaseFirestore.instance
             .collection('vendas')
             .where('id_user', isEqualTo: widget.idFiliado)

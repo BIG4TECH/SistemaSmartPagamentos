@@ -50,7 +50,7 @@ class AllChartsState extends State<AllCharts> {
     String? filiadoEmail;
     var filiados = await FirebaseFirestore.instance
         .collection('users')
-        .where('tipo_user', isEqualTo: 'filiado')
+        
         .get();
 
     for (var filiado in filiados.docs) {
@@ -68,7 +68,7 @@ class AllChartsState extends State<AllCharts> {
 
     var filiados = await FirebaseFirestore.instance
         .collection('users')
-        .where('tipo_user', isEqualTo: 'filiado')
+        
         .get();
 
     for (var filiado in filiados.docs) {
@@ -145,6 +145,8 @@ class AllChartsState extends State<AllCharts> {
                                       cliSelecionado);
                                   _filiadoId = await fetchAndSetFiliadoId(
                                       cliSelecionado);
+
+                                  print('filiadoEmail: $_filiadoEmail');
                                   setState(() {});
                                 },
                                 selectedItem: _dadosFiliado,

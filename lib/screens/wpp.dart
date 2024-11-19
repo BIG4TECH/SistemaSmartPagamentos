@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -22,6 +23,7 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
   String statusMensagem = "Inicie a sessão para obter o QR Code.";
   MaskedTextController numeroCtrl =
       MaskedTextController(mask: '+00 (00) 00000-0000');
+  Timer? statusTimer;
 
   @override
   void initState() {
@@ -39,10 +41,15 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
       print('STATUS: $status');
       if (status['body']['connected'] == true) {
         setState(() {
+          qrCodeBytes = null;
           numeroCtrl.text = status['body']['phoneNumber'];
 
           statusMensagem = "Número conectado: ${numeroCtrl.text}";
         });
+
+        // Parar o timer se já conectado
+        statusTimer?.cancel();
+        
       } else {
         setState(() {
           statusMensagem = "Nenhum dispositivo conectado.";
@@ -68,6 +75,11 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
           final base64String = base64QrCode.split(',')[1];
           qrCodeBytes = base64Decode(base64String);
           statusMensagem = "Escaneie o QR Code com o WhatsApp.";
+
+          // Iniciar o Timer para verificar o status a cada 2 segundos
+          statusTimer = Timer.periodic(Duration(seconds: 2), (timer) {
+            verificarStatusWhatsApp();
+          });
         });
       } else {
         setState(() {
@@ -79,6 +91,13 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
         statusMensagem = "Erro ao iniciar sessão: $e";
       });
     }
+  }
+
+  @override
+  void dispose() {
+    // Cancelar o Timer quando o widget for desmontado
+    statusTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -137,9 +156,6 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
                             fontWeight: FontWeight.bold)),
                   ),
                 ),
-                
-                
-                
               ],
             ),
           ),

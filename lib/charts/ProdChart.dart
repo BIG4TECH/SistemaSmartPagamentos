@@ -57,23 +57,21 @@ class PieChartProdState extends State<Prodchart> {
             color: Colors.grey.withOpacity(0.5),
             spreadRadius: 2,
             blurRadius: 4,
-            offset: Offset(0, 0), // changes position of shadow
+            offset: Offset(0, 0),
           ),
         ],
       ),
       child: Column(
         children: [
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           Text(
             'Quantidade Total de produtos mais vendidos',
             style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: size.width <= 720 ? 14 : 18),
+              fontWeight: FontWeight.bold,
+              fontSize: size.width <= 720 ? 14 : 18,
+            ),
           ),
           Container(
-            //color: Colors.amber,
             height: size.width <= 720 ? 150 : 200,
             width: 430,
             child: Row(
@@ -98,50 +96,59 @@ class PieChartProdState extends State<Prodchart> {
                       ),
                       borderData: FlBorderData(show: false),
                       sectionsSpace: 0,
-                      centerSpaceRadius: size.width <= 720 ? 15 : 40,
+                      centerSpaceRadius: size.width <= 720 ? 15 : 35,
                       sections: showingSections(),
                     ),
                   ),
                 ),
                 Column(
-                  mainAxisAlignment: size.width <= 720 ? MainAxisAlignment.center : MainAxisAlignment.end,
+                  mainAxisAlignment: size.width <= 720
+                      ? MainAxisAlignment.center
+                      : MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Indicator(
-                      size: size.width <= 720 ? 12 : 16,
-                      color: AppColors.contentColorBlue,
-                      text: _listProdutosEscolhidos.isNotEmpty
-                          ? _listProdutosEscolhidos[0].nome ?? ''
-                          : '',
-                      isSquare: true,
-                    ),
-                    const SizedBox(height: 4),
-                    _listProdutosEscolhidos.length > 1
-                        ? Indicator(
-                            size: size.width <= 720 ? 12 : 16,
-                            color: AppColors.contentColorYellow,
-                            text: _listProdutosEscolhidos[1].nome ?? '',
-                            isSquare: true,
-                          )
-                        : const SizedBox(),
-                    const SizedBox(height: 4),
-                    _listProdutosEscolhidos.length > 2
-                        ? Indicator(
-                            size: size.width <= 720 ? 12 : 16,
-                            color: AppColors.contentColorPurple,
-                            text: _listProdutosEscolhidos[2].nome ?? '',
-                            isSquare: true,
-                          )
-                        : const SizedBox(),
-                    const SizedBox(height: 4),
-                    _listProdutosEscolhidos.length > 3
-                        ? Indicator(  
-                           size: size.width <= 720 ? 12 : 16,
-                            color: AppColors.contentColorGreen,
-                            text: _listProdutosEscolhidos[3].nome ?? '',
-                            isSquare: true,
-                          )
-                        : const SizedBox(),
+                    if (_listProdutosEscolhidos.isNotEmpty)
+                      Indicator(
+                        size: size.width <= 720 ? 12 : 14,
+                        color: AppColors.contentColorBlue,
+                        text: formatarNomeProduto(
+                            _listProdutosEscolhidos[0].nome ?? '',
+                            size.width <= 720 ? 30 : 20),
+                        isSquare: true,
+                      ),
+                    if (_listProdutosEscolhidos.length > 1)
+                      const SizedBox(height: 4),
+                    if (_listProdutosEscolhidos.length > 1)
+                      Indicator(
+                        size: size.width <= 720 ? 12 : 14,
+                        color: AppColors.contentColorYellow,
+                        text: formatarNomeProduto(
+                            _listProdutosEscolhidos[1].nome ?? '',
+                            size.width <= 720 ? 30 : 20),
+                        isSquare: true,
+                      ),
+                    if (_listProdutosEscolhidos.length > 2)
+                      const SizedBox(height: 4),
+                    if (_listProdutosEscolhidos.length > 2)
+                      Indicator(
+                        size: size.width <= 720 ? 12 : 14,
+                        color: AppColors.contentColorPurple,
+                        text: formatarNomeProduto(
+                            _listProdutosEscolhidos[2].nome ?? '',
+                            size.width <= 720 ? 30 : 20),
+                        isSquare: true,
+                      ),
+                    if (_listProdutosEscolhidos.length > 3)
+                      const SizedBox(height: 4),
+                    if (_listProdutosEscolhidos.length > 3)
+                      Indicator(
+                        size: size.width <= 720 ? 12 : 14,
+                        color: AppColors.contentColorGreen,
+                        text: formatarNomeProduto(
+                            _listProdutosEscolhidos[3].nome ?? '',
+                            size.width <= 720 ? 30 : 20),
+                        isSquare: true,
+                      ),
                     const SizedBox(height: 18),
                   ],
                 ),
@@ -152,6 +159,26 @@ class PieChartProdState extends State<Prodchart> {
         ],
       ),
     );
+  }
+
+  String formatarNomeProduto(String nome, int limite) {
+    final words = nome.split(' ');
+    StringBuffer buffer = StringBuffer();
+    int comprimentoAtual = 0;
+
+    for (var word in words) {
+      if ((comprimentoAtual + word.length) > limite) {
+        buffer.write('\n');
+        comprimentoAtual = 0;
+      } else if (comprimentoAtual > 0) {
+        buffer.write(' ');
+      }
+
+      buffer.write(word);
+      comprimentoAtual += word.length + 1; // Inclui o espaço
+    }
+
+    return buffer.toString();
   }
 
   Future<List<DadosProduto>> getDataProductsPie() async {
