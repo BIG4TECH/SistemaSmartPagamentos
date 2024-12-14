@@ -54,13 +54,17 @@ Future<void> generateAndPrintPdf(
   // Buscar produtos do Firestore
   final collection = tipoUser == 'master'
       ? (emailFiliado == null
-          ? FirebaseFirestore.instance.collection('products')
+          ? FirebaseFirestore.instance.collection('products').where('status', isEqualTo: 'ativo')
           : FirebaseFirestore.instance
               .collection('products')
-              .where('email_user', isEqualTo: idUserFiliado))
+              .where('email_user', isEqualTo: idUserFiliado)
+              .where('status', isEqualTo: 'ativo')
+              )
       : FirebaseFirestore.instance
           .collection('products')
-          .where('email_user', isEqualTo: idUser);
+          .where('email_user', isEqualTo: idUser)
+          .where('status', isEqualTo: 'ativo')
+          ;
 
   final querySnapshot = await collection.get();
 
@@ -113,9 +117,9 @@ Future<void> generateAndPrintPdf(
       Map<String, dynamic> novoProduto = {
         'name': dataProducts['name'],
         'price':
-            'R\$ ${formatWithComma(int.parse(formatarNumero(double.parse(dataProducts['price'].toString()))))}',
+            'R\$ ${dataProducts['price'].toString()}',
         //'desconto': '${dataProducts['desconto']}%',
-        'recurrencePeriod': recur,
+        'recurrencePeriod': dataProducts['recurrencePeriod'],
         'paymentOption': dataProducts['paymentOption'],
         'quantiven': quantiven
       };

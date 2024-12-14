@@ -5,3 +5,16 @@ String formatedDouble(dynamic valor){
 
   return formatoDouble.format(valor);
 }
+
+DateTime extractDateBeforeT(String input) {
+ 
+  if (input.contains('T')) {
+
+    String datePart = input.split('T').first;
+
+    return DateTime.parse(datePart);
+  } else {
+    return DateTime.now();
+    //throw FormatException("A string não contém a letra 'T'");
+  }
+}

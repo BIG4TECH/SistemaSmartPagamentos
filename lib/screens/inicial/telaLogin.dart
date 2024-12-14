@@ -379,7 +379,7 @@ class _LoginScreenState extends State<LoginScreen> {
         for (var user in userrs.docs) {
           if (user['email'] == _emailController.text) {
             isValid = user['is_valid'];
-            print(user['is_valid']);
+            print(' ${user['email']} = ${user['is_valid']}');
             break;
           }
         }

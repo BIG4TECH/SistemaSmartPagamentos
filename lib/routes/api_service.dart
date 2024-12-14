@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
 class ApiService {
-  final String baseUrl = "https://7d59-131-0-245-253.ngrok-free.app";
+  final String baseUrl = "https://66a9-131-0-245-253.ngrok-free.app";
   final Dio dio = Dio();
 
   Future<String?> iniciarSessaoWhatsapp(String emailUser) async {
@@ -70,7 +70,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> criarPlano(
-      String name, int repeats, int interval) async {
+      String name, String recurrencePeriod) async {
     try {
       final response = await dio.post(
         '$baseUrl/criar-plano',
@@ -79,7 +79,7 @@ class ApiService {
           "x-api-key": "4202@back",
           "ngrok-skip-browser-warning": true
         }),
-        data: {'name': name, 'repeats': null, 'interval': interval},
+        data: {'name': name, 'recurrencePeriod': recurrencePeriod},
       );
       return _handleResponse(response);
     } catch (e) {
@@ -108,7 +108,7 @@ class ApiService {
   }
 
   Map<String, dynamic> _handleResponse(Response response) {
-    if (response.statusCode == 200) {
+    if (response.statusCode! > 199 && response.statusCode! < 300) {
       print(response.data);
       return {
         'body': response.data,

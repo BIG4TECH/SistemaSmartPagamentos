@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:smart_pagamento/screens/widgets/func.dart';
 
 import '/presentation/resources/app_resources.dart';
 import '/presentation/widgets/indicator.dart';
@@ -49,119 +49,119 @@ class PieChartProdState extends State<PieChartProd> {
   }
 
   Widget showPieProdutosVendidos(Size size) {
-  return Container(
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(25),
-      color: Colors.white,
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.5),
-          spreadRadius: 2,
-          blurRadius: 4,
-          offset: Offset(0, 0),
-        ),
-      ],
-    ),
-    child: Column(
-      children: [
-        const SizedBox(height: 10),
-        Text(
-          'Quantidade de produtos mais vendidos no mês',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: size.width <= 720 ? 14 : 18,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 4,
+            offset: Offset(0, 0),
           ),
-        ),
-        Container(
-          height: size.width <= 720 ? 150 : 200,
-          width: 430,
-          child: Row(
-            children: <Widget>[
-              const SizedBox(height: 18),
-              Expanded(
-                child: PieChart(
-                  PieChartData(
-                    pieTouchData: PieTouchData(
-                      touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                        setState(() {
-                          if (!event.isInterestedForInteractions ||
-                              pieTouchResponse == null ||
-                              pieTouchResponse.touchedSection == null) {
-                            touchedIndex = -1;
-                            return;
-                          }
-                          touchedIndex = pieTouchResponse
-                              .touchedSection!.touchedSectionIndex;
-                        });
-                      },
+        ],
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          Text(
+            'Quantidade de produtos mais vendidos no mês',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: size.width <= 720 ? 14 : 18,
+            ),
+          ),
+          Container(
+            height: size.width <= 720 ? 150 : 200,
+            width: 430,
+            child: Row(
+              children: <Widget>[
+                const SizedBox(height: 18),
+                Expanded(
+                  child: PieChart(
+                    PieChartData(
+                      pieTouchData: PieTouchData(
+                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                          setState(() {
+                            if (!event.isInterestedForInteractions ||
+                                pieTouchResponse == null ||
+                                pieTouchResponse.touchedSection == null) {
+                              touchedIndex = -1;
+                              return;
+                            }
+                            touchedIndex = pieTouchResponse
+                                .touchedSection!.touchedSectionIndex;
+                          });
+                        },
+                      ),
+                      borderData: FlBorderData(show: false),
+                      sectionsSpace: 0,
+                      centerSpaceRadius: size.width <= 720 ? 15 : 35,
+                      sections: showingSections(),
                     ),
-                    borderData: FlBorderData(show: false),
-                    sectionsSpace: 0,
-                    centerSpaceRadius: size.width <= 720 ? 15 : 35,
-                    sections: showingSections(),
                   ),
                 ),
-              ),
-              Column(
-                mainAxisAlignment: size.width <= 720
-                    ? MainAxisAlignment.center
-                    : MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  if (_listProdutosEscolhidos.isNotEmpty)
-                    Indicator(
-                      size: size.width <= 720 ? 12 : 14,
-                      color: AppColors.contentColorBlue,
-                      text: formatarNomeProduto(
-                          _listProdutosEscolhidos[0].nome ?? '',
-                          size.width <= 720 ? 30 : 20),
-                      isSquare: true,
-                    ),
-                  if (_listProdutosEscolhidos.length > 1)
-                    const SizedBox(height: 4),
-                  if (_listProdutosEscolhidos.length > 1)
-                    Indicator(
-                      size: size.width <= 720 ? 12 : 14,
-                      color: AppColors.contentColorYellow,
-                      text: formatarNomeProduto(
-                          _listProdutosEscolhidos[1].nome ?? '',
-                          size.width <= 720 ? 30 : 20),
-                      isSquare: true,
-                    ),
-                  if (_listProdutosEscolhidos.length > 2)
-                    const SizedBox(height: 4),
-                  if (_listProdutosEscolhidos.length > 2)
-                    Indicator(
-                      size: size.width <= 720 ? 12 : 14,
-                      color: AppColors.contentColorPurple,
-                      text: formatarNomeProduto(
-                          _listProdutosEscolhidos[2].nome ?? '',
-                          size.width <= 720 ? 30 : 20),
-                      isSquare: true,
-                    ),
-                  if (_listProdutosEscolhidos.length > 3)
-                    const SizedBox(height: 4),
-                  if (_listProdutosEscolhidos.length > 3)
-                    Indicator(
-                      size: size.width <= 720 ? 12 : 14,
-                      color: AppColors.contentColorGreen,
-                      text: formatarNomeProduto(
-                          _listProdutosEscolhidos[3].nome ?? '',
-                          size.width <= 720 ? 30 : 20),
-                      isSquare: true,
-                    ),
-                  const SizedBox(height: 18),
-                ],
-              ),
-              const SizedBox(width: 28),
-            ],
-          ),
-        )
-      ],
-    ),
-  );
-}
-  
+                Column(
+                  mainAxisAlignment: size.width <= 720
+                      ? MainAxisAlignment.center
+                      : MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    if (_listProdutosEscolhidos.isNotEmpty)
+                      Indicator(
+                        size: size.width <= 720 ? 12 : 14,
+                        color: AppColors.contentColorBlue,
+                        text: formatarNomeProduto(
+                            _listProdutosEscolhidos[0].nome ?? '',
+                            size.width <= 720 ? 30 : 20),
+                        isSquare: true,
+                      ),
+                    if (_listProdutosEscolhidos.length > 1)
+                      const SizedBox(height: 4),
+                    if (_listProdutosEscolhidos.length > 1)
+                      Indicator(
+                        size: size.width <= 720 ? 12 : 14,
+                        color: AppColors.contentColorYellow,
+                        text: formatarNomeProduto(
+                            _listProdutosEscolhidos[1].nome ?? '',
+                            size.width <= 720 ? 30 : 20),
+                        isSquare: true,
+                      ),
+                    if (_listProdutosEscolhidos.length > 2)
+                      const SizedBox(height: 4),
+                    if (_listProdutosEscolhidos.length > 2)
+                      Indicator(
+                        size: size.width <= 720 ? 12 : 14,
+                        color: AppColors.contentColorPurple,
+                        text: formatarNomeProduto(
+                            _listProdutosEscolhidos[2].nome ?? '',
+                            size.width <= 720 ? 30 : 20),
+                        isSquare: true,
+                      ),
+                    if (_listProdutosEscolhidos.length > 3)
+                      const SizedBox(height: 4),
+                    if (_listProdutosEscolhidos.length > 3)
+                      Indicator(
+                        size: size.width <= 720 ? 12 : 14,
+                        color: AppColors.contentColorGreen,
+                        text: formatarNomeProduto(
+                            _listProdutosEscolhidos[3].nome ?? '',
+                            size.width <= 720 ? 30 : 20),
+                        isSquare: true,
+                      ),
+                    const SizedBox(height: 18),
+                  ],
+                ),
+                const SizedBox(width: 28),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   String formatarNomeProduto(String nome, int limite) {
     final words = nome.split(' ');
     StringBuffer buffer = StringBuffer();
@@ -208,8 +208,12 @@ class PieChartProdState extends State<PieChartProd> {
     }
 
     vendas = vendas.docs.where((doc) {
-      DateTime dataVenda =
-          DateFormat("dd/MM/yyyy").parse(doc['first_execution']);
+      if (!doc.data().containsKey('first_execution')) {
+        return false; 
+      }
+
+      DateTime dataVenda = extractDateBeforeT(doc['first_execution']);
+
       return dataVenda.isAfter(firstDayOfMonth.subtract(Duration(days: 1))) &&
           dataVenda.isBefore(lastDayOfMonth.add(Duration(days: 1)));
     }).toList();
@@ -239,7 +243,8 @@ class PieChartProdState extends State<PieChartProd> {
       for (var docprod in produtos.docs) {
         int quantidade = 0;
 
-        if (docvenda['plan']['id'] == docprod['plan_id']) {
+        if (
+            docvenda['plan'].toString() == docprod.id.toString()) {
           quantidade++;
         }
 

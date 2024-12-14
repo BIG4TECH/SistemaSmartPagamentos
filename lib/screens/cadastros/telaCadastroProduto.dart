@@ -1,10 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
-import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
-import 'package:smart_pagamento/screens/widgets/showdialog.dart';
 import 'package:smart_pagamento/screens/widgets/textfield.dart';
 
 class ProductRegisterScreen extends StatefulWidget {
@@ -22,9 +19,9 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
-  int _recurrencePeriod = 1;
+  String _recurrencePeriod = 'Mensal';
   bool _isLoading = false;
-  late int _planId;
+  //late int _planId;
   bool _isDollar = false;
 
   bool _isCreditCardSelected = false;
@@ -32,6 +29,8 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
   bool _isBoletoSelected = false;
 
   final List<RecurrencePeriod> recurrencePeriods = [
+    RecurrencePeriod(0.25, 'Semanal'),
+    RecurrencePeriod(0.5, 'Quinzenal'),
     RecurrencePeriod(1, 'Mensal'),
     RecurrencePeriod(2, 'Bimestral'),
     RecurrencePeriod(3, 'Trimestral'),
@@ -92,6 +91,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
         .collection('products')
         .where('email_user', isEqualTo: idUser)
         .where('name', isEqualTo: nome)
+        .where('status', isEqualTo: 'ativo')
         .get();
     if (querySnapshot.docs.isEmpty) {
       return false;
@@ -125,7 +125,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
           _isPixSelected = paymentOption == 'Pix' || paymentOption == 'Ambos';
           _isBoletoSelected =
               paymentOption == 'Boleto' || paymentOption == 'Ambos';
-          _planId = productData['plan_id'];
+          //_planId = productData['plan_id'];
           break;
         }
       }
@@ -143,6 +143,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
       setState(() {
         _isLoading = true;
       });
+
       if (widget.idUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Email do usuário não encontrado.')),
@@ -165,7 +166,6 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
       }
 
       bool nameExists = await _nameExist(_nameController.text, widget.idUser);
-      ApiService apiService = ApiService();
 
       if (widget.productId == null && nameExists) {
         _showDialog(context);
@@ -175,56 +175,53 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
         return;
       } else {
         if (widget.productId == null) {
-          var responsePlanoPosted = await apiService.criarPlano(
-              _nameController.text, 2, _recurrencePeriod);
-
-          if (responsePlanoPosted['status'] == 200) {
-            await FirebaseFirestore.instance.collection('products').add({
-              'name': _nameController.text,
-              'plan_id': responsePlanoPosted['body']['data'],
-              'price': double.parse(
-                  formatarNumero(double.parse(_priceController.text))),
-              'is_dollar': _isDollar,
-              'recurrencePeriod': _recurrencePeriod,
-              'paymentOption': _getPaymentOption(),
-              'email_user': widget.idUser,
-              'status': 'ativo',
-            });
-          } else {
-            showDialogApi(context);
-            setState(() {
-              _isLoading = false;
-            });
-            return;
-          }
+          //if (responsePlanoPosted['status'] > 199 && responsePlanoPosted['status'] < 300) {
+          await FirebaseFirestore.instance.collection('products').add({
+            'name': _nameController.text,
+            //'plan_id': responsePlanoPosted['body']['data'],
+            'price':
+                double.parse(_priceController.text),
+            'is_dollar': _isDollar,
+            'recurrencePeriod': _recurrencePeriod.toLowerCase(),
+            'paymentOption': _getPaymentOption(),
+            'email_user': widget.idUser,
+            'status': 'ativo',
+          });
+          //} else {
+          //   showDialogApi(context);
+          // setState(() {
+          //    _isLoading = false;
+          // });
+          //  return;
+          // }
         } else {
-          var responseDelete = await apiService.deletarPlano(_planId);
+          // var responseDelete = await apiService.deletarPlano(_planId);
 
-          if (responseDelete['status'] == 200) {
-            var responsePlanoPosted = await apiService.criarPlano(
-                _nameController.text, 2, _recurrencePeriod);
+          // if (responseDelete['status'] == 200) {
+          //  var responsePlanoPosted = await apiService.criarPlano(
+          //     _nameController.text, _getPaymentOption());
 
-            if (responsePlanoPosted['status'] == 200) {
-              var novoPlanId = responsePlanoPosted['body']['data'];
+          //  if (responsePlanoPosted['status'] == 200) {
+          //  var novoPlanId = responsePlanoPosted['body']['data'];
+          /*
               var antigoPlanId = await FirebaseFirestore.instance
                   .collection('products')
                   .doc(widget.productId)
                   .get()
                   .then((doc) => doc['plan_id']);
-
-              await FirebaseFirestore.instance
-                  .collection('products')
-                  .doc(widget.productId)
-                  .update({
-                'name': _nameController.text,
-                'plan_id': novoPlanId,
-                'price': double.parse(
-                    formatarNumero(double.parse(_priceController.text))),
-                'is_dollar': _isDollar,
-                'recurrencePeriod': _recurrencePeriod,
-                'paymentOption': _getPaymentOption(),
-              });
-
+              */
+          await FirebaseFirestore.instance
+              .collection('products')
+              .doc(widget.productId)
+              .update({
+            'name': _nameController.text,
+            //'plan_id': novoPlanId,
+            'price': double.parse(_priceController.text),
+            'is_dollar': _isDollar,
+            'recurrencePeriod': _recurrencePeriod,
+            'paymentOption': _getPaymentOption(),
+          });
+          /*
               var vendas =
                   await FirebaseFirestore.instance.collection('vendas').get();
 
@@ -238,32 +235,21 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                   });
                 }
               }
-            } else {
-              showDialogApi(context);
-              setState(() {
-                _isLoading = false;
-              });
-              return;
-            }
-          } else {
-            showDialogApi(context);
-            setState(() {
-              _isLoading = false;
-            });
-            return;
-          }
+            */
         }
-
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          backgroundColor: Colors.green,
-
-            content: Text(
-                'Produto ${widget.productId == null ? 'registrado' : 'atualizado'} com sucesso!')));
-        _nameController.clear();
-        _priceController.clear();
-        Navigator.of(context).pop();
       }
     }
+
+    setState(() {
+      _isLoading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Colors.green,
+        content: Text(
+            'Produto ${widget.productId == null ? 'registrado' : 'atualizado'} com sucesso!')));
+    _nameController.clear();
+    _priceController.clear();
+    Navigator.of(context).pop();
   }
 
   @override
@@ -397,7 +383,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                     SizedBox(height: 20),
 
                     // PERÍODO DE RECORRÊNCIA
-                    DropdownButtonFormField<int>(
+                    DropdownButtonFormField<String>(
                       style: TextStyle(
                           color: Colors.black87,
                           fontWeight: FontWeight.bold,
@@ -406,12 +392,12 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                       dropdownColor: Colors.white,
                       decoration: inputDec('Período de Recorrência'),
                       items: recurrencePeriods.map((RecurrencePeriod periodo) {
-                        return DropdownMenuItem<int>(
-                          value: periodo.value,
+                        return DropdownMenuItem<String>(
+                          value: periodo.text,
                           child: Text(periodo.text),
                         );
                       }).toList(),
-                      onChanged: (int? newValue) {
+                      onChanged: (String? newValue) {
                         setState(() {
                           _recurrencePeriod = newValue!;
                         });
@@ -555,7 +541,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
 }
 
 class RecurrencePeriod {
-  final int value;
+  final num value;
   final String text;
 
   RecurrencePeriod(this.value, this.text);

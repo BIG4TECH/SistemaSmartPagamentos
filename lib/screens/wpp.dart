@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
-//import 'package:pretty_qr_code/pretty_qr_code.dart';
-import 'package:smart_pagamento/classes/api_service.dart';
+import 'package:smart_pagamento/routes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/screens/widgets/textfield.dart';
 
 class ConfiguracaoWhatsApp extends StatefulWidget {
   final String emailUser;
@@ -20,15 +21,138 @@ class ConfiguracaoWhatsApp extends StatefulWidget {
 class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
   final ApiService apiService = ApiService();
   Uint8List? qrCodeBytes;
+  final _formKey = GlobalKey<FormState>();
+  final _formKey2 = GlobalKey<FormState>();
   String statusMensagem = "Inicie a sessão para obter o QR Code.";
   MaskedTextController numeroCtrl =
       MaskedTextController(mask: '+00 (00) 00000-0000');
   Timer? statusTimer;
+  bool _isLoading = false;
+  TextEditingController _primeiraCtrlr = TextEditingController();
+  TextEditingController _segundaCtrlr = TextEditingController();
+  TextEditingController _acessTokenCtrlr = TextEditingController();
+  TextEditingController _publicKeyCtrlr = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     verificarStatusWhatsApp();
+    verifyMensagens();
+    verifyToken();
+  }
+
+  void configurarMensagem() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await FirebaseFirestore.instance
+            .collection('mensagem')
+            .doc(widget.emailUser)
+            .set({
+          'email_user': widget.emailUser,
+          'intervalo': 3,
+          'primeira': _primeiraCtrlr.text,
+          'segunda': _segundaCtrlr.text,
+        });
+
+        const snackBar = SnackBar(
+          content: Text('Mensagem Configurada com sucesso!'),
+          duration: Duration(seconds: 5),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      } catch (e) {
+        String erro = "Erro ao configurar mensagem: $e";
+        final snackBar = SnackBar(
+          content: Text(erro),
+          duration: Duration(seconds: 5),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void configurarTokenMercadoPago() async {
+    if (_formKey2.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.emailUser)
+            .update({
+          'public_key': _publicKeyCtrlr.text,
+          'acess_token': _acessTokenCtrlr.text,
+        });
+
+        const snackBar = SnackBar(
+          content: Text('Token Configurado com sucesso!'),
+          duration: Duration(seconds: 5),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      } catch (e) {
+        String erro = "Erro ao configurar mensagem: $e";
+        final snackBar = SnackBar(
+          content: Text(erro),
+          duration: Duration(seconds: 5),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> verifyToken() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.emailUser)
+          .get()
+          .then((value) {
+        if (value.exists) {
+          setState(() {
+            _acessTokenCtrlr.text = value['acess_token'];
+            _publicKeyCtrlr.text = value['public_key'];
+          });
+        }
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> verifyMensagens() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('mensagem')
+          .doc(widget.emailUser)
+          .get()
+          .then((value) {
+        if (value.exists) {
+          setState(() {
+            _primeiraCtrlr.text = value['primeira'];
+            _segundaCtrlr.text = value['segunda'];
+          });
+        }
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> verificarStatusWhatsApp() async {
@@ -49,7 +173,6 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
 
         // Parar o timer se já conectado
         statusTimer?.cancel();
-        
       } else {
         setState(() {
           statusMensagem = "Nenhum dispositivo conectado.";
@@ -95,7 +218,6 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
 
   @override
   void dispose() {
-    // Cancelar o Timer quando o widget for desmontado
     statusTimer?.cancel();
     super.dispose();
   }
@@ -119,46 +241,223 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
           backgroundColor: corPadrao(),
         ),
         body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                if (qrCodeBytes != null)
-                  Image.memory(
-                    qrCodeBytes!,
-                    width: 200,
-                    height: 200,
-                    fit: BoxFit.contain,
-                  )
-                else
-                  Text(statusMensagem),
-                SizedBox(height: 20),
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: gradientBtn(),
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5))),
-                    onPressed: iniciarSessao,
-                    child: Text("Iniciar Sessão do WhatsApp",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: size.height * 0.022,
-                            fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ));
+                child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          //QR CODE
+                          Card(
+                            child: Column(
+                              children: [
+                                if (qrCodeBytes != null)
+                                  Image.memory(
+                                    qrCodeBytes!,
+                                    width: 200,
+                                    height: 200,
+                                    fit: BoxFit.contain,
+                                  )
+                                else
+                                  Text(statusMensagem),
+                                SizedBox(height: 20),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: gradientBtn(),
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(5))),
+                                    onPressed: iniciarSessao,
+                                    child: Text("Iniciar Sessão do WhatsApp",
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: size.height * 0.022,
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                                SizedBox(height: 25),
+                              ],
+                            ),
+                          ),
+                          //MENSAGEM
+                          Card(
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Configurar Mensagem de Cobrança',
+                                  style: TextStyle(
+                                      
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                SizedBox(height: 10),
+                                Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding:
+                                            EdgeInsetsDirectional.symmetric(
+                                                horizontal: size.width * 0.2),
+                                        child: TextFormField(
+                                          controller: _primeiraCtrlr,
+                                          decoration:
+                                              inputDec('Primeira Mensagem'),
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'Por favor, informe a primeira mensagem';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Padding(
+                                        padding:
+                                            EdgeInsetsDirectional.symmetric(
+                                                horizontal: size.width * 0.2),
+                                        child: TextFormField(
+                                          controller: _segundaCtrlr,
+                                          decoration:
+                                              inputDec('Segunda Mensagem'),
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'Por favor, informe a segunda mensagem';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: gradientBtn(),
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5))),
+                                          onPressed: configurarMensagem,
+                                          child: Text("Salvar Mensagens",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: size.height * 0.022,
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          //MERCADO PAGO
+                          Card(
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Configurar Mercado Pago',
+                                  style: TextStyle(
+                                      
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                SizedBox(height: 10),
+                                Form(
+                                  key: _formKey2,
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding:
+                                            EdgeInsetsDirectional.symmetric(
+                                                horizontal: size.width * 0.2),
+                                        child: TextFormField(
+                                          controller: _acessTokenCtrlr,
+                                          decoration: inputDec(
+                                              'Acess Token (Token de Acesso)'),
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'Por favor, informe o token de acesso';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Padding(
+                                        padding:
+                                            EdgeInsetsDirectional.symmetric(
+                                                horizontal: size.width * 0.2),
+                                        child: TextFormField(
+                                          controller: _publicKeyCtrlr,
+                                          decoration: inputDec(
+                                              'Public Key (chave pública)'),
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'Por favor, informe a Public Key';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: gradientBtn(),
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5))),
+                                          onPressed: configurarTokenMercadoPago,
+                                          child: Text("Salvar Token",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: size.height * 0.022,
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+              ));
   }
 }

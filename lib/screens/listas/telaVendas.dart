@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 //import 'package:smart_pagamento/inutilizados/telaCadastroVenda.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
+import 'package:smart_pagamento/screens/widgets/func.dart';
 
 class VendasListScreen extends StatefulWidget {
   final String? email;
@@ -86,6 +87,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: size.height * 0.03))),
+                      /*
                       DataColumn(
                           label: Text('Status',
                               style: TextStyle(
@@ -95,7 +97,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
                           label: Text('Ações',
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: size.height * 0.03))),
+                                  fontSize: size.height * 0.03))),*/
                     ],
                     rows: vendas
                         .map(
@@ -104,26 +106,28 @@ class _VendasListScreenState extends State<VendasListScreen> {
                               DataCell(Text('${venda['name']}',
                                   style: TextStyle(
                                       fontSize: size.height * 0.025))),
-                              DataCell(Text(
-                                  'R\$${formatWithComma(venda['total'])}',
+                              DataCell(Text('R\$${venda['total'].toString()}',
                                   style: TextStyle(
                                       fontSize: size.height * 0.025))),
                               DataCell(
-                                Text(venda['first_execution'],
+                                Text(
+                                    extractDateBeforeT(venda['first_execution'])
+                                        .toString(),
                                     style: TextStyle(
                                         fontSize: size.height * 0.025)),
                               ),
+                              /*
                               DataCell(
                                 Text(
-                                    venda['status'] == 'active'
+                                    (venda['status'] == 'active'
                                         ? 'Recebido'
                                         : venda['status'] == 'waiting'
                                             ? 'Pendente'
-                                            : 'Cancelado',
+                                            : 'Cancelado'),
                                     style: TextStyle(
                                         fontSize: size.height * 0.025)),
-                              ),
-                              DataCell(
+                              ),*/
+                              /*DataCell(
                                 Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -150,7 +154,7 @@ class _VendasListScreenState extends State<VendasListScreen> {
                                         _confirmDeleteVenda(context, venda.id);
                                       },
                                     ),
-                                    */
+                                    
                                     Container(
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
@@ -170,9 +174,11 @@ class _VendasListScreenState extends State<VendasListScreen> {
                                         },
                                       ),
                                     )
+                                 */
                                   ],
                                 ),
                               )
+                              */
                             ],
                           ),
                         )
@@ -204,25 +210,14 @@ class _VendasListScreenState extends State<VendasListScreen> {
                           Text(
                             'Data: ${venda['first_execution']}',
                             style: TextStyle(fontSize: size.height * 0.02),
-                          ),
+                          ), /*
                           Text(
                             'Status: ${venda['status'] == 'active' ? 'Ativo' : venda['status'] == 'waiting' ? 'Aguardando' : 'Cancelado'}',
                             style: TextStyle(fontSize: size.height * 0.02),
-                          ),
+                          ),*/
                         ],
                       ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.list, color: Colors.blue),
-                            onPressed: () async {
-                              await _getDataVenda(venda.id);
-                              _showProducts(context);
-                            },
-                          ),
-                        ],
-                      ),
+                     
                     ),
                   );
                 },

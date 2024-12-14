@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/classes/api_service.dart';
+import 'package:smart_pagamento/routes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
-import 'package:smart_pagamento/screens/widgets/showdialog.dart';
 
 class ClienteListScreen extends StatefulWidget {
   final String? email;
@@ -239,9 +238,9 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                   tooltip: 'Itens Vendas',
                                   onPressed: () async {
                                     List<Map<String, dynamic>> assinaturaId =
-                                        await _getAssinaturas(cliente.id);
+                                        await _getAssinaturas(cliente['email']);
                                     _showProducts(
-                                        context, assinaturaId, cliente.id);
+                                        context, assinaturaId, cliente['email']);
                                   },
                                 ),
                               )
@@ -259,7 +258,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
       ),
     );
   }
-
+  /*
   void _deleteCliente(String clienteId) async {
     final assinaturasSnapshot = await FirebaseFirestore.instance
         .collection('clientes')
@@ -294,11 +293,11 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
       showDialogApi(context);
     }
   }
-
-  Future<List<Map<String, dynamic>>> _getAssinaturas(String clienteId) async {
+  */
+  Future<List<Map<String, dynamic>>> _getAssinaturas(String emailCliente) async {
     final assinaturasSnapshot = await FirebaseFirestore.instance
         .collection('vendas')
-        .where('id_cliente', isEqualTo: clienteId)
+        .where('id_cliente', isEqualTo: emailCliente)
         .get();
 
     final products = await FirebaseFirestore.instance
@@ -313,7 +312,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
       List? charges;
 
       for (var product in products.docs) {
-        if (product['plan_id'] == assinatura['plan']['id']) {
+        if (product.id == assinatura['plan']) {
           /*
           final snapshotCharges = await FirebaseFirestore.instance
               .collection('vendas')

@@ -5,9 +5,6 @@ import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 //import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 import 'package:smart_pagamento/screens/widgets/exibirLink.dart';
-//import 'package:smart_pagamento/screens/widgets/showdialog.dart';
-
-//import '../cadastros/telaCadastroProduto.dart';
 
 class ProductListScreen extends StatefulWidget {
   final String? email;
@@ -88,6 +85,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 stream: FirebaseFirestore.instance
                     .collection('products')
                     .where('email_user', isEqualTo: widget.idUser)
+                    .where('status', isEqualTo: 'ativo')
                     .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
@@ -119,19 +117,25 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       final String recurrence;
 
                       switch (product['recurrencePeriod']) {
-                        case 1:
+                        case 'semanal':
+                          recurrence = 'Semanal';
+                          break;
+                        case 'quinzenal':
+                          recurrence = 'Quinzenal';
+                          break;
+                        case 'mensal':
                           recurrence = 'Mensal';
                           break;
-                        case 2:
+                        case 'bimestral':
                           recurrence = 'Bimestral';
                           break;
-                        case 3:
+                        case 'trimestral':
                           recurrence = 'Trimestral';
                           break;
-                        case 6:
+                        case 'semestral':
                           recurrence = 'Semestral';
                           break;
-                        case 12:
+                        case 'anual':
                           recurrence = 'Anual';
                           break;
                         default:
@@ -151,13 +155,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 color: Colors.black87,
                                 fontWeight: FontWeight.bold),
                           ),
-                          subtitle: product['is_dollar'] ? Text(
-                             'Preço: \$${formatWithComma(product['price'])}\nRecorrência: $recurrence',
-                            //style: const TextStyle(color: Colors.white70),
-                          ) : Text(
-                             'Preço: R\$${formatWithComma(product['price'])}\nRecorrência: $recurrence',
-                            //style: const TextStyle(color: Colors.white70),
-                          ),
+                          subtitle: product['is_dollar']
+                              ? Text(
+                                  'Preço: \$${(product['price'])}\nRecorrência: $recurrence',
+                                  //style: const TextStyle(color: Colors.white70),
+                                )
+                              : Text(
+                                  'Preço: R\$${(product['price'])}\nRecorrência: $recurrence',
+                                  //style: const TextStyle(color: Colors.white70),
+                                ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -177,7 +183,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 },
                               ),
                               */
-                              /*
+
                               IconButton(
                                 icon: const Icon(Icons.delete),
                                 onPressed: () {
@@ -186,7 +192,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     builder: (context) => AlertDialog(
                                       //backgroundColor: Colors.black87,
                                       title: const Text(
-                                        'Deseja excluir o produto?',
+                                        'Deseja desativar o produto?',
                                         //style:TextStyle(color: Colors.white)
                                       ),
 
@@ -210,7 +216,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                           ),
                                           child: ElevatedButton(
                                               onPressed: () async {
-                                                ApiService apiService =
+                                                /*ApiService apiService =
                                                     ApiService();
 
                                                 var responseDelete =
@@ -225,6 +231,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                                 } else {
                                                   showDialogApi(context);
                                                 }
+                                                */
+                                                updateStatusProduct(product.id);
+                                                Navigator.pop(context);
                                               },
                                               style: ElevatedButton.styleFrom(
                                                   backgroundColor:
@@ -236,7 +245,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                               5))),
-                                              child: Text('Excluir',
+                                              child: Text('Confirmar',
                                                   style: TextStyle(
                                                       color: Colors.white,
                                                       fontSize:
@@ -249,7 +258,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   );
                                 },
                               ),
-                              */
                               Container(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
@@ -266,7 +274,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     //String valor =formatarNumero(product['price']);
 
                                     showLinkModal(context,
-                                        "https://7d59-131-0-245-253.ngrok-free.app/checkout/index.html?i=${product.id}");
+                                        "https://66a9-131-0-245-253.ngrok-free.app/checkout/index.html?i=${product.id}");
                                   },
                                 ),
                               ),
@@ -285,9 +293,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  /*
-  void _deleteProduct(String productId) {
-    FirebaseFirestore.instance.collection('products').doc(productId).delete();
+  void updateStatusProduct(String productId) {
+    FirebaseFirestore.instance.collection('products').doc(productId).update({
+      'status': 'inativo',
+    });
   }
-  */
 }

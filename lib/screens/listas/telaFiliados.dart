@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/classes/api_service.dart';
 //import 'package:smart_pagamento/inutilizados/telaCadastroCliente.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/showdialog.dart';
@@ -144,8 +143,8 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
                                 child: IconButton(
                                   icon: Icon(
                                       filiado['is_valid']
-                                          ? Icons.delete
-                                          : Icons.check,
+                                          ? Icons.check
+                                          : Icons.do_not_disturb,
                                       color: Colors.white),
                                   tooltip: 'Desativar',
                                   onPressed: () async {
@@ -245,6 +244,7 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
       ),
     );
   }
+  /*
 
   void _deleteFiliado(String filiadoId, String emailFiliado) async {
     final clientesSnapshot = await FirebaseFirestore.instance
@@ -321,7 +321,8 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
       showDialogApi(context);
     }
   }
-
+  */
+  
   void _desativaFiliado(String filiadoId) async {
     await FirebaseFirestore.instance
         .collection('users')

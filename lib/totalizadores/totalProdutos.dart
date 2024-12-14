@@ -21,17 +21,19 @@ class TotalProdutosState extends State<TotalProdutos> {
   Stream<QuerySnapshot> _getProdutosStream() {
     if (widget.tipoUser == 'master') {
       if (widget.emailFiliado == null) {
-        return FirebaseFirestore.instance.collection('products').snapshots();
+        return FirebaseFirestore.instance.collection('products').where('status', isEqualTo: 'ativo').snapshots();
       } else {
         return FirebaseFirestore.instance
             .collection('products')
             .where('email_user', isEqualTo: widget.idFiliado)
+            .where('status', isEqualTo: 'ativo')
             .snapshots();
       }
     } else {
       return FirebaseFirestore.instance
           .collection('products')
           .where('email_user', isEqualTo: widget.idUser)
+          .where('status', isEqualTo: 'ativo')
           .snapshots();
     }
   }

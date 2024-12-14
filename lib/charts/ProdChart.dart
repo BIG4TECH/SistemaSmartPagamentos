@@ -209,12 +209,12 @@ class PieChartProdState extends State<Prodchart> {
             .where('email_user', isEqualTo: widget.idUser)
             .get();
 
-    // Processamento das vendas, produtos
+
     for (var docvenda in vendas.docs) {
       for (var docprod in produtos.docs) {
         int quantidade = 0;
 
-        if (docvenda['plan']['id'] == docprod['plan_id']) {
+        if (docvenda['plan'].toString() == docprod.id.toString()) {
           quantidade++;
         }
 

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:smart_pagamento/screens/widgets/func.dart';
 import '/presentation/resources/app_resources.dart';
 import '/presentation/widgets/indicator.dart';
 
@@ -77,13 +78,14 @@ class LineChartSample1State extends State<LineChartSample1> {
     query.snapshots().listen((vendasSnapshot) async {
       print('INICIO DO LISTEN');
       print(vendasSnapshot.docs.length);
+
       // VENDAS EFETUADAS
       for (var docvenda in vendasSnapshot.docs) {
         if (docvenda.data().containsKey('first_execution')) {
           try {
             DateTime dataVenda =
-                DateFormat("dd/MM/yyyy").parse(docvenda['first_execution']);
-            //print(dataVenda);
+                extractDateBeforeT(docvenda['first_execution']);
+            
             if (dataVenda.isAfter(
                     firstDayOfMonth.subtract(const Duration(days: 1))) &&
                 dataVenda
