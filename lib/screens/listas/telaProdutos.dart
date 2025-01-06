@@ -274,7 +274,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     //String valor =formatarNumero(product['price']);
 
                                     showLinkModal(context,
-                                        "https://66a9-131-0-245-253.ngrok-free.app/checkout/index.html?i=${product.id}");
+                                        "https://4bda-131-0-245-253.ngrok-free.app/checkout/index.html?i=${product.id}");
                                   },
                                 ),
                               ),

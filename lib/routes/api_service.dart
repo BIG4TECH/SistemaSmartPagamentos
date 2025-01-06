@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
 class ApiService {
-  final String baseUrl = "https://66a9-131-0-245-253.ngrok-free.app";
+  final String baseUrl = "https://4bda-131-0-245-253.ngrok-free.app";
   final Dio dio = Dio();
 
   Future<String?> iniciarSessaoWhatsapp(String emailUser) async {
