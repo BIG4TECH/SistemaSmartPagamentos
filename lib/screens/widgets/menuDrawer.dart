@@ -215,20 +215,7 @@ Widget menuDrawer(
                         email: email, idUser: idUser, tipoUser: tipoUser)));
           },
         ),
-        ListTile(
-          leading: Icon(Icons.qr_code, color: corPadrao()),
-          title: Text(
-            "Conectar Whatsapp",
-            style: TextStyle(fontSize: 16),
-          ),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ConfiguracaoWhatsApp(idUser)));
-          },
-        ),
+        
         ListTile(
           leading: Icon(Icons.monetization_on, color: corPadrao()),
           title: Text(
@@ -242,6 +229,21 @@ Widget menuDrawer(
                 MaterialPageRoute(
                     builder: (context) =>
                         RecebimentosRelatorio(email, idUser)));
+          },
+        ),
+        Divider(),
+        ListTile(
+          leading: Icon(Icons.settings, color: corPadrao()),
+          title: Text(
+            "Configurações",
+            style: TextStyle(fontSize: 16),
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ConfiguracaoWhatsApp(idUser)));
           },
         ),
       ],

@@ -60,6 +60,7 @@ dependencies:
   dio: ^5.7.0
   mockito: ^5.4.4
   build_runner: ^2.4.13
+  font_awesome_flutter: ^10.8.0
 
 dev_dependencies:
   flutter_test:

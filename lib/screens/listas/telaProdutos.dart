@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 //import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
-import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
+//import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 //import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 import 'package:smart_pagamento/screens/widgets/exibirLink.dart';
 
@@ -274,7 +274,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     //String valor =formatarNumero(product['price']);
 
                                     showLinkModal(context,
-                                        "https://4bda-131-0-245-253.ngrok-free.app/checkout/index.html?i=${product.id}");
+                                        "https://4bdav-131-0-245-253.ngrok-free.app/checkout/index.html?i=${product.id}");
                                   },
                                 ),
                               ),

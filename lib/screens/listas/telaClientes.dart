@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:smart_pagamento/routes/api_service.dart';
 import 'package:smart_pagamento/screens/widgets/cores.dart';
 import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
@@ -223,6 +224,48 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                 },
                               ),
                               */
+                              IconButton(
+                                icon: FaIcon(FontAwesomeIcons.solidPaperPlane),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text(
+                                          'Atenção!',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        content: Text(
+                                            'Deseja reenviar a mensagem de cobrança?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text('Cancelar'),
+                                          ),
+                                          TextButton(
+                                            style: TextButton.styleFrom(
+                                              backgroundColor: corPadrao(),
+                                            ),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text(
+                                              'Confirmar',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                              SizedBox(width: 10),
                               Container(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
@@ -239,8 +282,8 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                   onPressed: () async {
                                     List<Map<String, dynamic>> assinaturaId =
                                         await _getAssinaturas(cliente['email']);
-                                    _showProducts(
-                                        context, assinaturaId, cliente['email']);
+                                    _showProducts(context, assinaturaId,
+                                        cliente['email']);
                                   },
                                 ),
                               )
@@ -258,6 +301,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
       ),
     );
   }
+
   /*
   void _deleteCliente(String clienteId) async {
     final assinaturasSnapshot = await FirebaseFirestore.instance
@@ -294,7 +338,8 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
     }
   }
   */
-  Future<List<Map<String, dynamic>>> _getAssinaturas(String emailCliente) async {
+  Future<List<Map<String, dynamic>>> _getAssinaturas(
+      String emailCliente) async {
     final assinaturasSnapshot = await FirebaseFirestore.instance
         .collection('vendas')
         .where('id_cliente', isEqualTo: emailCliente)
