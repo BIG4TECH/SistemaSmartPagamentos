@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
-import 'package:smart_pagamento/screens/widgets/cores.dart';
-import 'package:smart_pagamento/screens/widgets/textfield.dart';
+import 'package:smart_pagamento/widgets/cores.dart';
+import 'package:smart_pagamento/widgets/textfield.dart';
 
 import 'telaLogin.dart';
 

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/screens/widgets/func.dart';
+import 'package:smart_pagamento/widgets/func.dart';
 
 import '/presentation/resources/app_resources.dart';
 import '/presentation/widgets/indicator.dart';

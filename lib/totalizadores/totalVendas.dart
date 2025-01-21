@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/screens/widgets/cores.dart';
-import 'package:smart_pagamento/screens/widgets/relatorios/venRelatorio.dart';
+import 'package:smart_pagamento/widgets/cores.dart';
+import 'package:smart_pagamento/widgets/relatorios/venRelatorio.dart';
 
 class TotalVendas extends StatefulWidget {
   final String email;

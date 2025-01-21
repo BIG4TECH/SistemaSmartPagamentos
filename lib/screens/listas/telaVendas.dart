@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 //import 'package:smart_pagamento/inutilizados/telaCadastroVenda.dart';
-import 'package:smart_pagamento/screens/widgets/cores.dart';
-import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
-import 'package:smart_pagamento/screens/widgets/func.dart';
+import 'package:smart_pagamento/widgets/cores.dart';
+import 'package:smart_pagamento/widgets/editarNumero.dart';
+import 'package:smart_pagamento/widgets/func.dart';
 
 class VendasListScreen extends StatefulWidget {
   final String? email;

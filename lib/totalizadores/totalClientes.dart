@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/screens/widgets/cores.dart';
-import 'package:smart_pagamento/screens/widgets/relatorios/cliRelatorio.dart';
+import 'package:smart_pagamento/widgets/cores.dart';
+import 'package:smart_pagamento/widgets/relatorios/cliRelatorio.dart';
 
 class TotalClientes extends StatefulWidget {
   final String email;

@@ -9,11 +9,11 @@ import 'package:smart_pagamento/screens/listas/telaFiliados.dart';
 //import 'package:smart_pagamento/screens/listas/telaFiliados.dart';
 import 'package:smart_pagamento/screens/listas/telaVendas.dart';
 import 'package:smart_pagamento/screens/recebimentos.dart';
-import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/widgets/cores.dart';
 import 'package:smart_pagamento/screens/wpp.dart';
 
-import '../cadastros/telaCadastroProduto.dart';
-import '../listas/telaProdutos.dart';
+import '../screens/cadastros/telaCadastroProduto.dart';
+import '../screens/listas/telaProdutos.dart';
 
 Widget menuDrawer(
     BuildContext context, String email, String tipoUser, String idUser) {

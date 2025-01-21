@@ -107,6 +107,55 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getMensagensPendentes(String afiliado) async {
+ 
+
+    try {
+      
+
+      final response = await dio.get(
+        '$baseUrl/mensagens-pendentes',
+        queryParameters: {'afiliado': afiliado},
+        options: Options(headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "4202@back",
+          "ngrok-skip-browser-warning": true
+        }),
+      );
+
+      
+
+      return _handleResponse(response);
+    } catch (e) {
+      print('Erro ao buscar mensagens pendentes: $e');
+      return {"error": e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> enviarMensagem(
+      String emailUser, String phoneNumber, String message) async {
+    try {
+      final response = await dio.post(
+        '$baseUrl/enviar-mensagem',
+        options: Options(headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "4202@back",
+          "ngrok-skip-browser-warning": true
+        }),
+        data: {
+          'email_user': emailUser,
+          'phoneNumber': phoneNumber,
+          'message': message,
+        },
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      print('Erro ao enviar mensagem: $e');
+      return {"error": e.toString()};
+    }
+  }
+
   Map<String, dynamic> _handleResponse(Response response) {
     if (response.statusCode! > 199 && response.statusCode! < 300) {
       print(response.data);

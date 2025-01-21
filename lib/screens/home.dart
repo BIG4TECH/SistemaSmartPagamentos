@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/widgets/cores.dart';
 import 'inicial/telaLogin.dart';
-import '/screens/widgets/menuDrawer.dart';
+import '../widgets/menuDrawer.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pagamento/charts/allCharts.dart';
 

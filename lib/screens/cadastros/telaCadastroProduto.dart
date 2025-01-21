@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:smart_pagamento/screens/widgets/cores.dart';
-import 'package:smart_pagamento/screens/widgets/textfield.dart';
+import 'package:smart_pagamento/widgets/cores.dart';
+import 'package:smart_pagamento/widgets/textfield.dart';
 
 class ProductRegisterScreen extends StatefulWidget {
   final String? productId;

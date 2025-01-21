@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/widgets/cores.dart';
 
 Widget textFormField(controller, label, keyboardType, validator) {
   return TextFormField(

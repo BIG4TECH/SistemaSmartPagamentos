@@ -3,8 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:smart_pagamento/routes/api_service.dart';
-import 'package:smart_pagamento/screens/widgets/cores.dart';
-import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
+import 'package:smart_pagamento/widgets/cores.dart';
+import 'package:smart_pagamento/widgets/editarNumero.dart';
+import 'package:smart_pagamento/widgets/showdialog.dart';
 
 class ClienteListScreen extends StatefulWidget {
   final String? email;
@@ -241,7 +242,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                         actions: [
                                           TextButton(
                                             onPressed: () {
-                                              Navigator.of(context).pop();
+                                              Navigator.pop(context);
                                             },
                                             child: Text('Cancelar'),
                                           ),
@@ -249,8 +250,117 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                             style: TextButton.styleFrom(
                                               backgroundColor: corPadrao(),
                                             ),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
+                                            onPressed: () async {
+                                              try {
+                                                print(
+                                                    'ID USER: ${widget.idUser}');
+                                                print('enviando requisição');
+
+                                                var response =
+                                                    await ApiService()
+                                                        .getMensagensPendentes(
+                                                            widget.idUser);
+
+                                                print(response);
+
+                                                if (response
+                                                    .containsKey('error')) {
+                                                  showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return AlertDialog(
+                                                        title: Text('Atenção!'),
+                                                        content: Text(
+                                                            'Não há mensagens pendentes.'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop();
+                                                            },
+                                                            child:
+                                                                Text('Fechar'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                } else {
+                                                  final mensagens =
+                                                      response['body']
+                                                          as List<dynamic>;
+
+                                                  print(
+                                                      'mensagens + $mensagens');
+
+                                                  if (mensagens.isEmpty) {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return AlertDialog(
+                                                          title:
+                                                              Text('Atenção!'),
+                                                          content: Text(
+                                                              'Não há mensagens pendentes.'),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                              },
+                                                              child: Text(
+                                                                  'Fechar'),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    );
+
+                                                    return;
+                                                  }
+
+                                                  for (var mensagem
+                                                      in mensagens) {
+                                                    if (mensagem['cliente'] ==
+                                                        cliente[
+                                                            'phone_number']) {
+                                                      await ApiService()
+                                                          .enviarMensagem(
+                                                        widget.idUser,
+                                                        mensagem['cliente'],
+                                                        mensagem['message'],
+                                                      );
+
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        const SnackBar(
+                                                            backgroundColor:
+                                                                Colors.green,
+                                                            content: Text(
+                                                              'Mensagens reenviadas com sucesso!',
+                                                              style: TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: Colors
+                                                                      .white),
+                                                            )),
+                                                      );
+                                                    }
+                                                  }
+
+                                                  Navigator.of(context).pop();
+                                                }
+                                              } catch (e) {
+                                                print(e);
+                                                Navigator.pop(context);
+                                                showDialogApi(context);
+                                              }
                                             },
                                             child: const Text(
                                               'Confirmar',

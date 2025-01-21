@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 //import 'package:smart_pagamento/classes/api_service.dart';
-import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/widgets/cores.dart';
 //import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
 //import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
-import 'package:smart_pagamento/screens/widgets/exibirLink.dart';
+import 'package:smart_pagamento/widgets/exibirLink.dart';
 
 class ProductListScreen extends StatefulWidget {
   final String? email;

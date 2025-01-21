@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:smart_pagamento/screens/widgets/cores.dart';
+import 'package:smart_pagamento/widgets/cores.dart';
 import 'package:http/http.dart' as http;
 //import 'package:smart_pagamento/totalizadores/totalVendidos.dart';
 
