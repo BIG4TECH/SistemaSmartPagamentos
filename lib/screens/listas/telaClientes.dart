@@ -69,7 +69,7 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     content: Text(
-                        'Deseja reenviar todas as mensagens de cobrança pendentes?'),
+                        'Deseja reenviar todas as mensagens de cobrança pendentes?\nMensagens pendentes: ${cliMensagens.length}'),
                     actions: [
                       TextButton(
                         onPressed: () {
