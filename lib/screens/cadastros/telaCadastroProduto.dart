@@ -322,7 +322,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
                                     fontWeight: FontWeight.bold),
                                 controller: _priceController,
                                 decoration: inputDec('Valor'),
-                                keyboardType: TextInputType.number,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: false),
                                 inputFormatters: <TextInputFormatter>[
                                   FilteringTextInputFormatter.allow(
                                       RegExp(r'^\d+\.?\d{0,2}')),
