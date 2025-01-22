@@ -235,12 +235,12 @@ class _ConfiguracaoWhatsAppState extends State<ConfiguracaoWhatsApp> {
         child: Scaffold(
             appBar: AppBar(
               iconTheme: const IconThemeData(color: Colors.white),
-              title: const Text(
+              title:  Text(
                 "Configurações",
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 38,
+                  fontSize: size.width <= 720 ? 24 : 38,
                 ),
               ),
               centerTitle: true,

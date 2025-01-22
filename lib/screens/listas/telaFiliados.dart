@@ -29,12 +29,12 @@ class _FiliadosScreenState extends State<FiliadosScreen> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
+        title: Text(
           'Meus Filiados',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
-            fontSize: 38,
+            fontSize: size.width <= 720 ? 24 : 38,
           ),
         ),
         centerTitle: true,

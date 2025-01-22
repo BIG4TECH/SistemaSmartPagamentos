@@ -22,7 +22,22 @@ class ClienteListScreen extends StatefulWidget {
 
 class _ClienteListScreenState extends State<ClienteListScreen> {
   String searchQuery = "";
-  //List _listProdutosEscolhidos = [];
+  List<dynamic> cliMensagens = [];
+
+  void mensagensPendentes() async {
+    var response = await ApiService().getMensagensPendentes(widget.idUser);
+
+    if (!response.containsKey('error')) {
+      setState(() {
+        cliMensagens = response['body'] as List<dynamic>;
+      });
+    }
+  }
+
+  initState() {
+    super.initState();
+    mensagensPendentes();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,20 +46,148 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
+        title: Text(
           'Meus Clientes',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
-            fontSize: 38,
+            fontSize: size.width <= 720 ? 24 : 38,
           ),
         ),
         centerTitle: true,
         backgroundColor: corPadrao(),
+        actions: [
+          IconButton(
+            icon: FaIcon(FontAwesomeIcons.solidPaperPlane, size: 18),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text(
+                      'Atenção!',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    content: Text(
+                        'Deseja reenviar todas as mensagens de cobrança pendentes?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text('Cancelar'),
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          backgroundColor: corPadrao(),
+                        ),
+                        onPressed: () async {
+                          try {
+                            var response = await ApiService()
+                                .getMensagensPendentes(widget.idUser);
+
+                            if (response.containsKey('error')) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text('Atenção!'),
+                                    content:
+                                        Text('Não há mensagens pendentes.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text('Fechar'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            } else {
+                              final mensagens =
+                                  response['body'] as List<dynamic>;
+
+                              print('mensagens + $mensagens');
+
+                              if (mensagens.isEmpty) {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('Atenção!'),
+                                      content:
+                                          Text('Não há mensagens pendentes.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('Fechar'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                return;
+                              }
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    backgroundColor:
+                                        Color.fromARGB(255, 248, 203, 0),
+                                    content: Text(
+                                      'Enviando mensagens... Permaneça na tela até a conclusão.',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    )),
+                              );
+
+                              for (var mensagem in mensagens) {
+                                await ApiService().enviarMensagem(
+                                  widget.idUser,
+                                  mensagem['cliente'],
+                                  mensagem['message'],
+                                );
+                              }
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    backgroundColor: Colors.green,
+                                    content: Text(
+                                      'Mensagens reenviadas com sucesso!',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    )),
+                              );
+                              Navigator.of(context).pop();
+                            }
+                          } catch (e) {
+                            print(e);
+                            Navigator.pop(context);
+                            showDialogApi(context);
+                          }
+                        },
+                        child: const Text(
+                          'Confirmar',
+                          style: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          )
+        ],
       ),
       body: Container(
         padding: size.width <= 720
-            ? const EdgeInsets.only(top: 40, left: 10, right: 10)
+            ? const EdgeInsets.only(top: 20, left: 10, right: 10)
             : const EdgeInsets.only(top: 40, left: 50, right: 50),
         child: Column(
           children: [
@@ -116,6 +259,14 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                     itemCount: clientes.length,
                     itemBuilder: (context, index) {
                       final cliente = clientes[index];
+                      bool temMensagemPendente = false;
+
+                      for (var mensagem in cliMensagens) {
+                        if (mensagem['cliente'] == cliente['phone_number']) {
+                          temMensagemPendente = true;
+                          break;
+                        }
+                      }
 
                       return Card(
                         shape: RoundedRectangleBorder(
@@ -225,156 +376,167 @@ class _ClienteListScreenState extends State<ClienteListScreen> {
                                 },
                               ),
                               */
-                              IconButton(
-                                icon: FaIcon(FontAwesomeIcons.solidPaperPlane),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: const Text(
-                                          'Atenção!',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        content: Text(
-                                            'Deseja reenviar a mensagem de cobrança?'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: Text('Cancelar'),
-                                          ),
-                                          TextButton(
-                                            style: TextButton.styleFrom(
-                                              backgroundColor: corPadrao(),
-                                            ),
-                                            onPressed: () async {
-                                              try {
-                                                print(
-                                                    'ID USER: ${widget.idUser}');
-                                                print('enviando requisição');
+                              temMensagemPendente
+                                  ? IconButton(
+                                      icon: FaIcon(
+                                          FontAwesomeIcons.solidPaperPlane),
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: const Text(
+                                                'Atenção!',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              content: Text(
+                                                  'Deseja reenviar a mensagem de cobrança?'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: Text('Cancelar'),
+                                                ),
+                                                TextButton(
+                                                  style: TextButton.styleFrom(
+                                                    backgroundColor:
+                                                        corPadrao(),
+                                                  ),
+                                                  onPressed: () async {
+                                                    try {
+                                                      var response =
+                                                          await ApiService()
+                                                              .getMensagensPendentes(
+                                                                  widget
+                                                                      .idUser);
 
-                                                var response =
-                                                    await ApiService()
-                                                        .getMensagensPendentes(
-                                                            widget.idUser);
-
-                                                print(response);
-
-                                                if (response
-                                                    .containsKey('error')) {
-                                                  showDialog(
-                                                    context: context,
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return AlertDialog(
-                                                        title: Text('Atenção!'),
-                                                        content: Text(
-                                                            'Não há mensagens pendentes.'),
-                                                        actions: [
-                                                          TextButton(
-                                                            onPressed: () {
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop();
-                                                            },
-                                                            child:
-                                                                Text('Fechar'),
-                                                          ),
-                                                        ],
-                                                      );
-                                                    },
-                                                  );
-                                                } else {
-                                                  final mensagens =
-                                                      response['body']
-                                                          as List<dynamic>;
-
-                                                  print(
-                                                      'mensagens + $mensagens');
-
-                                                  if (mensagens.isEmpty) {
-                                                    showDialog(
-                                                      context: context,
-                                                      builder: (BuildContext
-                                                          context) {
-                                                        return AlertDialog(
-                                                          title:
-                                                              Text('Atenção!'),
-                                                          content: Text(
-                                                              'Não há mensagens pendentes.'),
-                                                          actions: [
-                                                            TextButton(
-                                                              onPressed: () {
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop();
-                                                              },
-                                                              child: Text(
-                                                                  'Fechar'),
-                                                            ),
-                                                          ],
+                                                      if (response.containsKey(
+                                                          'error')) {
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (BuildContext
+                                                              context) {
+                                                            return AlertDialog(
+                                                              title: Text(
+                                                                  'Atenção!'),
+                                                              content: Text(
+                                                                  'Não há mensagens pendentes.'),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed:
+                                                                      () {
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop();
+                                                                  },
+                                                                  child: Text(
+                                                                      'Fechar'),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
                                                         );
-                                                      },
-                                                    );
+                                                      } else {
+                                                        final mensagens =
+                                                            response['body']
+                                                                as List<
+                                                                    dynamic>;
 
-                                                    return;
-                                                  }
+                                                        print(
+                                                            'mensagens + $mensagens');
 
-                                                  for (var mensagem
-                                                      in mensagens) {
-                                                    if (mensagem['cliente'] ==
-                                                        cliente[
-                                                            'phone_number']) {
-                                                      await ApiService()
-                                                          .enviarMensagem(
-                                                        widget.idUser,
-                                                        mensagem['cliente'],
-                                                        mensagem['message'],
-                                                      );
+                                                        if (mensagens.isEmpty) {
+                                                          showDialog(
+                                                            context: context,
+                                                            builder:
+                                                                (BuildContext
+                                                                    context) {
+                                                              return AlertDialog(
+                                                                title: Text(
+                                                                    'Atenção!'),
+                                                                content: Text(
+                                                                    'Não há mensagens pendentes.'),
+                                                                actions: [
+                                                                  TextButton(
+                                                                    onPressed:
+                                                                        () {
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop();
+                                                                    },
+                                                                    child: Text(
+                                                                        'Fechar'),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
 
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .showSnackBar(
-                                                        const SnackBar(
-                                                            backgroundColor:
-                                                                Colors.green,
-                                                            content: Text(
-                                                              'Mensagens reenviadas com sucesso!',
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Colors
-                                                                      .white),
-                                                            )),
-                                                      );
+                                                          return;
+                                                        }
+
+                                                        for (var mensagem
+                                                            in mensagens) {
+                                                          if (mensagem[
+                                                                  'cliente'] ==
+                                                              cliente[
+                                                                  'phone_number']) {
+                                                            await ApiService()
+                                                                .enviarMensagem(
+                                                              widget.idUser,
+                                                              mensagem[
+                                                                  'cliente'],
+                                                              mensagem[
+                                                                  'message'],
+                                                            );
+
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                              const SnackBar(
+                                                                  backgroundColor:
+                                                                      Colors
+                                                                          .green,
+                                                                  content: Text(
+                                                                    'Mensagens reenviadas com sucesso!',
+                                                                    style: TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .bold,
+                                                                        color: Colors
+                                                                            .white),
+                                                                  )),
+                                                            );
+                                                          }
+                                                        }
+
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      }
+                                                    } catch (e) {
+                                                      print(e);
+                                                      Navigator.pop(context);
+                                                      showDialogApi(context);
                                                     }
-                                                  }
-
-                                                  Navigator.of(context).pop();
-                                                }
-                                              } catch (e) {
-                                                print(e);
-                                                Navigator.pop(context);
-                                                showDialogApi(context);
-                                              }
-                                            },
-                                            child: const Text(
-                                              'Confirmar',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
+                                                  },
+                                                  child: const Text(
+                                                    'Confirmar',
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      },
+                                    )
+                                  : const SizedBox(),
                               SizedBox(width: 10),
                               Container(
                                 decoration: BoxDecoration(

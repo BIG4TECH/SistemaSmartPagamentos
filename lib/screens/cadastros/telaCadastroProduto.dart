@@ -265,7 +265,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 38,
+                fontSize: size.width <= 720 ? 24 : 38,
               )),
           iconTheme: IconThemeData(color: Colors.white),
           centerTitle: true,

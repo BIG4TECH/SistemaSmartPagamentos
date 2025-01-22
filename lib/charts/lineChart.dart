@@ -1,9 +1,10 @@
 import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:smart_pagamento/widgets/func.dart';
+
 import '/presentation/resources/app_resources.dart';
 import '/presentation/widgets/indicator.dart';
 
@@ -85,7 +86,7 @@ class LineChartSample1State extends State<LineChartSample1> {
           try {
             DateTime dataVenda =
                 extractDateBeforeT(docvenda['first_execution']);
-            
+
             if (dataVenda.isAfter(
                     firstDayOfMonth.subtract(const Duration(days: 1))) &&
                 dataVenda
@@ -272,9 +273,9 @@ class LineChartSample1State extends State<LineChartSample1> {
               ),
               Text(
                 'Quantidade por Dia (${data.month}/${data.year})',
-                style:  TextStyle(
+                style: TextStyle(
                   color: const Color.fromARGB(255, 0, 10, 12),
-                  fontSize: size.width <= 720 ? 28 : 32,
+                  fontSize: size.width <= 720 ? 24 : 32,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2,
                 ),
@@ -285,15 +286,15 @@ class LineChartSample1State extends State<LineChartSample1> {
               ),
               size.width <= 720
                   ? const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Indicator(
-                            color: AppColors.contentColorPurple,
-                            text: 'Vendas Efetuadas',
-                            isSquare: true,
-                          ),
-                          /*
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Indicator(
+                          color: AppColors.contentColorPurple,
+                          text: 'Vendas Efetuadas',
+                          isSquare: true,
+                        ),
+                        /*
                         SizedBox(
                           width: 24,
                         ),
@@ -312,12 +313,10 @@ class LineChartSample1State extends State<LineChartSample1> {
                           text: 'Clientes Registrados',
                           isSquare: true,
                         ),*/
-                        ],
-                      )
-                    
+                      ],
+                    )
                   : const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      
                       children: [
                         Indicator(
                           color: AppColors.contentColorPurple,

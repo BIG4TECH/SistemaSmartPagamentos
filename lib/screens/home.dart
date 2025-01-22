@@ -58,6 +58,8 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+
     if (isLoading) {
       return Scaffold(
         body: Center(
@@ -72,7 +74,7 @@ class _HomeState extends State<Home> {
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
-              fontSize: 38,
+              fontSize: size.width <= 720 ? 24 : 38,
             )),
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,

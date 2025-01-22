@@ -30,11 +30,11 @@ class _VendasListScreenState extends State<VendasListScreen> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Histórico de Vendas',
+        title: Text('Histórico de Vendas',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
-              fontSize: 38,
+              fontSize: size.width <= 720 ? 24 : 38,
             )),
         centerTitle: true,
         backgroundColor: corPadrao(),
