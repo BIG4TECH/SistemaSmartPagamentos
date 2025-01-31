@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 //import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/widgets/cores.dart';
@@ -21,6 +22,17 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   String searchQuery = "";
+  String link = '';
+
+  Future<void> _getLink() async {
+    link = await FirebaseFirestore.instance.collection('link').doc('link').get().then((value) => value['link']);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getLink();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -274,7 +286,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     //String valor =formatarNumero(product['price']);
 
                                     showLinkModal(context,
-                                        "https://4bda-131-0-245-253.ngrok-free.app/checkout/index.html?i=${product.id}");
+                                        "$link/checkout/index.html?i=${product.id}");
                                   },
                                 ),
                               ),

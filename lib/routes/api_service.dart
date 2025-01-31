@@ -1,11 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class ApiService {
-  final String baseUrl = "https://4bda-131-0-245-253.ngrok-free.app";
   final Dio dio = Dio();
 
   Future<String?> iniciarSessaoWhatsapp(String emailUser) async {
     try {
+      final String baseUrl = await FirebaseFirestore.instance
+          .collection('link')
+          .doc('link')
+          .get()
+          .then((value) => value['link']);
+
       final response = await dio.post(
         '$baseUrl/whatsapp',
         options: Options(headers: {
@@ -34,6 +41,12 @@ class ApiService {
 
   Future<Map<String, dynamic>> verificarStatusWhatsApp(String emailUser) async {
     try {
+      final String baseUrl = await FirebaseFirestore.instance
+          .collection('link')
+          .doc('link')
+          .get()
+          .then((value) => value['link']);
+
       final response = await dio.get(
         '$baseUrl/whatsapp/status',
         queryParameters: {'email_user': emailUser},
@@ -52,6 +65,12 @@ class ApiService {
 
   Future<Map<String, dynamic>> cancelarAssinatura(int id) async {
     try {
+      final String baseUrl = await FirebaseFirestore.instance
+          .collection('link')
+          .doc('link')
+          .get()
+          .then((value) => value['link']);
+
       final response = await dio.post(
         '$baseUrl/cancelar-assinatura',
         options: Options(headers: {
@@ -72,6 +91,12 @@ class ApiService {
   Future<Map<String, dynamic>> criarPlano(
       String name, String recurrencePeriod) async {
     try {
+      final String baseUrl = await FirebaseFirestore.instance
+          .collection('link')
+          .doc('link')
+          .get()
+          .then((value) => value['link']);
+
       final response = await dio.post(
         '$baseUrl/criar-plano',
         options: Options(headers: {
@@ -90,6 +115,12 @@ class ApiService {
 
   Future<Map<String, dynamic>> deletarPlano(int id) async {
     try {
+      final String baseUrl = await FirebaseFirestore.instance
+          .collection('link')
+          .doc('link')
+          .get()
+          .then((value) => value['link']);
+
       final response = await dio.post(
         '$baseUrl/deletar-plano',
         options: Options(headers: {
@@ -108,10 +139,12 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getMensagensPendentes(String afiliado) async {
- 
-
     try {
-      
+      final String baseUrl = await FirebaseFirestore.instance
+          .collection('link')
+          .doc('link')
+          .get()
+          .then((value) => value['link']);
 
       final response = await dio.get(
         '$baseUrl/mensagens-pendentes',
@@ -123,8 +156,6 @@ class ApiService {
         }),
       );
 
-      
-
       return _handleResponse(response);
     } catch (e) {
       print('Erro ao buscar mensagens pendentes: $e');
@@ -135,6 +166,12 @@ class ApiService {
   Future<Map<String, dynamic>> enviarMensagem(
       String emailUser, String phoneNumber, String message) async {
     try {
+      final String baseUrl = await FirebaseFirestore.instance
+          .collection('link')
+          .doc('link')
+          .get()
+          .then((value) => value['link']);
+          
       final response = await dio.post(
         '$baseUrl/enviar-mensagem',
         options: Options(headers: {
