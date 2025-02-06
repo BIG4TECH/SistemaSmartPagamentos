@@ -22,6 +22,7 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
   List<Map<String, dynamic>> recebimentos = [];
   double totalValor = 0.0;
   List<String> _listProdutoDrop = [];
+  List<String> _listAllProdutoDrop = [];
   String? _dadosProduto;
   String _idProduto = '';
   final NumberFormat currencyFormat =
@@ -36,6 +37,24 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
   }
 
   Future<List<String>> _setListProduto() async {
+    var produtos = await FirebaseFirestore.instance
+        .collection('products')
+        .where('status', isEqualTo: 'ativo')
+        .get();
+
+    return produtos.docs.map((doc) {
+      return '${doc['name']}-${doc.id}';
+    }).toList();
+  }
+
+  Future<void> _fetchAllProdutoName() async {
+    List<String> produtos = await _setAllListProduto();
+    setState(() {
+      _listAllProdutoDrop = produtos;
+    });
+  }
+
+  Future<List<String>> _setAllListProduto() async {
     var produtos = await FirebaseFirestore.instance
         .collection('products')
         .where('status', isEqualTo: 'ativo')
@@ -133,10 +152,22 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
             break;
         }
 
-        String dataUltimoPagamentoString = venda['first_execution'];
+        String dataUltimoPagamentoString = venda['first_execution'] ?? '';
 
-        DateTime dataUltimoPagamento =
-            DateTime.parse(dataUltimoPagamentoString);
+        DateTime? dataUltimoPagamento;
+        if (dataUltimoPagamentoString.isNotEmpty) {
+          try {
+            dataUltimoPagamento = DateTime.parse(dataUltimoPagamentoString);
+          } catch (e) {
+            print('Erro ao converter data: $dataUltimoPagamentoString - $e');
+            dataUltimoPagamento = null;
+          }
+        } else {
+          print('first_execution está vazio!');
+        }
+
+        if (dataUltimoPagamento == null)
+          return; // Evita erro se a conversão falhar
 
         DateTime? dataRecebimento;
 
@@ -241,6 +272,7 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
     super.initState();
 
     _fetchProdutoName();
+    _fetchAllProdutoName();
 
     selectedDateRange = DateTimeRange(
       start: DateTime.now(),
@@ -308,12 +340,18 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
                       ),
                     ),
                     onChanged: (String? prodSelecionado) async {
-                      setState(() {
-                        _dadosProduto = prodSelecionado!.split('-')[0];
-                        _idProduto = prodSelecionado.split('-')[1];
-                      });
+                      if (prodSelecionado != null) {
+                        List<String> partes = prodSelecionado.split('-');
 
-                      setState(() {});
+                        setState(() {
+                          _dadosProduto = partes[0];
+                          _idProduto = partes.length > 1
+                              ? partes[1]
+                              : ''; // Evita erro de índice
+                        });
+
+                        _fetchRecebimentos();
+                      }
                     },
                     selectedItem: _dadosProduto,
                   ),
@@ -370,16 +408,27 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
                         recebimento['payment'] == 'banking_billet'
                             ? 'Boleto/Pix'
                             : 'Cartão';
+                    String produtoNome = '';
+
+                    for (var produto in _listProdutoDrop) {
+                      if (produto.split('-')[1] == _idProduto) {
+                        produtoNome = produto.split('-')[0];
+                      }
+                    }
+
                     return Card(
                       child: ListTile(
                         title: Text(
-                            "Valor: R\$ ${formatWithComma(int.parse(valor.toString()))}"),
+                            "Valor: R\$ ${formatWithComma(int.parse(valor.toString()))}",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text("Cliente: ${recebimento['name']}"),
-                            //Text("Produto: ${recebimento['nome_produto']}"),
                             Text("Pagamento: $formaPagamento"),
+                            Text(
+                                "Vencimento: ${DateTime.parse(recebimento['first_execution']).day}/${DateTime.parse(recebimento['first_execution']).month}/${DateTime.parse(recebimento['first_execution']).year}"),
+                            Text('Produto: $produtoNome'),
                           ],
                         ),
                       ),
