@@ -19,7 +19,7 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
-  String _recurrencePeriod = 'Mensal';
+  String _recurrencePeriod = 'mensal';
   bool _isLoading = false;
   //late int _planId;
   bool _isDollar = false;
@@ -29,13 +29,13 @@ class _ProductRegisterScreenState extends State<ProductRegisterScreen> {
   bool _isBoletoSelected = false;
 
   final List<RecurrencePeriod> recurrencePeriods = [
-    RecurrencePeriod(0.25, 'Semanal'),
-    RecurrencePeriod(0.5, 'Quinzenal'),
-    RecurrencePeriod(1, 'Mensal'),
-    RecurrencePeriod(2, 'Bimestral'),
-    RecurrencePeriod(3, 'Trimestral'),
-    RecurrencePeriod(6, 'Semestral'),
-    RecurrencePeriod(12, 'Anual'),
+    RecurrencePeriod(0.25, 'semanal'),
+    RecurrencePeriod(0.5, 'quinzenal'),
+    RecurrencePeriod(1, 'mensal'),
+    RecurrencePeriod(2, 'bimestral'),
+    RecurrencePeriod(3, 'trimestral'),
+    RecurrencePeriod(6, 'semestral'),
+    RecurrencePeriod(12, 'anual'),
   ];
 
   @override

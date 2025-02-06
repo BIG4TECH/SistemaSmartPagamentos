@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_pagamento/screens/cadastros/telaCadastroProduto.dart';
 //import 'package:smart_pagamento/classes/api_service.dart';
 import 'package:smart_pagamento/widgets/cores.dart';
 //import 'package:smart_pagamento/screens/widgets/editarNumero.dart';
@@ -25,7 +26,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
   String link = '';
 
   Future<void> _getLink() async {
-    link = await FirebaseFirestore.instance.collection('link').doc('link').get().then((value) => value['link']);
+    link = await FirebaseFirestore.instance
+        .collection('link')
+        .doc('link')
+        .get()
+        .then((value) => value['link']);
   }
 
   @override
@@ -41,7 +46,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title:  Text('Meus Produtos',
+        title: Text('Meus Produtos',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -179,7 +184,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              /*
                               IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () {
@@ -187,15 +191,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     MaterialPageRoute(
                                       builder: (context) =>
                                           ProductRegisterScreen(
-                                        productId: product.id,
-                                        idUser: widget.idUser,
-                                      ),
+                                            productId: product.id,
+                                            idUser: widget.idUser,
+                                          ),
                                     ),
                                   );
                                 },
                               ),
-                              */
-
                               IconButton(
                                 icon: const Icon(Icons.delete),
                                 onPressed: () {
