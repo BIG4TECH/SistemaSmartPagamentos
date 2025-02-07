@@ -6,7 +6,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:smart_pagamento/widgets/cores.dart';
-import 'package:smart_pagamento/widgets/editarNumero.dart';
 
 class RecebimentosRelatorio extends StatefulWidget {
   final String email;
@@ -28,6 +27,7 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
   final NumberFormat currencyFormat =
       NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy', 'pt_BR');
+  bool _isLoading = false;
 
   Future<void> _fetchProdutoName() async {
     List<String> produtos = await _setListProduto();
@@ -57,7 +57,7 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
   Future<List<String>> _setAllListProduto() async {
     var produtos = await FirebaseFirestore.instance
         .collection('products')
-        .where('status', isEqualTo: 'ativo')
+        //.where('status', isEqualTo: 'ativo')
         .get();
 
     return produtos.docs.map((doc) {
@@ -81,6 +81,11 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
   }
 
   Future<void> _fetchRecebimentos() async {
+    setState(() {
+      totalValor = 0.0;
+      _isLoading = true;
+    });
+
     try {
       print('CHEGOU NO RECEBIMENTOS');
 
@@ -155,6 +160,7 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
         String dataUltimoPagamentoString = venda['first_execution'] ?? '';
 
         DateTime? dataUltimoPagamento;
+
         if (dataUltimoPagamentoString.isNotEmpty) {
           try {
             dataUltimoPagamento = DateTime.parse(dataUltimoPagamentoString);
@@ -226,6 +232,10 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
     } catch (e) {
       print(e);
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _generatePDF() async {
@@ -311,26 +321,41 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
               ? const EdgeInsets.only(top: 40, left: 10, right: 10)
               : const EdgeInsets.only(top: 40, left: 50, right: 50),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [
-                TextButton(
-                  onPressed: () => _pickDateRange(context),
-                  child: Text(
-                    selectedDateRange == null
-                        ? 'Selecione o Período'
-                        : 'Período: ${dateFormat.format(selectedDateRange!.start)} - ${dateFormat.format(selectedDateRange!.end)}',
-                    style: TextStyle(fontSize: 16, color: Colors.blue),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () => _pickDateRange(context),
+                    child: Text(
+                      selectedDateRange == null
+                          ? 'Selecione o Período'
+                          : 'Período: ${dateFormat.format(selectedDateRange!.start)} - ${dateFormat.format(selectedDateRange!.end)}',
+                      style: TextStyle(
+                          fontSize: size.width <= 720 ? size.width * 0.03 : 20,
+                          color: corPadrao()),
+                    ),
                   ),
-                ),
+                  const Spacer(),
+                  if (totalValor > 0)
+                    Text(
+                      "Total: R\$ ${totalValor.toString()}",
+                      style: TextStyle(
+                          fontSize: size.width <= 720 ? size.width * 0.03 : 20,
+                          fontWeight: FontWeight.bold),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 5),
+              Row(children: [
                 Expanded(
                   child: DropdownSearch<String>(
                     popupProps: const PopupProps.menu(
                       showSelectedItems: true,
                       showSearchBox: true,
                     ),
-                    items: _listProdutoDrop
-                        .map((String item) => item.split('-')[0])
-                        .toList(),
+                    items: _listProdutoDrop,
+                    itemAsString: (String item) => item.split('-')[0],
                     dropdownDecoratorProps: const DropDownDecoratorProps(
                       dropdownSearchDecoration: InputDecoration(
                         labelText: "Selecione um produto",
@@ -345,9 +370,7 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
 
                         setState(() {
                           _dadosProduto = partes[0];
-                          _idProduto = partes.length > 1
-                              ? partes[1]
-                              : ''; // Evita erro de índice
+                          _idProduto = partes[1]; // Evita erro de índice
                         });
 
                         _fetchRecebimentos();
@@ -396,60 +419,59 @@ class _RecebimentosRelatorioState extends State<RecebimentosRelatorio> {
                   ),
                 ),
               ]),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: recebimentos.length,
-                  itemBuilder: (context, index) {
-                    final recebimento = recebimentos[index];
-                    double valor = recebimento['total'] is String
-                        ? double.tryParse(recebimento['total']) ?? 0.0
-                        : (recebimento['total'] as num).toDouble();
-                    String formaPagamento =
-                        recebimento['payment'] == 'banking_billet'
-                            ? 'Boleto/Pix'
-                            : 'Cartão';
-                    String produtoNome = '';
+              SizedBox(height: 20),
+              _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                      color: corPadrao(),
+                    ))
+                  : Expanded(
+                      child: ListView.builder(
+                        itemCount: recebimentos.length,
+                        itemBuilder: (context, index) {
+                          final recebimento = recebimentos[index];
+                          double valor = recebimento['total'] is String
+                              ? double.tryParse(recebimento['total']) ?? 0.0
+                              : (recebimento['total'] as num).toDouble();
+                          String formaPagamento =
+                              recebimento['payment'] == 'banking_billet'
+                                  ? 'Boleto/Pix'
+                                  : 'Cartão';
 
-                    for (var produto in _listProdutoDrop) {
-                      if (produto.split('-')[1] == _idProduto) {
-                        produtoNome = produto.split('-')[0];
-                      }
-                    }
+                          String produtoNome = '';
 
-                    return Card(
-                      child: ListTile(
-                        title: Text(
-                            "Valor: R\$ ${formatWithComma(int.parse(valor.toString()))}",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Cliente: ${recebimento['name']}"),
-                            Text("Pagamento: $formaPagamento"),
-                            Text(
-                                "Vencimento: ${DateTime.parse(recebimento['first_execution']).day}/${DateTime.parse(recebimento['first_execution']).month}/${DateTime.parse(recebimento['first_execution']).year}"),
-                            Text('Produto: $produtoNome'),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              if (totalValor > 0)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "Total: R\$ ${formatWithComma(int.parse(totalValor.toString()))}",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                          for (var produto in _listAllProdutoDrop) {
+                          
+
+                            if (produto.split('-')[1] == recebimento['plan']) {
+                              print('CHEGOU');
+                              produtoNome = produto.split('-')[0];
+                            }
+                          }
+
+                          String vencimento =
+                              "Vencimento: ${DateTime.parse(recebimento['endDate']).day}/${DateTime.parse(recebimento['endDate']).month}/${DateTime.parse(recebimento['endDate']).year}";
+
+                          return Card(
+                            child: ListTile(
+                              title: Text("Valor: R\$ ${valor.toString()}",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Cliente: ${recebimento['name']}"),
+                                  Text("Pagamento: $formaPagamento"),
+                                  Text(vencimento),
+                                  Text('Produto: $produtoNome'),
+                                  
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  ),
-                ),
             ],
           ),
         ));
